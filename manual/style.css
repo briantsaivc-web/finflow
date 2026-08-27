@@ -1,0 +1,33 @@
+@page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+*{ box-sizing:border-box; }
+body{ font-family:"Noto Sans CJK TC","Noto Sans TC",sans-serif; font-size:10.4pt; line-height:1.56;
+  color:#1d2733; margin:0; }
+h1{ font-size:21pt; margin:0 0 2mm; letter-spacing:.02em; }
+h2{ font-size:13.5pt; margin:5.6mm 0 2.2mm; padding:1.2mm 3mm; background:#f3ede0;
+  border-left:4.5pt solid #b98a2e; border-radius:0 2mm 2mm 0; page-break-after:avoid; }
+h3{ font-size:11.5pt; margin:4.5mm 0 1.5mm; color:#7a5a14; page-break-after:avoid; }
+p{ margin:1.2mm 0 2.2mm; }
+table{ border-collapse:collapse; width:100%; margin:2mm 0 3mm; font-size:9.8pt; page-break-inside:avoid; }
+th{ background:#2b3a4e; color:#fff; font-weight:700; padding:1.4mm 2.2mm; text-align:left; }
+td{ border:0.4pt solid #c9c2b2; padding:1.3mm 2.2mm; vertical-align:top; }
+tr:nth-child(even) td{ background:#faf7ef; }
+.cover{ text-align:center; padding-top:8mm; }
+.cover .sub{ color:#6b7686; font-size:11pt; margin-bottom:6mm; }
+.tag{ display:inline-block; background:#b98a2e; color:#fff; border-radius:99px;
+  padding:0.6mm 4mm; font-size:9.5pt; font-weight:700; margin:0 1mm; }
+.box{ border:0.5pt solid #d8cfb8; background:#fbf8f0; border-radius:2mm; padding:2.5mm 3.5mm; margin:2.5mm 0; page-break-inside:avoid; }
+.box.warn{ border-color:#d9a58a; background:#fdf3ec; }
+.box b.t{ color:#7a5a14; }
+.tip{ border-left:3.5pt solid #2e8b6e; background:#eef7f2; padding:1.7mm 3.5mm; margin:2mm 0; border-radius:0 2mm 2mm 0; page-break-inside:avoid; }
+.kbd{ display:inline-block; border:0.5pt solid #a9b2bd; border-radius:1.2mm; background:#f2f4f7;
+  padding:0 1.8mm; font-size:9.3pt; font-weight:700; }
+.num{ font-variant-numeric:tabular-nums; }
+.small{ font-size:9pt; color:#6b7686; }
+.pagebreak{ page-break-before:always; }
+ol,ul{ margin:1mm 0 2.5mm; padding-left:6mm; }
+li{ margin:0.8mm 0; }
+.steps li{ margin:1.3mm 0; }
+.two{ display:flex; gap:5mm; } .two>div{ flex:1; }
+.foot{ color:#9aa3ae; font-size:8.5pt; text-align:center; margin-top:6mm; }
+.toc td{ border:none; padding:0.7mm 2mm; background:#fff !important; }
+.sec-no{ color:#b98a2e; font-weight:800; }

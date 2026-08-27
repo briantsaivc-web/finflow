@@ -1,0 +1,15 @@
+# 測試產物（由 tests/extract.py 產生）
+tests/test_engine.js
+tests/test_content.json
+
+# 煙霧測試截圖
+*.png
+!manual/*.png
+
+# Node
+node_modules/
+package-lock.json
+
+# 系統
+.DS_Store
+Thumbs.db
