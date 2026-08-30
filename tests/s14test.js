@@ -144,20 +144,26 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       if(!ov||!ov.querySelector('svg')) throw new Error('沒開到單檔面板');
       close();
     });
-    step('非回合可買：商城在別人回合也能下手', ()=>{
+    /* 【S19 契約變更】S14a 開放「非回合也能逛商城買東西」，三人實測回饋是
+       「別人的輪次應該只能看不能買」，而且非回合買會繞過每回合上限（同一輪買到兩件）。
+       現在預設：商城照樣打得開（可以先研究），但買鈕停用並說明原因。
+       開關 mallOffTurnBuy=1 可回到 S14a～S18 的行為。 */
+    step('非回合只能看不能買（S19：商城打得開、買鈕停用）', ()=>{
       S.activePlayerIdx=1; ui.render();
       const bm=document.getElementById('btnMall');
-      if(bm.disabled) throw new Error('商城鈕在別人回合被停用了');
+      if(bm.disabled) throw new Error('商城鈕不該停用——別人的回合仍要能打開來研究');
       ui.showMall();
       const ov=[...document.querySelectorAll('#overlays .overlay')].pop();
       if(!ov) throw new Error('商城沒打開');
       const items=[...ov.querySelectorAll('button.mallItem')];
       if(!items.length) throw new Error('商城沒有商品');
       const buyable=items.filter(x=>!x.disabled);
-      if(!buyable.length) throw new Error('非回合時應該還是買得到（買不到的只該是買不起／已擁有／冷卻中）');
-      if(!/不必等自己的回合/.test(ov.textContent)) throw new Error('沒告訴玩家不用等回合');
+      if(buyable.length) throw new Error('別人的回合不該有任何一件買得下去，實得 '+buyable.length+' 件');
+      if(!/只能看/.test(ov.textContent)) throw new Error('沒告訴玩家現在只能看');
+      const why=items[0].title||'';
+      if(!/等輪到你/.test(why)) throw new Error('停用理由沒說清楚，實得：'+why);
       close(); S.activePlayerIdx=0; ui.render();
-      return buyable.length+'/'+items.length+' 件可買';
+      return items.length+' 件全部停用，理由：'+why;
     });
     step('非回合：股票買賣停用、定期定額可設定', ()=>{
       S.activePlayerIdx=1; ui.render();
