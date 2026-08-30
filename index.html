@@ -261,20 +261,31 @@ button{font-family:inherit;font-size:inherit;color:inherit;background:none;borde
 @keyframes shake{0%,100%{transform:none}25%{transform:rotate(-13deg) scale(1.08)}75%{transform:rotate(13deg) scale(1.08)}}
 
 /* ===================== S20：互動教學的熱點層 =========================== */
+/* 擋點層：教學裡的示範盤面是「靜態展示」，不該被點動。
+   沒有這層的話，玩家點一下擲骰，示範局就會真的往前跑，
+   說明卡講第 5 格、畫面卻換成別的面板——框跟內容就對不起來了。 */
+#tutShield{position:fixed;inset:0;z-index:875;background:transparent}
 #tutLayer{position:fixed;inset:0;z-index:880;pointer-events:none}
 #tutLayer>*{pointer-events:auto}
-/* 高亮框：把被說明的那一塊圈起來。
-   注意：把畫面壓暗的那層 box-shadow 只能用在「一次只圈一塊」的導覽模式——
-   自由模式同時圈 15 塊，遮罩會疊加成全黑（實測踩過）。 */
+/* 高亮框：把被說明的那一塊圈起來。被選中的那塊維持原樣，只加金邊與外光暈。
+   S20b：原本用 box-shadow 0 0 0 9999px 壓暗全螢幕——兩個問題：
+   （a）深色主題再壓暗 55% 幾乎看不出差別，看起來像整面都灰掉；
+   （b）自由模式同時圈 15 塊時遮罩疊加成全黑（實測踩過）。
+   改用 .tutMask 四片挖洞式遮罩，見下。 */
 .tutRing{border:1.5px solid rgba(242,193,78,.55);border-radius:10px;pointer-events:none}
 .tutRing.solo{border-width:2px;border-color:var(--gold);
-  box-shadow:0 0 0 9999px rgba(6,10,16,.55), 0 0 18px rgba(242,193,78,.5)}
+  box-shadow:0 0 18px rgba(242,193,78,.55)}
+/* 遮罩：焦點框的上／下／左／右四片，中間留洞——被選中的區塊完全不蓋，內容正常；
+   其餘去彩度＋壓暗，才看得出「只有這一區是重點」。四片互不重疊，不會疊黑。 */
+.tutMask{background:rgba(12,16,22,.55);pointer-events:none;
+  -webkit-backdrop-filter:grayscale(1) brightness(.6);backdrop-filter:grayscale(1) brightness(.6)}
 /* 編號圓點：iPad 沒有 hover，一律用看得見、點得到的圓點當觸控目標 */
 .tutPin{width:26px;height:26px;border-radius:50%;border:2px solid #1A1206;
   background:linear-gradient(180deg,var(--gold),#D9A72F);color:#1A1206;
   font-weight:900;font-size:13px;line-height:1;cursor:pointer;
   display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.6);padding:0}
 .tutPin:active{transform:scale(.92)}
+.tutPin.on{box-shadow:0 0 0 3px rgba(242,193,78,.35),0 3px 10px rgba(0,0,0,.6)}
 /* 說明卡：三段，每段一句話 */
 .tutCard{position:fixed;width:min(330px,80vw);background:var(--panel);
   border:1px solid var(--gold-d);border-radius:12px;padding:11px 13px;
@@ -289,11 +300,14 @@ button{font-family:inherit;font-size:inherit;color:inherit;background:none;borde
 .tutCard .row .v{color:var(--tx2)}
 .tutCard .row.warn .k{color:#F2C14E}
 .tutCard .row.warn .v{color:#F4D48A}
+/* 錨點大到整面畫面（第二層面板）時，卡片只能疊上去；至少讓底下透出來 */
+.tutCard.over{opacity:.96}
 /* 底部導覽列 */
 .tutBar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
   background:var(--ink2);border:1px solid var(--line2);border-radius:999px;
   padding:7px 14px;box-shadow:0 10px 30px rgba(0,0,0,.6);max-width:94vw}
+.tutBar.top{bottom:auto;top:14px}
 .tutBar .lbl{color:var(--tx3);font-size:12px;white-space:nowrap}
 .tutBar .act{padding:5px 12px;font-size:13px}
 ol.tutPit{margin:6px 0 0;padding-left:20px;color:var(--tx2);font-size:13.5px;line-height:1.7}
@@ -1134,7 +1148,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.25.0-S20", date:"2026-08-30" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.25.1-S20b", date:"2026-08-30" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -18106,6 +18120,9 @@ tut.isChild = function(){
 /* 直接把示範狀態組出來——不驅動 NPC 迴圈，避免卡在半路，也保證每次一樣 */
 tut.buildDemo = function(){
   var cfg = ns.buildConfig(ns.configRegistry);
+  // 示範盤面必須是靜止的。第六期的「閒置 3 秒自動擲骰」會在教學開著時自己擲下去，
+  // 中欄跳出「要翻哪一堆機會？」，說明卡還停在第 5 格——框跟內容就對不起來了。
+  cfg.autoRollSec = 0;
   var mods = ["M1","M2","M3","M4","M6","M8"];
   var C = ns.content;
   ui.startCore(20260830, cfg, mods, [
@@ -18146,10 +18163,11 @@ tut.buildDemo = function(){
   S.phase = "ROLL";
   E.syncPhase(S);
   ui.render();
+  try{ clearInterval(ui._autoRollT); ui._autoRollT=null; }catch(e){}
 };
 
 /* ---------------- 子層：熱點層 ---------------- */
-tut.state = { i:0, mode:"guided" };
+tut.state = { i:0, mode:"guided", sel:null };   // sel＝自由模式目前展開的那一格
 
 /* body 有 zoom（≥1440px 是 1.12），getBoundingClientRect 量到的是乘過 zoom 的
    螢幕像素，寫回 style 的卻是版面像素——跟 S17 的 placeBoardCenter 同一個坑。
@@ -18174,37 +18192,87 @@ tut.clear = function(){
   var l=$("tutLayer"); if(l) l.innerHTML="";
 };
 
+tut.focusStep = function(){
+  if(tut.state.mode==="free") return (tut.state.sel==null) ? null : tut.STEPS[tut.state.sel];
+  return tut.STEPS[tut.state.i];
+};
+
+/* 錨點的可視矩形（版面像素）。三欄各有自己的內捲軸，量到的可能整塊在畫面外，
+   所以呼叫端要先 scrollIntoView，這裡只負責換算 zoom 倍率。 */
+tut.rectOf = function(st, sc){
+  var e = tut.stepEl(st); if(!e) return null;
+  var r = e.getBoundingClientRect();
+  if(!r.width || !r.height) return null;
+  return { x:r.left/sc, y:r.top/sc, w:r.width/sc, h:r.height/sc };
+};
+
+/* 四片挖洞遮罩：焦點框以外才蓋。沒有焦點（自由模式的總覽）就完全不蓋。 */
+tut.mask = function(layer, f, vw, vh){
+  if(!f) return;
+  function pane(x,y,w,h){
+    if(w<=0.5 || h<=0.5) return;
+    var d=ui.mkEl("div","tutMask");
+    d.style.cssText="position:fixed;left:"+x+"px;top:"+y+"px;width:"+w+"px;height:"+h+"px";
+    layer.appendChild(d);
+  }
+  // 洞比錨點再放大半個像素：zoom 換算會留下 0.x px 的小數，不留餘裕的話
+  // 遮罩邊緣會壓到被選中那一區的邊框上
+  var PAD=0.5;
+  var x=Math.max(0,f.x-PAD), y=Math.max(0,f.y-PAD);
+  var r=Math.min(vw,f.x+f.w+PAD), b=Math.min(vh,f.y+f.h+PAD);
+  pane(0,0,vw,y);            // 上
+  pane(0,b,vw,vh-b);         // 下
+  pane(0,y,x,b-y);           // 左
+  pane(r,y,vw-r,b-y);        // 右
+};
+
 tut.render = function(){
   var layer = $("tutLayer"); if(!layer) return;
   layer.innerHTML="";
   var sc = tut.scale();
+  var vw = window.innerWidth/sc, vh = window.innerHeight/sc;
   var free = (tut.state.mode==="free");
-  var list = free ? tut.STEPS.filter(function(s){ return !s.layer; }) : [tut.STEPS[tut.state.i]];
+  var focus = tut.focusStep();
+  var fr = focus ? tut.rectOf(focus, sc) : null;
 
+  tut.mask(layer, fr, vw, vh);
+
+  var list = free ? tut.STEPS.filter(function(s){ return !s.layer; })
+                  : (focus ? [focus] : []);
   list.forEach(function(st){
-    var e = tut.stepEl(st); if(!e) return;
-    var r = e.getBoundingClientRect(); if(!r.width || !r.height) return;
-    var x=r.left/sc, y=r.top/sc, w=r.width/sc, h=r.height/sc;
-    // 高亮框
-    var ring = ui.mkEl("div","tutRing"+(free?"":" solo"));
-    ring.style.cssText="position:fixed;left:"+x+"px;top:"+y+"px;width:"+w+"px;height:"+h+"px";
+    var r = tut.rectOf(st, sc); if(!r) return;
+    var isF = (st===focus);
+    var ring = ui.mkEl("div","tutRing"+(isF?" solo":""));
+    ring.style.cssText="position:fixed;left:"+r.x+"px;top:"+r.y+"px;width:"+r.w+"px;height:"+r.h+"px";
     layer.appendChild(ring);
     // 編號圓點（觸控目標，不做透明大區塊——iPad 上會誤觸也看不出哪裡可點）
     // 錨點貼齊畫面邊緣時（例如左欄從 x=0 開始），圓點要夾回可視範圍，否則會看不到
-    var vwP = window.innerWidth/sc, vhP = window.innerHeight/sc;
-    var px = Math.max(6, Math.min(x - 13, Math.min(x + w - 32, vwP - 34)));
-    var py = Math.max(6, Math.min(y - 13, Math.min(y + h - 32, vhP - 34)));
-    var pin = ui.mkEl("button","tutPin", String(st.n));
+    var px = Math.max(6, Math.min(r.x - 13, Math.min(r.x + r.w - 32, vw - 34)));
+    var py = Math.max(6, Math.min(r.y - 13, Math.min(r.y + r.h - 32, vh - 34)));
+    var idx = tut.STEPS.indexOf(st);
+    var pin = ui.mkEl("button","tutPin"+(isF?" on":""), String(st.n));
     pin.style.cssText="position:fixed;left:"+px+"px;top:"+py+"px";
     pin.onclick=function(ev){ ev.stopPropagation();
-      tut.state.i = tut.STEPS.indexOf(st); tut.state.mode="guided"; tut.render(); };
+      if(free){ tut.state.sel = (tut.state.sel===idx) ? null : idx; tut.render(); }
+      else { tut.goto(idx); } };
     layer.appendChild(pin);
-    if(!free) tut.card(layer, st, x, y, w, h, sc);
   });
-  tut.bar();
+
+  if(focus && fr) tut.card(layer, focus, fr, sc, vw, vh);
+  tut.bar(fr, vh);
 };
 
-tut.card = function(layer, st, x, y, w, h, sc){
+/* 導覽列要不要移到上面：焦點壓到底部那條帶就往上讓，除非上下都被蓋到
+   （第二層面板幾乎佔滿整面時），那就維持在下面。 */
+tut.BAR_BAND = 76;
+tut.barTop = function(f, vh){
+  if(!f) return false;
+  var hitsBottom = (f.y + f.h) > (vh - tut.BAR_BAND);
+  var hitsTop    = f.y < tut.BAR_BAND;
+  return hitsBottom && !hitsTop;
+};
+
+tut.card = function(layer, st, f, sc, vw, vh){
   var c = ui.mkEl("div","tutCard");
   var hd = ui.mkEl("div","hd");
   hd.appendChild(ui.mkEl("span","no", String(st.n)));
@@ -18217,25 +18285,63 @@ tut.card = function(layer, st, x, y, w, h, sc){
   row("時機", st.when);
   row("⚠", st.warn, "warn");
   layer.appendChild(c);
-  // 放在錨點旁邊，撞到邊界就翻到另一側
-  var vw = window.innerWidth/sc, vh = window.innerHeight/sc;
+
+  // 錨點寬到兩側都塞不下整張卡時（第二層面板），把卡片縮到剩下的空檔寬度，
+  // 寧可窄一點也不要壓在正在解說的面板上
+  var roomR0 = vw - (f.x + f.w) - 22, roomL0 = f.x - 22;
+  var side0 = Math.max(roomR0, roomL0);
+  if(c.offsetWidth > side0 && side0 >= 200) c.style.width = Math.floor(side0)+"px";
   var cw = c.offsetWidth, ch = c.offsetHeight;
-  var left = x + w + 14; if(left + cw > vw - 8) left = Math.max(8, x - cw - 14);
-  var top  = y; if(top + ch > vh - 70) top = Math.max(8, vh - 70 - ch);
-  c.style.left = left+"px"; c.style.top = top+"px";
+  var barTop = tut.barTop(f, vh);
+  var band0 = barTop ? 0 : (vh - tut.BAR_BAND);      // 導覽列佔住的帶狀區
+  var band1 = barTop ? tut.BAR_BAND : vh;
+  function clampY(t){ return Math.max(8, Math.min(t, vh - 8 - ch)); }
+  function overlapFocus(l,t){
+    return !(l+cw < f.x || l > f.x+f.w || t+ch < f.y || t > f.y+f.h);
+  }
+  function overlapBar(l,t){ return !(t+ch < band0 || t > band1); }
+  function inScreen(l,t){ return l>=8 && t>=8 && l+cw<=vw-8 && t+ch<=vh-8; }
+
+  var cands = [
+    [f.x + f.w + 14, f.y],            // 右
+    [f.x - cw - 14,  f.y],            // 左
+    [f.x,            f.y + f.h + 12], // 下
+    [f.x,            f.y - ch - 12]   // 上
+  ];
+  var pick=null;
+  for(var i=0;i<cands.length && !pick;i++){
+    var l=cands[i][0], t=clampY(cands[i][1]);
+    if(inScreen(l,t) && !overlapFocus(l,t) && !overlapBar(l,t)) pick=[l,t];
+  }
+  if(!pick){ // 放寬：允許壓到導覽列以外的條件
+    for(var j=0;j<cands.length && !pick;j++){
+      var l2=cands[j][0], t2=clampY(cands[j][1]);
+      if(inScreen(l2,t2) && !overlapFocus(l2,t2)) pick=[l2,t2];
+    }
+  }
+  if(!pick){
+    // 錨點本身就佔滿畫面（第二層面板）→ 靠空間較大的那一側，允許疊上去
+    var roomR = vw - (f.x + f.w), roomL = f.x;
+    var l3 = (roomR >= roomL) ? Math.min(vw - 8 - cw, f.x + f.w + 14)
+                              : Math.max(8, f.x - cw - 14);
+    pick = [Math.max(8, l3), clampY(barTop ? tut.BAR_BAND + 10 : f.y + 10)];
+    c.classList.add("over");
+  }
+  c.style.left = pick[0]+"px"; c.style.top = pick[1]+"px";
 };
 
-tut.bar = function(){
+tut.bar = function(f, vh){
   var layer=$("tutLayer"); if(!layer) return;
-  var b = ui.mkEl("div","tutBar");
+  var b = ui.mkEl("div","tutBar"+(tut.barTop(f, vh)?" top":""));
   var free = (tut.state.mode==="free");
   var prev = ui.mkEl("button","act","‹ 上一步");
   prev.disabled = free || tut.state.i<=0;
   prev.onclick=function(){ tut.go(-1); };
   var next = ui.mkEl("button","act primary", free ? "開始導覽" : "下一步 ›");
-  next.onclick=function(){ if(free){ tut.state.mode="guided"; tut.state.i=0; tut.goto(0); } else tut.go(1); };
-  var lbl = ui.mkEl("span","lbl", free ? "自由模式——想看哪裡點哪裡"
-                                       : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步"));
+  next.onclick=function(){ if(free){ tut.goto(0); } else tut.go(1); };
+  var lbl = ui.mkEl("span","lbl", free
+      ? (tut.state.sel==null ? "自由模式——點編號看說明" : "點同一個編號可收起")
+      : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步"));
   var mode = ui.mkEl("button","act", free ? "🎯 一步一步帶" : "🖐 自由點");
   mode.onclick=function(){ tut.setMode(free?"guided":"free"); };
   var pit = ui.mkEl("button","act","⚠ 會害你輸的七件事");
@@ -18256,20 +18362,28 @@ tut.goto = function(i){
   tut.closeStep(prevStep);
   tut.state.i = Math.max(0, Math.min(tut.STEPS.length-1, i));
   var st = tut.STEPS[tut.state.i];
+  tut.state.mode="guided"; tut.state.sel=null;
   if(st.layer===2 && st.open){
     document.querySelectorAll("#overlays .overlay").forEach(function(o){ o.remove(); });
     try{ st.open(); }catch(e){}
   } else {
     ui.render();
   }
-  setTimeout(function(){ tut.render(); }, 30);
+  setTimeout(function(){
+    // 三欄各有內捲軸；錨點若捲到視窗外，框會畫在看不見的地方（就是「對不起來」）
+    var e = tut.stepEl(st);
+    if(e && e.scrollIntoView){ try{ e.scrollIntoView({block:"nearest",inline:"nearest"}); }catch(err){} }
+    tut.render();
+    // 第二層面板有進場動畫，30ms 量到的是動畫中途的位置——落定後再對一次
+    setTimeout(function(){ tut.render(); }, 260);
+  }, 30);
 };
 
 tut.go = function(d){ tut.goto(tut.state.i + d); };
 
 tut.setMode = function(m){
   tut.closeStep(tut.STEPS[tut.state.i]);
-  tut.state.mode = m;
+  tut.state.mode = m; tut.state.sel = null;
   if(m==="free"){ ui.render(); setTimeout(function(){ tut.render(); },30); }
   else tut.goto(0);
 };
@@ -18284,16 +18398,35 @@ tut.pitfalls = function(){
   var o = ui.mkEl("div","opts");
   var b = ui.mkEl("button","opt primary","知道了"); b.onclick=function(){ ov.remove(); };
   o.appendChild(b); box.appendChild(o); ov.appendChild(box);
-  $("overlays").appendChild(ov);
+  ov.style.zIndex="1";   // 掛在 #tutLayer 裡面，才不會被 #tutShield 擋住點擊
+  $("tutLayer").appendChild(ov);
 };
 
 tut.boot = function(){
+  // 教學是靜態示範，沒有真的在跑回合；toast 一律靜音，否則會浮在正在解說的那一區上面
+  ui.toast = function(msg, cls, ms, topic){
+    (ui._mutedToasts = ui._mutedToasts || []).push({ msg:msg, cat:topic||"SYS" });
+  };
   tut.buildDemo();
+  var shield = document.createElement("div");
+  shield.id="tutShield";
+  shield.addEventListener("click", function(ev){ ev.stopPropagation(); ev.preventDefault(); }, true);
+  document.body.appendChild(shield);
   var layer = document.createElement("div");
   layer.id="tutLayer"; document.body.appendChild(layer);
-  tut.state = { i:0, mode:"guided" };
+  tut.state = { i:0, mode:"guided", sel:null };
   tut.goto(0);
-  try{ window.addEventListener("resize", function(){ tut.render(); }); }catch(e){}
+  var raf=null;
+  function relayout(){
+    if(raf) return;
+    raf = requestAnimationFrame(function(){ raf=null; tut.render(); });
+  }
+  try{
+    window.addEventListener("resize", relayout);
+    // 版面本身不捲（html,body 是 overflow:hidden），但三欄各有自己的內捲軸；
+    // 內層一捲，position:fixed 的框就跟內容對不起來——用捕獲階段接所有捲動事件。
+    document.addEventListener("scroll", relayout, true);
+  }catch(e){}
 };
 
 })(ns);
