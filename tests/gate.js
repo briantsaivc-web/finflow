@@ -42,7 +42,6 @@ for (let g = 0; g < 1000; g++) {
   });
 }
 const rc = {}; invalid.forEach(r => rc[r] = (rc[r] || 0) + 1);
-const out = { games, NaN: nan, Infinity: inf, invalidGames: invalid.length,
-              invalidReasons: rc, assetLedgerMismatch: assetMismatch };
-console.log(JSON.stringify(out));
+console.log(JSON.stringify({ games, NaN: nan, Infinity: inf, invalidGames: invalid.length,
+  invalidReasons: rc, assetLedgerMismatch: assetMismatch }));
 process.exit((nan || inf || invalid.length || assetMismatch) ? 1 : 0);

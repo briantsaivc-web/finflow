@@ -2,7 +2,7 @@
 
 只抽前三個 <script> 區塊（util／ledger／engine、applyAction、content/modules/npc/sim）。
 第四塊之後是介面層與多人連線層，會碰 DOM，不能在 Node 裡跑——介面要驗請用
-tests/ 裡的 Playwright 測試（runtests.js、s17test.js…），那些是開真的瀏覽器。
+tests/ 裡的 Playwright 測試（runtests.js、s17test.js、s18test.js…），那些是開真的瀏覽器。
 
 產物 test_engine.js / test_content.json 已列在 .gitignore，不進版控。
 

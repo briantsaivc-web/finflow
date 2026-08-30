@@ -42,7 +42,9 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step('玩家卡：無近況、有被動收入與資產筆數、幸福感夢想同列', ()=>{
       const c=document.querySelector('#pawns .pcol'); const t=c.textContent;
       if(!/被動收入/.test(t)) throw new Error('缺被動收入');
-      if(!/資產筆數/.test(t)) throw new Error('缺資產筆數');
+      // 【S18 契約變更】「資產筆數」不再自己一行，併進被動收入寫成「xxx ／ N 筆」
+      // （卡片 173px→118px，左欄系統訊息從看得到 11 則變成 14 則全看得到）
+      if(!/／\s*\d+\s*筆/.test(t)) throw new Error('缺資產筆數（應併在被動收入那一行）');
       if(!c.querySelector('.pdual')) throw new Error('幸福感與夢想沒有併列');
       if(c.querySelector('.ac')) throw new Error('近況那一行還在');
       return document.querySelectorAll('#pawns .pcol').length+' 張卡';
