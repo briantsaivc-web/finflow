@@ -6,9 +6,10 @@ tests/test_content.json
 *.png
 !manual/*.png
 
-# Node
+# Node & Build
 node_modules/
 package-lock.json
+dist/
 
 # 系統
 .DS_Store

@@ -1,0 +1,453 @@
+{
+  "packId": "outer-life",
+  "packVersion": "1.0.0",
+  "requiresEngine": ">=1",
+  "cards": {
+    "OUTER_LIFE": [
+      {
+        "id": "OL_D01",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "熱水器壽終正寢",
+        "flavor": "洗到一半變冷水，人生突然很清醒。",
+        "eduNote": "自由圈沒有薪水，柴米油鹽照樣找上門——生活準備金不能圓夢圓掉。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -35,
+            "label": "換新熱水器"
+          }
+        ]
+      },
+      {
+        "id": "OL_D02",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "愛車十萬公里大保養",
+        "flavor": "技師搖頭的樣子，比報價單還貴。",
+        "eduNote": "資產要維護，生活工具也要。折舊是看不見的月支出。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -45,
+            "label": "大保養與換件"
+          }
+        ]
+      },
+      {
+        "id": "OL_D03",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "植牙自費療程",
+        "flavor": "牙醫說：這顆保不住了。",
+        "eduNote": "健保之外的自費醫療，是中年後最常見的財務突襲。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -60,
+            "label": "植牙自費"
+          }
+        ],
+        "tags": [
+          "medical",
+          "insurable"
+        ]
+      },
+      {
+        "id": "OL_D04",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "房屋稅＋地價稅季",
+        "flavor": "持有資產的人，才收得到這種信。",
+        "eduNote": "持有成本：資產越多、稅單越厚，這是被動收入的固定摩擦。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -40,
+            "label": "持有稅負"
+          }
+        ]
+      },
+      {
+        "id": "OL_D05",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "姪女的喜酒紅包",
+        "flavor": "長輩桌，紅包厚度就是輩分。",
+        "eduNote": "人情往來是預算科目，不是意外。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -22,
+            "label": "紅包與治裝"
+          }
+        ]
+      },
+      {
+        "id": "OL_D06",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "冰箱冷氣一起罷工",
+        "flavor": "家電有默契，總是揪團壞。",
+        "eduNote": "耐久財的更換週期會重疊——備一筆家庭設備金。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -55,
+            "label": "家電汰換"
+          }
+        ]
+      },
+      {
+        "id": "OL_L01",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFESTYLE",
+        "title": "頭等艙環歐三週",
+        "flavor": "躺平的機票，站著的價格。",
+        "eduNote": "奢侈不是罪，問題是它常在你最有錢的錯覺裡出現。",
+        "payload": {
+          "optional": true,
+          "cost": 380,
+          "joy": 2
+        }
+      },
+      {
+        "id": "OL_L02",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFESTYLE",
+        "title": "私廚包場宴請老友",
+        "flavor": "主廚只服務你們這一桌。",
+        "eduNote": "體驗型消費的幸福感很真，帳單也很真。",
+        "payload": {
+          "optional": true,
+          "cost": 180,
+          "joy": 1
+        }
+      },
+      {
+        "id": "OL_L03",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFESTYLE",
+        "title": "限量腕錶入手機會",
+        "flavor": "櫃姐說：全台只有三只。",
+        "eduNote": "「稀有」是行銷字眼，不是投資屬性。",
+        "payload": {
+          "optional": true,
+          "cost": 320,
+          "joy": 1
+        }
+      },
+      {
+        "id": "OL_L04",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFESTYLE",
+        "title": "郵輪套房環太平洋",
+        "flavor": "陽台外是整片海，帳單外是整片零。",
+        "eduNote": "大額享受請用現金流的盈餘付，不要動到本金引擎。",
+        "payload": {
+          "optional": true,
+          "cost": 450,
+          "joy": 2
+        }
+      },
+      {
+        "id": "OL_L05",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFESTYLE",
+        "title": "私人俱樂部會籍",
+        "flavor": "入會費只是門票，月費才是人生。",
+        "eduNote": "排場稅：一次性花費會結束，每月固定支出不會。",
+        "payload": {
+          "optional": true,
+          "cost": 120,
+          "recurringMonthly": 18,
+          "joy": 1
+        }
+      },
+      {
+        "id": "OL_V01",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "樂",
+        "virtueAxis": "TEMPER",
+        "title": "朋友起鬨合資遊艇",
+        "flavor": "「你現在財務自由欸，這點錢算什麼？」",
+        "eduNote": "好大喜功的錢多半不是自己想花的，是被氣氛花掉的。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你笑著說改天先租一天試試，話題就過了。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "面子上掛不住，你簽了合資意向書。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -380,
+                "label": "遊艇合資款"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_V02",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "樂",
+        "virtueAxis": "TEMPER",
+        "title": "同學會全場我買單",
+        "flavor": "二十年沒見，誰都不想輸。",
+        "eduNote": "跟過去的自己比，不要跟同學的排場比。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你點到為止，各付各的也聊得盡興。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "一句「今晚我請」，整層樓的酒都上了。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -150,
+                "label": "全場買單"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_V03",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "樂",
+        "virtueAxis": "TEMPER",
+        "title": "網紅朋友的豪宅喬遷趴",
+        "flavor": "伴手禮的行情，是用背景牆決定的。",
+        "eduNote": "社交通膨：圈子越亮，跟著亮的是你的支出。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你帶了誠意剛好的禮，賓主盡歡。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你訂了整箱年份香檳外加名牌家電。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -220,
+                "label": "排場伴手禮"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_S01",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "保證月配 8% 的海外基金",
+        "flavor": "「名額只留給像您這樣的高資產客戶。」",
+        "eduNote": "報酬高得不合理，就是風險高得不合理——世上沒有保證 8%。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你問他金管會核備字號，對方已讀不回。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你匯了款，網站三週後打不開。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -400,
+                "label": "投資詐騙損失"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_S02",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "銀行來電：帳戶需要升級 VIP",
+        "flavor": "對方連你上一筆消費都說得出來。",
+        "eduNote": "真的銀行不會電話裡要你操作轉帳。掛掉，打 165。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你掛斷回撥官方客服，確認是詐騙。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你照著指示到 ATM「解除設定」。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -250,
+                "label": "轉帳詐騙損失"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_S03",
+        "deck": "OUTER_LIFE",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "老同學的元宇宙土地案",
+        "flavor": "「早期投資人已經翻了五倍。」",
+        "eduNote": "熟人推薦是詐騙最好的包裝紙；查證對事不對人。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你要白皮書和地政資料，他開始顧左右而言他。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "看在交情，你投了一個單位。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -300,
+                "label": "虛擬資產詐騙"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "OL_H01",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "健檢紅字：確診初期癌症",
+        "flavor": "醫師說發現得早，但治療不能等。",
+        "eduNote": "重大傷病是財務自由最大的壓力測試——現金墊要扛得住自費療程加上停下來的日子。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -500,
+            "label": "自費標靶療程"
+          },
+          {
+            "op": "SKIP_TURNS",
+            "target": "self",
+            "turns": 2,
+            "label": "入院治療"
+          },
+          {
+            "op": "ADD_RECURRING_EXPENSE",
+            "target": "self",
+            "amount": 25,
+            "durationTurns": 6,
+            "label": "療程與看護"
+          }
+        ],
+        "tags": [
+          "medical",
+          "insurable"
+        ]
+      },
+      {
+        "id": "OL_H02",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "縱走山徑重摔",
+        "flavor": "直升機的聲音越近，帳單越厚。",
+        "eduNote": "追夢的路上也要買得起意外——體力與現金墊都是裝備。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -350,
+            "label": "手術與復健"
+          },
+          {
+            "op": "SKIP_TURNS",
+            "target": "self",
+            "turns": 2,
+            "label": "臥床復健"
+          },
+          {
+            "op": "ADD_RECURRING_EXPENSE",
+            "target": "self",
+            "amount": 15,
+            "durationTurns": 4,
+            "label": "復健療程"
+          }
+        ],
+        "tags": [
+          "accident",
+          "insurable"
+        ]
+      },
+      {
+        "id": "OL_G01",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "舊藏字畫拍出高價",
+        "flavor": "當年隨手買的，如今是「早期眼光」。",
+        "eduNote": "流動性差的收藏偶爾也會開花，但別把它當理財主軸。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": 180,
+            "label": "拍賣所得"
+          }
+        ]
+      },
+      {
+        "id": "OL_G02",
+        "deck": "OUTER_LIFE",
+        "kind": "LIFE_EVENT",
+        "title": "年輕時投資的樂團爆紅",
+        "flavor": "版稅條款當年只是義氣，現在是被動收入。",
+        "eduNote": "早年播的種，有些真的會發芽。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": 120,
+            "label": "版稅分潤"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,556 @@
+{
+  "packId": "v10-mall",
+  "packVersion": "1.1.0",
+  "requiresEngine": "1.0",
+  "cards": {
+    "MALL": [
+      {
+        "id": "ML_EDU1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "💻",
+        "title": "線上專業課程",
+        "flavor": "每週兩晚，三個月結業。",
+        "eduNote": "投資自己不保證加薪，但長期期望值為正——關鍵是持續，不是一次。",
+        "payload": {
+          "cost": 40,
+          "joy": 1,
+          "chance": 0.45,
+          "onWin": {
+            "salaryMult": 1.05,
+            "label": "課程學以致用，接到加給"
+          },
+          "onLose": "沒有直接反映在薪水上，但你學到東西了"
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_EDU2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "📜",
+        "title": "專業證照班",
+        "flavor": "週末全天班，考試在三個月後。",
+        "eduNote": "證照＝用今天的現金與時間，換未來每個月的加薪。",
+        "payload": {
+          "cost": 120,
+          "joy": 1,
+          "skipTurns": 1,
+          "chance": 0.55,
+          "onWin": {
+            "salaryMult": 1.12,
+            "label": "考取證照，薪資調整"
+          },
+          "onLose": "這次沒過，明年再來"
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_EDU3",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "🗣️",
+        "title": "語言進修班",
+        "flavor": "外派缺一直開，但你差一張成績單。",
+        "eduNote": "語言像複利，短期看不出來，五年後差很多。",
+        "payload": {
+          "cost": 60,
+          "joy": 1,
+          "chance": 0.4,
+          "onWin": {
+            "salaryMult": 1.06,
+            "label": "外語加給"
+          },
+          "onLose": "還沒到能加給的程度"
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_HEA1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "健康身心",
+        "icon": "🏋️",
+        "title": "健身房年約",
+        "flavor": "辦卡容易，去了才算數。",
+        "eduNote": "健康是最被低估的資產：省下的醫療費不會出現在報表上，但一直都在。",
+        "payload": {
+          "cost": 12,
+          "recurringMonthly": 3,
+          "joy": 2,
+          "flag": "fit",
+          "flagTurns": 24,
+          "note": "往後 24 輪，醫療與意外類支出減 30%"
+        },
+        "tags": [
+          "health"
+        ],
+        "moduleReq": null,
+        "renewable": true
+      },
+      {
+        "id": "ML_HEA2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "健康身心",
+        "icon": "🩺",
+        "title": "高階健康檢查",
+        "flavor": "一年一次，早發現早處理。",
+        "eduNote": "預防性支出是「用小錢買掉尾端風險」，跟保險是同一個道理。",
+        "payload": {
+          "cost": 25,
+          "joy": 1,
+          "flag": "checked",
+          "flagTurns": 12,
+          "note": "往後 12 輪，醫療類支出減 30%"
+        },
+        "tags": [
+          "health"
+        ],
+        "moduleReq": null,
+        "renewable": true
+      },
+      {
+        "id": "ML_INS1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "風險移轉",
+        "icon": "🛡️",
+        "title": "醫療＋意外險",
+        "flavor": "平常沒感覺，出事那天才知道差別。",
+        "eduNote": "保險不是投資，是把「賠不起的風險」用固定小錢換成確定成本。",
+        "payload": {
+          "insurance": true,
+          "recurringMonthly": 4.5,
+          "joy": 1,
+          "note": "投保期間，醫療與意外類的一次性支出理賠 60%"
+        },
+        "tags": [
+          "insurance"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_VIR1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "icon": "🧧",
+        "title": "包紅包（親友喜事）",
+        "flavor": "人情這件事，來往才會在。",
+        "eduNote": "人情支出不是浪費，但要有預算——沒編預算的人情最傷現金流。",
+        "payload": {
+          "cost": 12,
+          "joy": 1,
+          "virtue": "FILIAL"
+        },
+        "tags": [
+          "social"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_VIR2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "icon": "👴",
+        "title": "孝親金加碼",
+        "flavor": "這個月多包一點回家。",
+        "eduNote": "孝親金要放進固定支出裡編列，才不會月底才發現超支。",
+        "payload": {
+          "cost": 30,
+          "joy": 2,
+          "virtue": "FILIAL"
+        },
+        "tags": [
+          "social"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_VIR3",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "icon": "🤲",
+        "title": "公益定期捐款",
+        "flavor": "每個月一點點，不痛但持續。",
+        "eduNote": "能穩定給出去的人，通常先把自己的現金流管好了。",
+        "payload": {
+          "cost": 6,
+          "recurringMonthly": 1.5,
+          "joy": 2,
+          "virtue": "TEMPER"
+        },
+        "tags": [
+          "social"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_VIR4",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "icon": "📚",
+        "title": "孩子的才藝課",
+        "flavor": "他說想學，你說好。",
+        "eduNote": "教育支出是長期投入，先確認每月現金流撐得住再報名。",
+        "payload": {
+          "cost": 8,
+          "recurringMonthly": 2,
+          "joy": 2,
+          "virtue": "PARENTING",
+          "reqChild": true
+        },
+        "tags": [
+          "family"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_CMP1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "🏃",
+        "title": "報名城市馬拉松",
+        "flavor": "報名費不貴，訓練才貴。",
+        "eduNote": "設定可達成的目標並完成它，是紀律的練習——理財也一樣。",
+        "payload": {
+          "cost": 8,
+          "joy": 2,
+          "contest": [
+            {
+              "min": 5,
+              "prize": 15,
+              "label": "分組前段完賽，拿到獎金"
+            },
+            {
+              "min": 3,
+              "prize": 5,
+              "label": "順利完賽，領到完賽禮"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "中途退賽，下次再來"
+            }
+          ]
+        },
+        "tags": [
+          "health"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_CMP2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "🚀",
+        "title": "創業競賽報名",
+        "flavor": "一份計畫書，一場八分鐘簡報。",
+        "eduNote": "獎金是彩蛋，真正的收穫是把想法算成數字的過程。",
+        "payload": {
+          "cost": 25,
+          "joy": 1,
+          "contest": [
+            {
+              "min": 6,
+              "prize": 150,
+              "label": "首獎！獎金入帳"
+            },
+            {
+              "min": 4,
+              "prize": 40,
+              "label": "佳作，拿到小額獎金"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "未入圍，評審給了建議"
+            }
+          ]
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_CMP3",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "📈",
+        "title": "投資模擬賽",
+        "flavor": "用假錢比績效，賽制三個月。",
+        "eduNote": "模擬賽會鼓勵你冒險，真錢不會——別把賽場習慣帶進真帳戶。",
+        "payload": {
+          "cost": 15,
+          "joy": 1,
+          "contest": [
+            {
+              "min": 5,
+              "prize": 40,
+              "label": "績效前段班，獎金入帳"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "這季操作不理想，學到教訓"
+            }
+          ]
+        },
+        "tags": [
+          "equity"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_EDU4",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "🎓",
+        "title": "海外碩士留學（一年衝刺）",
+        "flavor": "辭掉工作出去一年，回來的是不一樣的自己。",
+        "eduNote": "留學是人生最大的單筆自我投資之一：學費＋機會成本都要算進去。",
+        "oncePerGame": true,
+        "payload": {
+          "cost": 900,
+          "joy": 2,
+          "skipTurns": 2,
+          "chance": 0.7,
+          "onWin": {
+            "salaryMult": 1.35,
+            "label": "學成歸國，身價不同"
+          },
+          "onLose": "學位沒直接反映在薪水上，但視野回不去了",
+          "network": true,
+          "note": "校友與同學會成為你的人脈——解鎖「特殊機會」"
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_EDU5",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "✈️",
+        "title": "海外短期進修（三個月）",
+        "flavor": "帶著筆電和一卡皮箱，去上三個月的課。",
+        "eduNote": "短期進修風險低、回報也溫和——適合試水溫再決定要不要重押。",
+        "payload": {
+          "cost": 220,
+          "joy": 1,
+          "skipTurns": 1,
+          "chance": 0.5,
+          "onWin": {
+            "salaryMult": 1.1,
+            "label": "進修成果被看見"
+          },
+          "onLose": "履歷多一行，薪水暫時沒動"
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_LUX1",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "尊榮享受",
+        "icon": "⛳",
+        "title": "高爾夫俱樂部會員卡",
+        "flavor": "球敘上談成的生意，比會議室多。",
+        "eduNote": "人脈場也是支出場：會籍是資產還是負債，取決於你帶回什麼。",
+        "payload": {
+          "cost": 300,
+          "recurringMonthly": 5,
+          "joy": 2
+        },
+        "tags": [
+          "social",
+          "luxury"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_LUX2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "尊榮享受",
+        "icon": "🎿",
+        "title": "海外滑雪度假年票",
+        "flavor": "每年冬天固定消失兩週，朋友都知道去哪找你。",
+        "eduNote": "為體驗付費是好的消費——前提是現金流付得起，不是卡付得起。",
+        "payload": {
+          "cost": 150,
+          "joy": 2
+        },
+        "tags": [
+          "travel",
+          "luxury"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_LUX3",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "尊榮享受",
+        "icon": "💳",
+        "title": "頂級信用卡黑卡年費",
+        "flavor": "機場貴賓室隨便進，帳單也隨便來。",
+        "eduNote": "年費買的是禮遇與虛榮的匯率——換算成你的時薪再決定。",
+        "payload": {
+          "cost": 60,
+          "recurringMonthly": 2,
+          "joy": 1
+        },
+        "tags": [
+          "luxury"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_CMP4",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "🤖",
+        "title": "AI 程式設計大賽",
+        "flavor": "48 小時黑客松，披薩和咖啡因無限供應。",
+        "eduNote": "技能型比賽的獎金是其次，作品集與人脈才是複利。",
+        "payload": {
+          "cost": 10,
+          "joy": 2,
+          "contest": [
+            {
+              "min": 5,
+              "prize": 60,
+              "label": "奪冠！獎金與offer一起來"
+            },
+            {
+              "min": 3,
+              "prize": 20,
+              "label": "入圍決賽，拿到佳作獎金"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "沒得名，但作品集厚了一頁"
+            }
+          ]
+        },
+        "tags": [
+          "career"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_CMP5",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "🏐",
+        "title": "大專排球聯賽（社會組）",
+        "flavor": "每週練球兩晚，比賽那天全隊都到了。",
+        "eduNote": "團隊運動買不到，只能練——身體與人際都是資產。",
+        "payload": {
+          "cost": 6,
+          "joy": 2,
+          "contest": [
+            {
+              "min": 5,
+              "prize": 12,
+              "label": "打進四強，抱回獎金"
+            },
+            {
+              "min": 3,
+              "prize": 4,
+              "label": "小組出線，拿到參賽獎勵"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "一輪遊，明年再來"
+            }
+          ]
+        },
+        "tags": [
+          "health",
+          "social"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_EDU6",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "進修學習",
+        "icon": "🎓",
+        "title": "EMBA 在職專班（兩年）",
+        "flavor": "週末上課，同學一半是老闆。",
+        "eduNote": "EMBA 的學費裡有一大半買的是同學名單——這是最誠實也最貴的人脈投資。",
+        "oncePerGame": true,
+        "payload": {
+          "cost": 560,
+          "joy": 1,
+          "chance": 0.6,
+          "onWin": {
+            "salaryMult": 1.18,
+            "label": "論文題目變成公司專案，升遷加薪"
+          },
+          "onLose": "學位拿到了，但職位還沒動——人脈要時間發酵",
+          "network": true,
+          "note": "解鎖「特殊機會」牌堆（人脈才進得去的案子）"
+        },
+        "tags": [
+          "career",
+          "network"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "ML_INS2",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "風險移轉",
+        "icon": "🏠",
+        "title": "住宅火險＋地震基本保險",
+        "flavor": "銀行說貸款一定要保，你才第一次認真看條款。",
+        "eduNote": "產險是年繳、自動續約——方便到你會忘記它一直在扣錢。記得每年重新檢視保額。",
+        "payload": {
+          "propertyInsurance": true,
+          "annualPremium": 18,
+          "joy": 0,
+          "note": "年繳、每年自動續約；房產修繕與天災損失理賠 50%"
+        },
+        "tags": [
+          "insurance"
+        ],
+        "moduleReq": null
+      }
+    ]
+  }
+}

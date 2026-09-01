@@ -1,0 +1,6690 @@
+{
+  "packId": "m6",
+  "packVersion": "1.2.0",
+  "cards": {
+    "LIFE_TAPESTRY": [
+      {
+        "id": "LT_C001",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "情緒管理工作坊",
+        "flavor": "六堂課，教你在爆炸前先數三秒。",
+        "eduNote": "脾氣是可以練的技術，練它的錢比賠償金便宜太多。",
+        "payload": {
+          "cost": 18
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C002",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "每週晨跑習慣",
+        "flavor": "跑完那三十分鐘，很多事就沒那麼想吵。",
+        "eduNote": "運動是最便宜的情緒投資。",
+        "payload": {
+          "cost": 6,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C003",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "斷捨離整理課",
+        "flavor": "把衣櫃清空那天，也清掉了一些焦慮。",
+        "eduNote": "衝動購物常是情緒問題，不是預算問題。",
+        "payload": {
+          "cost": 9
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C004",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "正念冥想 App 年費",
+        "flavor": "每天十分鐘，學著看著念頭經過。",
+        "eduNote": "覺察情緒，是不被情緒綁架的第一步。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C005",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "戒酒三個月挑戰",
+        "flavor": "聚會改點無酒精，隔天的自己會謝謝你。",
+        "eduNote": "許多失控都始於一杯下肚。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C006",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "心理諮商月會",
+        "flavor": "每月一次，把積著的話說出來。",
+        "eduNote": "定期清理情緒，比爆掉再收拾划算。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C007",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "打造一個獨處角落",
+        "flavor": "一張椅子、一盞燈，煩了就退到這裡。",
+        "eduNote": "給情緒一個緩衝空間，衝突就少一半。",
+        "payload": {
+          "cost": 14
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C008",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "通勤改走風景路線",
+        "flavor": "慢個十分鐘，心情好一整天。",
+        "eduNote": "把趕路的焦躁，換成可以呼吸的節奏。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C009",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "報名合唱團",
+        "flavor": "一起唱歌的人，比較不容易對彼此吼。",
+        "eduNote": "把情緒放進不傷人的出口。",
+        "payload": {
+          "cost": 8,
+          "recurringMonthly": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C010",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "寫情緒日記",
+        "flavor": "睡前三行，寫下今天最想罵人的一刻。",
+        "eduNote": "寫下來，就多了一次不衝動的機會。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C011",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "學會好好吃一頓飯",
+        "flavor": "不配手機，專心把一餐吃完。",
+        "eduNote": "慢下來的胃，帶著慢下來的脾氣。",
+        "payload": {
+          "cost": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C012",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "隔音窗簾與降噪",
+        "flavor": "把外面的吵，擋在窗戶外面。",
+        "eduNote": "減少刺激源，情緒自然穩。",
+        "payload": {
+          "cost": 22
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C013",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "學一項需要專注的手作",
+        "flavor": "捏陶或木工，手忙了，腦就靜了。",
+        "eduNote": "專注是情緒最好的鎮定劑。",
+        "payload": {
+          "cost": 12,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C014",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "改騎自行車代步",
+        "flavor": "踩踏之間，把一天的悶氣蹬出去。",
+        "eduNote": "規律運動長期壓低情緒的基準線。",
+        "payload": {
+          "cost": 10
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C015",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "夫妻溝通共學",
+        "flavor": "一起上課，學怎麼吵得不傷人。",
+        "eduNote": "會吵架的伴侶，未必比不會和好的更糟。",
+        "payload": {
+          "cost": 16
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C016",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "防禦駕駛課程",
+        "flavor": "教練說：路上最貴的是那零點五秒。",
+        "eduNote": "用小錢買掉大額尾部風險。",
+        "payload": {
+          "cost": 14
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C017",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "居家安檢與火險規劃",
+        "flavor": "師傅說這條線再兩年會出事。",
+        "eduNote": "保險把不確定的大損失換成確定的小成本。",
+        "payload": {
+          "cost": 22,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C018",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "年度健檢加做項目",
+        "flavor": "多花的那幾項，醫生說值得。",
+        "eduNote": "早期發現的成本，永遠低於晚期治療。",
+        "payload": {
+          "cost": 16
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C019",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "車險保障升級",
+        "flavor": "加做第三人責任險與零件險。",
+        "eduNote": "保費看的是保障範圍，不是誰最便宜。",
+        "payload": {
+          "cost": 11,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C020",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "地震險與颱風防護",
+        "flavor": "住在這座島，這筆不能省。",
+        "eduNote": "天災不會挑你有沒有準備。",
+        "payload": {
+          "cost": 8,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C021",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "食材來源與保存教學",
+        "flavor": "學會看標示、學會冷藏鏈。",
+        "eduNote": "省下的是全家人的腸胃與醫藥費。",
+        "payload": {
+          "cost": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C022",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PRUDENCE",
+        "title": "投資詐騙辨識課",
+        "flavor": "高報酬零風險，聽到就該轉身。",
+        "eduNote": "看得懂騙局，是最高報酬的一堂課。",
+        "payload": {
+          "cost": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C023",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "合約與租約審閱習慣",
+        "flavor": "簽名前，逐條看過一遍。",
+        "eduNote": "一時的仔細，省下漫長的糾紛。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C024",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "定期車輛保養紀錄",
+        "flavor": "小病不拖成大修。",
+        "eduNote": "預防性維護的帳單，永遠比故障便宜。",
+        "payload": {
+          "cost": 6,
+          "recurringMonthly": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C025",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "建立緊急預備金",
+        "flavor": "先存下六個月的生活費再說別的。",
+        "eduNote": "現金是意外來臨時唯一不會背叛你的資產。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C026",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "戒掉來路不明的保健品",
+        "flavor": "貴又沒用，還可能傷身。",
+        "eduNote": "把錢花在證據上，不是花在恐懼上。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C027",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PRUDENCE",
+        "title": "個資與資安基本功",
+        "flavor": "兩步驗證、不亂點連結。",
+        "eduNote": "一次外洩，可能賠掉多年積蓄。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C028",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "立好遺囑與保單受益人",
+        "flavor": "把該交代的先交代清楚。",
+        "eduNote": "負責任的規劃，是留給家人的溫柔。",
+        "payload": {
+          "cost": 10
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C029",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "加裝行車記錄器",
+        "flavor": "路上的事，讓證據說話。",
+        "eduNote": "一次事故，就回本了。",
+        "payload": {
+          "cost": 7
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C030",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "控制信用卡張數",
+        "flavor": "留兩張夠用，其餘剪掉。",
+        "eduNote": "少一個循環利息的坑，就多一分餘裕。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C031",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "親子露營三天",
+        "flavor": "沒訊號的兩晚，他跟你講了很多話。",
+        "eduNote": "陪伴是教養裡最無法外包的一項。",
+        "payload": {
+          "cost": 12
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C032",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "陪練才藝半年",
+        "flavor": "每週兩次接送，你在教室外看完三本書。",
+        "eduNote": "教養的投入常是時間，不只是學費。",
+        "payload": {
+          "cost": 10,
+          "recurringMonthly": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C033",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "親職溝通講座",
+        "flavor": "講師說：先聽完，再回話。",
+        "eduNote": "教養方法可以學，學了的人少走冤枉路。",
+        "payload": {
+          "cost": 7
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C034",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PARENTING",
+        "title": "一起下廚的週末",
+        "flavor": "切菜洗米之間，聊了學校的事。",
+        "eduNote": "共做一件事，比一百句叮嚀更靠近。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C035",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "給孩子的第一個帳戶",
+        "flavor": "教他把零用錢分成花、存、給。",
+        "eduNote": "金錢觀是教出來的，不是等帳單來教的。",
+        "payload": {
+          "cost": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C036",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PARENTING",
+        "title": "佈置孩子的讀書角",
+        "flavor": "一張好桌燈，一個屬於他的位置。",
+        "eduNote": "環境會偷偷替你完成一半的教養。",
+        "payload": {
+          "cost": 14
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C037",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PARENTING",
+        "title": "一起完成一趟長途旅行",
+        "flavor": "計畫、迷路、再一起找到路。",
+        "eduNote": "一起解決問題，是最好的身教。",
+        "payload": {
+          "cost": 30
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C038",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "陪讀睡前故事習慣",
+        "flavor": "每晚十五分鐘，雷打不動。",
+        "eduNote": "穩定的陪伴，長成孩子的安全感。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C039",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "支持孩子的興趣試錯",
+        "flavor": "讓他學、也讓他放棄，再學別的。",
+        "eduNote": "允許試錯，才養得出會選擇的人。",
+        "payload": {
+          "cost": 9,
+          "recurringMonthly": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C040",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PARENTING",
+        "title": "家庭固定共餐時間",
+        "flavor": "再忙，一週也要一起吃幾頓。",
+        "eduNote": "餐桌是家庭最日常的教室。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C041",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "陪孩子當志工一天",
+        "flavor": "去一次才知道自己有多幸運。",
+        "eduNote": "同理心不是講的，是帶著去看見的。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C042",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "和青春期孩子的定期約會",
+        "flavor": "一杯飲料的時間，只聽不評。",
+        "eduNote": "青春期需要的是陪伴，不是保證金。",
+        "payload": {
+          "cost": 6,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C043",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "父母生日紅包",
+        "flavor": "媽媽嘴上說不用，紅包收得很快。",
+        "eduNote": "孝順的錢不求回報，但會回到你的生活裡。",
+        "payload": {
+          "cost": 10
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C044",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "帶父母出國一趟",
+        "flavor": "他們一路拍照，回來洗了三本相簿。",
+        "eduNote": "這筆錢沒有報酬率，但有到期日。",
+        "payload": {
+          "cost": 80
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C045",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "每月固定孝親金",
+        "flavor": "轉帳設成自動的，就不會忘。",
+        "eduNote": "固定的小額，比偶爾的大額更能支撐一個家。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C046",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "老家浴室做防滑",
+        "flavor": "這個年紀跌一次很麻煩。",
+        "eduNote": "預防性的支出，往往是最划算的孝順。",
+        "payload": {
+          "cost": 40
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C047",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "陪回診半天",
+        "flavor": "你只是坐在旁邊，他一路講你小時候。",
+        "eduNote": "孝順很多時候只是到場。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C048",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "替父母加保醫療險",
+        "flavor": "趁還能保的時候先保起來。",
+        "eduNote": "晚一年，可能就保不進去了。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 8
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C049",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "教爸媽用智慧手機",
+        "flavor": "從視訊開始，世界就近了。",
+        "eduNote": "陪伴不只給錢，也給他們跟上時代的能力。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C050",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "家族年度聚餐基金",
+        "flavor": "訂個好餐廳，讓長輩當主角。",
+        "eduNote": "把家人聚在一起，本身就有價值。",
+        "payload": {
+          "cost": 15
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C051",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "替老家換新家電",
+        "flavor": "那台冰箱比你年紀還大了。",
+        "eduNote": "孝順也可以很實際。",
+        "payload": {
+          "cost": 22
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C052",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "固定回家陪吃飯",
+        "flavor": "每週一次，讓廚房又熱鬧起來。",
+        "eduNote": "時間是父母最想要、也最買不到的禮物。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C053",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "替父母規劃退休現金流",
+        "flavor": "陪他們把保單與存款盤一次。",
+        "eduNote": "孝順的最高段，是讓他們不必依賴誰。",
+        "payload": {
+          "cost": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C054",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "照顧者喘息服務",
+        "flavor": "請人幫忙半天，讓自己也能喘口氣。",
+        "eduNote": "照顧者先顧好自己，才顧得久。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C055",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "數位排毒週末",
+        "flavor": "關掉通知那兩天，心跳都慢了下來。",
+        "eduNote": "資訊過載是這時代的隱形壓力源。",
+        "payload": {
+          "cost": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C056",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "替家裡添點綠意",
+        "flavor": "照顧植物的人，比較有耐心。",
+        "eduNote": "把注意力放在會生長的東西上，情緒也長得好。",
+        "payload": {
+          "cost": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C057",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "學會拒絕的練習課",
+        "flavor": "把「不」說出口，比想像中輕鬆。",
+        "eduNote": "守住界線，是情緒穩定的地基。",
+        "payload": {
+          "cost": 7
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C058",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "開車時聽有聲書",
+        "flavor": "塞車也能變成充電的時間。",
+        "eduNote": "把等待重新定義，怒氣就少了出口。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C059",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "週末不喝含糖飲料",
+        "flavor": "血糖穩，脾氣也穩。",
+        "eduNote": "身體的平衡，撐著情緒的平衡。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C060",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "固定的睡眠儀式",
+        "flavor": "睡飽的人，世界都比較友善。",
+        "eduNote": "睡眠債會用壞脾氣來討。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C061",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "把爭吵留在客廳外",
+        "flavor": "臥室只留給休息與和好。",
+        "eduNote": "為情緒設好場所的界線。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C062",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "建立食物過敏紀錄",
+        "flavor": "家人吃了什麼、有無反應，都寫下來。",
+        "eduNote": "紀錄讓風險看得見、可預防。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C063",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "定期檢查保單內容",
+        "flavor": "保障夠不夠、有沒有重複，一年看一次。",
+        "eduNote": "買了不看的保單，等於沒買。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C064",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "出遠門前的車況檢查",
+        "flavor": "胎壓、機油、雨刷，五分鐘的事。",
+        "eduNote": "預防的五分鐘，勝過路邊的五小時。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C065",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PRUDENCE",
+        "title": "分散帳戶與提款上限",
+        "flavor": "把雞蛋放不同籃子，也設好破口。",
+        "eduNote": "控管損失上限，是資安的基本功。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C066",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "社區逃生路線演練",
+        "flavor": "真的走一次，才知道哪裡卡。",
+        "eduNote": "演練過的安全，才是真的安全。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C067",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "建立家庭急救箱",
+        "flavor": "過期的藥先換掉，缺的補齊。",
+        "eduNote": "關鍵時刻，準備決定結果。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C068",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "保留重要文件備份",
+        "flavor": "證件、保單、契約掃描存雲端。",
+        "eduNote": "一場水災或火災，考驗你的備份。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C069",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "陪孩子做一次預算",
+        "flavor": "一起把零用錢分成花存給。",
+        "eduNote": "財商是陪出來的，不是講出來的。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C070",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "食",
+        "virtueAxis": "PARENTING",
+        "title": "教孩子下一道拿手菜",
+        "flavor": "會照顧自己的孩子，走到哪都安心。",
+        "eduNote": "生活能力，是最實用的教養。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C071",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "住",
+        "virtueAxis": "PARENTING",
+        "title": "一起整理房間的習慣",
+        "flavor": "收拾自己的空間，也收拾責任感。",
+        "eduNote": "秩序感，是從自己的抽屜開始的。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C072",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "陪孩子面對一次失敗",
+        "flavor": "名次不好那天，你只是陪著。",
+        "eduNote": "接住失敗的孩子，才敢再嘗試。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C073",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "行",
+        "virtueAxis": "PARENTING",
+        "title": "一起規劃家庭出遊",
+        "flavor": "讓孩子查資料、抓預算、排行程。",
+        "eduNote": "把決定權交出去，能力就長出來。",
+        "payload": {
+          "cost": 8
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C074",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "固定的家庭會議",
+        "flavor": "每週半小時，孩子也有發言權。",
+        "eduNote": "被聽見的孩子，比較願意溝通。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_C075",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "陪父母回老家走走",
+        "flavor": "車上那兩小時，聽了很多故事。",
+        "eduNote": "有些話，只在路上才說得出口。",
+        "payload": {
+          "cost": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C076",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "替父母整理數位帳號",
+        "flavor": "密碼、常用 App、緊急聯絡，一次盤清。",
+        "eduNote": "數位時代的孝順，是幫他們不被卡住。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C077",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "記錄父母的病史與用藥",
+        "flavor": "看診時拿得出來，醫生更好判斷。",
+        "eduNote": "一份清單，可能省下一場誤診。",
+        "payload": {
+          "cost": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C078",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "固定的家庭視訊夜",
+        "flavor": "隔著螢幕，也把日子接在一起。",
+        "eduNote": "距離不是問題，不聯絡才是。",
+        "payload": {
+          "cost": 0,
+          "recurringMonthly": 1
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C079",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "替長輩安排定期健檢",
+        "flavor": "預約掛號、陪同、追蹤報告。",
+        "eduNote": "早一步發現，就多一分從容。",
+        "payload": {
+          "cost": 8
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C080",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "學做父母愛吃的家常菜",
+        "flavor": "那個味道，是家的座標。",
+        "eduNote": "把記憶裡的味道傳下去。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T001",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "高速公路上的別車",
+        "flavor": "對方切進來只差半個車身。",
+        "eduNote": "路怒的代價不只罰款，還有被扣住的那段人生。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你深呼吸放慢車速讓他先過，到家早忘了這事。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你逼車回敬被檢舉，吊扣駕照三個月全靠計程車。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -120,
+                "label": "罰鍰與代步支出"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T002",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "樓上漏水的談判",
+        "flavor": "天花板滴了三週，對方一直不回訊息。",
+        "eduNote": "同一糾紛，用調解或用訴訟，差一個月的支出。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你先蒐證再找調解委員會，兩次會面就談成分攤。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -15,
+                "label": "訴訟費與修繕"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你在群組公開叫罵，對方反告妨害名譽，兩邊請律師。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -90,
+                "label": "訴訟費與修繕"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T003",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "尾牙那桌的爭執",
+        "flavor": "酒過三巡，話開始不好聽了。",
+        "eduNote": "情緒失控的帳單，通常隔天早上才寄到。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你放下杯子先送同事回家，隔天大家都謝謝你。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "推擠中打破店裡隔屏，做完筆錄後和解賠償。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -55,
+                "label": "賠償與和解金"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T004",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "週年慶的購物車",
+        "flavor": "限時三小時，滿額再送。",
+        "eduNote": "衝動購物的帳單會分十二期提醒你當時的心情。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你把購物車放過一夜，隔天只留真正需要的兩件。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -12,
+                "label": "衝動消費與循環利息"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你刷了卡也刷了關係，為帳單跟家人冷戰兩週。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -58,
+                "label": "衝動消費與循環利息"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T005",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "線上遊戲的口角",
+        "flavor": "對方一句嘲諷，你手指懸在課金鍵上。",
+        "eduNote": "為了爭一口氣課下去的金，事後最難解釋。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你關掉遊戲去洗了個澡，回來已經無所謂了。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你連課三筆想壓過對方，帳單來時只剩懊悔。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -40,
+                "label": "衝動課金"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T006",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "停車位的爭執",
+        "flavor": "你先看到的位子，被硬插了進去。",
+        "eduNote": "一個車位不值得賠上一整天與一身傷。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你笑笑地再繞一圈，找到更近的位子。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "雙方下車推擠，一個報警一個掛彩，各自賠償。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -70,
+                "label": "和解與醫藥費"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T007",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "裝潢糾紛的當面對質",
+        "flavor": "工班做壞了又不認帳。",
+        "eduNote": "帶著情緒談判，通常只會讓成本更高。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你冷靜出示合約與照片，對方同意重做。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "重做工程加價"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你當場翻臉趕人，工程停擺又得重找師傅加價。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -65,
+                "label": "重做工程加價"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T008",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "外送遲到的客訴",
+        "flavor": "餐點冷了，App 又打不通。",
+        "eduNote": "為小事動怒，賠掉的是自己一整晚的好心情。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你平和申訴，平台退款還補了折價券。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你留一星怒評又打電話飆罵，最後什麼也沒改變。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "重買一餐"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T009",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "十字路口的擦撞",
+        "flavor": "綠燈起步，右側機車突然竄出。",
+        "eduNote": "保險與謹慎是把大額尾部風險換成小額固定成本。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你上過防禦駕駛、保險齊全，對方全責，只付免賠額。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "車禍維修與罰款"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "記錄器拍到你超速搶快，維修罰款和解一起來。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -75,
+                "label": "車禍維修與罰款"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T010",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "頂樓加蓋被檢舉",
+        "flavor": "里長說有人拍照去投訴了。",
+        "eduNote": "違規的成本從不是罰單本身，是拆除與重做。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你當初就依規申請，只需補件與小額罰鍰。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -10,
+                "label": "拆除與復原工程"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "未申請的加蓋被列管限期拆除，還得復原防水。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -95,
+                "label": "拆除與復原工程"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T011",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "廚房的小火",
+        "flavor": "油鍋起火那三秒，時間過得很慢。",
+        "eduNote": "火險保費一年幾千，沒保的那年可能是幾十萬。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "滅火器就在手邊、火險早保了，理賠後自付一點。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -14,
+                "label": "修復工程"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "沒滅火器也沒保火險，整套廚具與天花板重做。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -110,
+                "label": "修復工程"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T012",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "宴客後的腸胃炎",
+        "flavor": "冰箱深處那盒，你其實猶豫過。",
+        "eduNote": "食安的疏忽會變成別人的醫藥費與你的信譽。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你出門前檢查過每樣食材，過期的早丟了。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "兩位朋友掛急診，你負擔醫藥費也失去一個週末。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -42,
+                "label": "醫藥費與慰問"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T013",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "連續超速罰單",
+        "flavor": "信箱一次來了三張。",
+        "eduNote": "習慣性的小違規會累積成一筆固定支出。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你早設好速限提醒，這次只是臨停被開一張。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "罰鍰與講習"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "三張測速加一張闖紅燈，點數滿還得上講習。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -48,
+                "label": "罰鍰與講習"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T014",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PRUDENCE",
+        "title": "那個穩賺的內線",
+        "flavor": "朋友說跟著買就對了，別問。",
+        "eduNote": "聽起來零風險的機會，風險往往在你看不到的地方。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你查了才發現是資金盤，果斷不碰全身而退。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你一股腦投進去，三個月後平台無預警關站。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -130,
+                "label": "血本無歸"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T015",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "來路不明的租約",
+        "flavor": "房東要你先付半年，合約含糊。",
+        "eduNote": "簽名前多看一眼，省下漫長的糾紛。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你逐條談清楚、要求正式合約，住得安穩。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "押金損失與搬遷"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你嫌麻煩就簽了，押金被苛扣還被提前收回。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -50,
+                "label": "押金損失與搬遷"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T016",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "颱風天的僥倖",
+        "flavor": "路樹壓下來，你的車停在紅線邊。",
+        "eduNote": "省下的停車費，抵不過一次意外的維修。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你早把車開進停車場，安然無事。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "維修與罰鍰"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "違停車被砸中，既無理賠又吃了張罰單。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -45,
+                "label": "維修與罰鍰"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T017",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "保健食品的大單",
+        "flavor": "業務說買一年份最划算。",
+        "eduNote": "恐懼行銷面前，證據比話術重要。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你查了成分覺得沒必要，只買一小盒試。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -5,
+                "label": "囤貨浪費"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你被說動囤了一整年，吃兩個月就發現沒感覺。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -38,
+                "label": "囤貨浪費"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T018",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "手機遊戲的帳單",
+        "flavor": "信用卡簡訊連響十七次。",
+        "eduNote": "孩子的金錢觀是教出來的，不是等帳單來教。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們早約好每月遊戲預算，他自己停在額度內。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -3,
+                "label": "遊戲儲值"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "半夜用你的卡課金，申訴不成，只能當昂貴一課。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -45,
+                "label": "遊戲儲值"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T019",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "深夜的一通電話",
+        "flavor": "派出所說，請家長來一趟。",
+        "eduNote": "青春期的孩子需要陪伴，不是保證金。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 2,
+          "above": {
+            "narrative": "導師與你早有默契，孩子道歉並完成勞動服務。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -10,
+                "label": "保證金與賠償"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "對方要求賠償，你先繳保證金，還有幾次調解要跑。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -60,
+                "label": "保證金與賠償"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T020",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "他說不想去學校了",
+        "flavor": "連續第五天，他把棉被拉過頭。",
+        "eduNote": "及早介入的輔導成本，遠低於長期缺課的代價。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你請半天假陪他去談，導師與輔導老師接住這事。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "諮商與課輔"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "拖了兩個月才處理，需自費諮商與課業補救。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -52,
+                "label": "諮商與課輔"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T021",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "PARENTING",
+        "title": "偏食引發的健康警訊",
+        "flavor": "健檢報告上的紅字讓你心頭一驚。",
+        "eduNote": "飲食習慣是童年養成的，改起來要趁早。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們早就一起調整三餐，複檢一切正常。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "就醫與飲食調整"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "長期外食與含糖飲料，得長期追蹤與調理。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -40,
+                "label": "就醫與飲食調整"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T022",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "才藝班的中途放棄",
+        "flavor": "學費繳了半年，他說不想學了。",
+        "eduNote": "允許放棄，但也要學會為選擇負責。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們約好這期上完再決定，錢沒白花。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "當場退班違約，學費打水漂還鬧了脾氣。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -22,
+                "label": "違約與退費損失"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T023",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PARENTING",
+        "title": "接送脫班的意外",
+        "flavor": "放學沒接到，孩子自己亂走。",
+        "eduNote": "安全的默契，是日常一次次演練出來的。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 2,
+          "above": {
+            "narrative": "你們有備案地點，他乖乖在便利商店等你。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "沒約好會合點，一場虛驚外加報警協尋。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -18,
+                "label": "協尋與驚嚇後安撫"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T024",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "爸媽說要幫忙帶孫",
+        "flavor": "「你們去忙，小孩放我這。」",
+        "eduNote": "孝順換到的是一個會互相接住的家。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "這些年你常回家，這次換他們主動幫忙，托育少一半。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -6,
+                "label": "長輩協助托育",
+                "durationTurns": 6
+              }
+            ]
+          },
+          "below": {
+            "narrative": "他們也想幫，但少了走動，最後仍照原安排。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T025",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "媽媽的冰箱",
+        "flavor": "後車廂塞滿了保鮮盒。",
+        "eduNote": "家庭支持是一種不會出現在報表上的資產。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "每次回去都被塞滿一車，這個月伙食省一截。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -4,
+                "label": "家裡的伙食支援",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你已很久沒回去，這個月照常自己張羅。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T026",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "老家的空房",
+        "flavor": "「要不要搬回來住一陣子？」",
+        "eduNote": "走得近的家人，是低潮時的緩衝墊。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "你們感情好，回老家住幾個月，房租省下來喘口氣。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -8,
+                "label": "暫住老家省房租",
+                "durationTurns": 5
+              }
+            ]
+          },
+          "below": {
+            "narrative": "關係疏遠，你不好意思開口，還是自己撐。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T027",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "父親的老人津貼",
+        "flavor": "他悄悄把補助塞進你手裡。",
+        "eduNote": "有些支援，是父母表達愛的方式。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "你常陪伴，他主動貼補你一點家用。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -3,
+                "label": "長輩貼補家用",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "少了往來，他也就沒多說什麼。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T028",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "家族的資金周轉",
+        "flavor": "親戚急需一筆錢周轉。",
+        "eduNote": "平時的情分，是急難時互相的底氣。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "你人緣好，這回換親戚無息借你一筆度過難關。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -10,
+                "label": "親族無息周轉",
+                "durationTurns": 3
+              }
+            ]
+          },
+          "below": {
+            "narrative": "平時少往來，這次只能自己想辦法——找了利息高的短期周轉，代價不小。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -35,
+                "label": "急用錢只能找貴的管道",
+                "since": "contentFixS12"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T029",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "母親的手藝副業",
+        "flavor": "她做的醬菜在鄰里賣得不錯。",
+        "eduNote": "家人的互助，常常是雙向的現金流。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "你幫忙上架網購，她分你一些盈餘。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -2,
+                "label": "協助家中副業分潤",
+                "durationTurns": 5
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你沒空理會，這事也就淡了。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T030",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "TEMPER",
+        "title": "鄰居的深夜噪音",
+        "flavor": "樓上又在半夜拖桌子。",
+        "eduNote": "衝動的反擊，常讓小事變成長期戰。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你留了張客氣的字條，對方隔天來道歉。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你上樓拍門對嗆，從此樓梯間都是火藥味，還被檢舉。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -35,
+                "label": "糾紛與心理消耗"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T031",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "TEMPER",
+        "title": "被檢舉的行車糾紛",
+        "flavor": "對方硬要你賠，情緒一下上來。",
+        "eduNote": "先冷靜蒐證，勝過當場翻臉。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你調出行車記錄器，理性協商，各退一步。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "訴訟與時間成本"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你當街理論越吵越兇，最後對簿公堂。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -68,
+                "label": "訴訟與時間成本"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T032",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "TEMPER",
+        "title": "餐廳的上錯菜",
+        "flavor": "等了一小時，端來的還是錯的。",
+        "eduNote": "對服務生發火，改變不了廚房。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你平靜反映，店家致歉並招待甜點。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你當眾飆罵，鬧到用餐心情全毀、還被拍照上網。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -10,
+                "label": "重點一餐與形象"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T033",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "社群上的酸言",
+        "flavor": "有人在你貼文下留了難聽的話。",
+        "eduNote": "餵養爭吵的，往往是自己的回覆鍵。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 2,
+          "above": {
+            "narrative": "你截圖封鎖，繼續過你的生活。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你回嗆演變成筆戰，整晚睡不好還被人肉。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -20,
+                "label": "情緒內耗"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T034",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "退貨的爭執",
+        "flavor": "店員說超過期限不能退。",
+        "eduNote": "把音量降下來，事情反而好談。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你出示購買紀錄好好溝通，換到了折抵。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你在店裡大鬧，最後什麼也沒退成。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "衝突後的補買"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T035",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "違建的頂樓菜園",
+        "flavor": "鄰居檢舉你加蓋的溫室。",
+        "eduNote": "僥倖蓋的，總有一天要拆。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你當初申請合法棚架，補件即可。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "拆除與復原"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "違規棚架限期拆除，還要復原防水。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -70,
+                "label": "拆除與復原"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T036",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "無照的代駕",
+        "flavor": "朋友說喝一點沒關係。",
+        "eduNote": "一次僥倖，可能賠上一生。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你堅持叫代駕，多花點錢換平安。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "罰鍰吊照與代步"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你自認沒事上路被攔，酒駕重罰又吊照。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -150,
+                "label": "罰鍰吊照與代步"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T037",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "PRUDENCE",
+        "title": "來路不明的網購保健品",
+        "flavor": "超便宜，還限時搶購。",
+        "eduNote": "便宜的代價，有時是健康。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你查了沒有許可字號，果斷不買。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你買了吃出問題，就醫又求償無門。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -44,
+                "label": "就醫與損失"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T038",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "跳過的房屋健檢",
+        "flavor": "急著入住，就沒仔細看。",
+        "eduNote": "省下的檢查費，抵不過漏水的維修。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你花錢做了驗屋，抓出問題請屋主修。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "修繕工程"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "入住才發現壁癌與管線老舊，自費重做。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -90,
+                "label": "修繕工程"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T039",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PRUDENCE",
+        "title": "僥倖的超載",
+        "flavor": "載重超一點，想說沒差。",
+        "eduNote": "規則是用別人的教訓寫成的。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你分兩趟載運，穩穩到位。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -3,
+                "label": "罰鍰與轉運"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "超載被攔重罰，還得卸貨轉運。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -40,
+                "label": "罰鍰與轉運"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T040",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PRUDENCE",
+        "title": "高報酬的群組明牌",
+        "flavor": "群組每天報「保證獲利」的標的。",
+        "eduNote": "保證獲利四個字，就是最大的紅旗。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你退出群組，把錢放回自己看得懂的資產。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你跟單重押，主力出貨後套在高點。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -120,
+                "label": "套牢虧損"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T041",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "孩子的網路交友",
+        "flavor": "他認識了一個「網路上的大哥哥」。",
+        "eduNote": "陪伴與界線，是最好的防護。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 2,
+          "above": {
+            "narrative": "你們早聊過網路安全，他主動跟你說了。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "損失與輔導"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "疏於溝通，孩子被騙個資與零用錢。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -55,
+                "label": "損失與輔導"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T042",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "食",
+        "virtueAxis": "PARENTING",
+        "title": "孩子的含糖飲料習慣",
+        "flavor": "一天一杯手搖，停不下來。",
+        "eduNote": "習慣是複利，好壞都是。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們一起改成無糖與白開水，體檢過關。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -6,
+                "label": "就醫與飲食調整"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "長期高糖引發健康警訊，得長期調整。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -42,
+                "label": "就醫與飲食調整"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T043",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PARENTING",
+        "title": "孩子沉迷手機",
+        "flavor": "作業擺著，眼睛黏在螢幕上。",
+        "eduNote": "規則要早立，晚了就難收。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 2,
+          "above": {
+            "narrative": "你們早有使用公約，他自己會收手。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -5,
+                "label": "換機與輔導"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "衝突升級到摔手機，還得買新的加諮商。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -48,
+                "label": "換機與輔導"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T044",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "行",
+        "virtueAxis": "PARENTING",
+        "title": "校門口的安全",
+        "flavor": "放學時段車來人往。",
+        "eduNote": "安全的默契，救的是最壞那天。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 2,
+          "above": {
+            "narrative": "你們約好固定會合點，平安接送。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "沒說好地點，一次走失虛驚報警。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -20,
+                "label": "協尋與安撫"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T045",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "才藝與課業的拉扯",
+        "flavor": "樣樣都想學，時間卻不夠。",
+        "eduNote": "選擇的能力，比才藝本身更重要。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們一起排優先序，取捨得宜。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "退費與調整"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "貪多排滿，孩子累到情緒崩潰要收拾。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -30,
+                "label": "退費與調整"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T046",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "颱風夜的老家",
+        "flavor": "停電那晚，你想起獨居的爸媽。",
+        "eduNote": "常聯絡的家，急難時互相接得住。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "你平時常回去，鄰里都熟，這次託鄰居就近照應，省了跑一趟。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -5,
+                "label": "就近照應省成本",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "少往來又不熟鄰里，你只能連夜開車回去處理——油錢、過路費，還請了一天假。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -22,
+                "label": "連夜開車來回與請假",
+                "since": "contentFixS12"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T047",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "母親的老客戶",
+        "flavor": "她年輕時的人脈還在。",
+        "eduNote": "家人的善緣，有時會變成你的機會。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "媽媽介紹了一位老客戶給你的副業，帶來一筆收入。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -4,
+                "label": "家族人脈帶來收入",
+                "durationTurns": 5
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你們少談彼此的事，這層連結就斷了。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T048",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "父親的老同事",
+        "flavor": "一句話就幫你搭上線。",
+        "eduNote": "父母鋪的路，常在你看不見時起作用。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "爸爸的老同事幫你引薦，省下一筆仲介與時間。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -6,
+                "label": "長輩人脈省成本",
+                "durationTurns": 3
+              }
+            ]
+          },
+          "below": {
+            "narrative": "關係淡了，這條線也就用不上。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T049",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "家傳的老手藝",
+        "flavor": "阿嬤的醃菜配方沒人接。",
+        "eduNote": "願意學的人，接住的是一份可能。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "你學會了家傳手藝，週末小量販售多了收入。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -3,
+                "label": "家傳手藝變收入",
+                "durationTurns": 5
+              }
+            ]
+          },
+          "below": {
+            "narrative": "沒人接手，配方就跟著時間淡去。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T050",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "老家的閒置空間",
+        "flavor": "一樓騎樓一直空著。",
+        "eduNote": "家人的資源，常被忽略。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "你和父母商量把騎樓整理出租，多一份被動收入。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -7,
+                "label": "閒置空間活化",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "彼此不常商量，這個機會也就擱著。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T051",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "TEMPER",
+        "title": "直播間的衝動抖內",
+        "flavor": "主播一句「差你一個」，手就滑了。",
+        "eduNote": "衝動的贊助，隔天最難解釋。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你設了每月娛樂上限，笑笑關掉直播。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你連刷大額禮物想被看見，帳單來時只剩空虛。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -30,
+                "label": "衝動贊助"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T052",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "住",
+        "virtueAxis": "PRUDENCE",
+        "title": "二手家電的便宜貨",
+        "flavor": "賣家說九成新，現金交易。",
+        "eduNote": "貪小便宜，常買到大麻煩。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 1,
+          "above": {
+            "narrative": "你要求測試通電與保固，確認才付款。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -2,
+                "label": "損失與重買"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "買回發現是故障品，賣家已失聯。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -18,
+                "label": "損失與重買"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T053",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "育樂",
+        "virtueAxis": "PARENTING",
+        "title": "孩子想要最新款手機",
+        "flavor": "同學都有，他也開口了。",
+        "eduNote": "需要與想要，是要一起分辨的功課。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你們討論後用舊機加條件，他也接受。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -3,
+                "label": "超支消費"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "拗不過就買了旗艦機，預算大破洞。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -45,
+                "label": "超支消費"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_T054",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "父母的一句提醒",
+        "flavor": "他們看你臉色就知道你累了。",
+        "eduNote": "家人的關心，是無形的支撐。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "你常回家，這回媽媽的一句話點醒你別急著投資，避開一個坑。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -8,
+                "label": "長輩提醒避險",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "少了往來，這份提醒也就沒機會出現——那筆投資你還是進去了，賠了一筆才學到。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -30,
+                "label": "沒人提醒，踩了那個坑",
+                "since": "contentFixS12"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T055",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "家族的資源共享",
+        "flavor": "叔叔的店面剛好空著。",
+        "eduNote": "走得近，機會才輪得到你。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 2,
+          "above": {
+            "narrative": "叔叔把店面優先租你創業，租金給了折扣。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -9,
+                "label": "家族優惠租金",
+                "durationTurns": 4
+              }
+            ]
+          },
+          "below": {
+            "narrative": "關係疏遠，這個機會就給了別人。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T056",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "孝親家庭",
+        "virtueAxis": "FILIAL",
+        "title": "母親的老鄰居",
+        "flavor": "一句話幫你打聽到好物件。",
+        "eduNote": "人情網絡，是看不見的資產。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "透過媽媽的鄰居，你找到划算的租屋，省了仲介費。",
+            "effects": [
+              {
+                "op": "ADD_RECURRING_EXPENSE",
+                "target": "self",
+                "amount": -3,
+                "label": "人脈省下成本",
+                "durationTurns": 5
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你們不常走動，這條線就斷了。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D001",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "年菜採買",
+        "flavor": "一年一次，總不好意思少買。",
+        "payload": {
+          "cost": 14,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D002",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "同事聚餐輪你請",
+        "flavor": "上次是他，這次躲不掉。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D003",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "外送吃到習慣",
+        "flavor": "這個月開了二十三次 App。",
+        "payload": {
+          "cost": 9,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D004",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "廚房小家電陣亡",
+        "flavor": "電鍋按下去沒跳起來。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D005",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "跟風的網紅名店",
+        "flavor": "排了兩小時，拍了三張照。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D006",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "母親節大餐訂位",
+        "flavor": "一年就這麼一次。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D007",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "健身後的高蛋白飲食",
+        "flavor": "雞胸肉一次囤一整箱。",
+        "payload": {
+          "cost": 3,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D008",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "家庭聚餐加菜",
+        "flavor": "難得到齊，多點兩道。",
+        "payload": {
+          "cost": 7,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D009",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "進口水果的犒賞",
+        "flavor": "貴，但這週辛苦了。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D010",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "咖啡因上癮",
+        "flavor": "每天一杯手沖，一個月就有感。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D011",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "過年伴手禮團購",
+        "flavor": "一次訂了五盒禮盒。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D012",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "減醣飲食採買升級",
+        "flavor": "橄欖油與好食材都不便宜。",
+        "payload": {
+          "cost": 4,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D013",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "孩子的營養午餐費",
+        "flavor": "單子今天要交。",
+        "payload": {
+          "cost": 3,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D014",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "露營野炊食材",
+        "flavor": "戶外吃什麼都香，也什麼都貴。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D015",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "家庭飲水機濾芯",
+        "flavor": "三個月一換，跳不掉。",
+        "payload": {
+          "cost": 2,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D016",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "消夜的小確幸",
+        "flavor": "加班晚歸，總想吃點什麼。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D017",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "過敏兒的特殊食材",
+        "flavor": "無麩質、無奶蛋，選擇少又貴。",
+        "payload": {
+          "cost": 4,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D018",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "尾牙加碼買單",
+        "flavor": "氣氛到了，你舉了手。",
+        "payload": {
+          "cost": 9,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D019",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "換季添購",
+        "flavor": "去年的褲子好像縮水了。",
+        "payload": {
+          "cost": 8,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D020",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "喜宴正裝",
+        "flavor": "這種場合不能穿 T 恤。",
+        "payload": {
+          "cost": 11,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D021",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "孩子的制服又要換",
+        "flavor": "一學期長高四公分。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D022",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "運動鞋跑到開口笑",
+        "flavor": "該換一雙好的了。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D023",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "面試的正式套裝",
+        "flavor": "第一印象值得投資。",
+        "payload": {
+          "cost": 9,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D024",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "冬天的保暖大衣",
+        "flavor": "寒流一波接一波。",
+        "payload": {
+          "cost": 12,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D025",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "名牌包的猶豫",
+        "flavor": "背了會開心，帳單會清醒。",
+        "payload": {
+          "cost": 25,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D026",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "孩子的才藝表演服",
+        "flavor": "只穿一次，也得買。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D027",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "乾洗與修改費",
+        "flavor": "西裝總得好好照顧。",
+        "payload": {
+          "cost": 2,
+          "optional": false,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D028",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "換季衣物收納",
+        "flavor": "真空袋與防塵套一批。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D029",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "跟風的當季潮鞋",
+        "flavor": "限量款，手滑了。",
+        "payload": {
+          "cost": 13,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D030",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "上班族的通勤鞋",
+        "flavor": "走久了腳才知道貴的有理。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D031",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "嬰幼兒衣物換季",
+        "flavor": "長太快，一季全汰換。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D032",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "雨季的機能外套",
+        "flavor": "台北的雨，真的需要它。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D033",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "熱水器壽終",
+        "flavor": "洗到一半變冷水。",
+        "payload": {
+          "cost": 18,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D034",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "頂樓防水重做",
+        "flavor": "雨季前不做，雨季後更貴。",
+        "payload": {
+          "cost": 26,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D035",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "搬家",
+        "flavor": "東西比想像中多很多。",
+        "payload": {
+          "cost": 22,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D036",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "冷氣定期保養",
+        "flavor": "洗完真的比較涼。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D037",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "冰箱壓縮機故障",
+        "flavor": "修不如換的年紀了。",
+        "payload": {
+          "cost": 20,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D038",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "漏水抓漏工程",
+        "flavor": "找了三家才敢動工。",
+        "payload": {
+          "cost": 30,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D039",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "社區管理費調漲",
+        "flavor": "電梯要更新了。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D040",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "除蟲與白蟻防治",
+        "flavor": "木地板底下有動靜。",
+        "payload": {
+          "cost": 9,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D041",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "窗簾與寢具換新",
+        "flavor": "住得舒服也是投資。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D042",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "智慧家電升級",
+        "flavor": "掃地機器人真的回不去。",
+        "payload": {
+          "cost": 10,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D043",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "牆面重新粉刷",
+        "flavor": "住了五年，牆也累了。",
+        "payload": {
+          "cost": 12,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D044",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "房屋稅與地價稅",
+        "flavor": "一年一次的固定痛。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D045",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "水電費夏季暴衝",
+        "flavor": "冷氣一開就知道。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D046",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "門鎖升級電子鎖",
+        "flavor": "再也不用怕忘記帶鑰匙。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D047",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "陽台防水與排水",
+        "flavor": "颱風季前的例行檢修。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D048",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "老屋管線更新",
+        "flavor": "跳電跳到受不了。",
+        "payload": {
+          "cost": 28,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D049",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "租屋押金與仲介費",
+        "flavor": "搬一次家傷一次荷包。",
+        "payload": {
+          "cost": 16,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D050",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "家具汰舊換新",
+        "flavor": "那張沙發陪你太久了。",
+        "payload": {
+          "cost": 11,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D051",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "機車大保養",
+        "flavor": "該換的皮帶跟機油。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D052",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "四條輪胎一起換",
+        "flavor": "溝深剩不到一半了。",
+        "payload": {
+          "cost": 16,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D053",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "油價又漲了",
+        "flavor": "通勤成本悄悄墊高。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D054",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "連假國旅車票",
+        "flavor": "搶到票就是賺到。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D055",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "汽車定期保養",
+        "flavor": "里程到了就得進廠。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D056",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "停車月租調漲",
+        "flavor": "市區的位子越來越貴。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 3
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D057",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "電動機車電池月租",
+        "flavor": "方便，但月月要繳。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D058",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "高鐵回鄉車票",
+        "flavor": "過年一票難求。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D059",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "汽車電瓶沒電",
+        "flavor": "發不動的早晨最崩潰。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D060",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "違規停車罰單",
+        "flavor": "一時方便，一張單。",
+        "payload": {
+          "cost": 2,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D061",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "計程車救急",
+        "flavor": "下雨天加塞車的代價。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D062",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "孩子的通學月票",
+        "flavor": "每天上下學的固定支出。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D063",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "長途自駕的過路費",
+        "flavor": "一趟環島跑下來也不少。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D064",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "機車汰舊換購",
+        "flavor": "老車驗不過了。",
+        "payload": {
+          "cost": 35,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D065",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "共享單車年費",
+        "flavor": "短程通勤划算又健康。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D066",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "車輛驗車與牌照稅",
+        "flavor": "一年一度的例行。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D067",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "家庭電影日",
+        "flavor": "爆米花比電影票貴。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D068",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "演唱會門票",
+        "flavor": "手速決定人生。",
+        "payload": {
+          "cost": 13,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D069",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "孩子的校外教學費",
+        "flavor": "單子今天要交。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D070",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "串流平台一堆",
+        "flavor": "算一算訂了五個。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D071",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "健身房年費",
+        "flavor": "辦了卡，去了三次。",
+        "payload": {
+          "cost": 10,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D072",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "家庭旅遊住宿",
+        "flavor": "連假房價翻倍也得訂。",
+        "payload": {
+          "cost": 18,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D073",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "遊戲主機新片",
+        "flavor": "首發價總是最貴。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D074",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "展覽與親子活動",
+        "flavor": "週末總得帶孩子出門放電。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D075",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "攝影器材的坑",
+        "flavor": "鏡頭永遠差一顆。",
+        "payload": {
+          "cost": 20,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D076",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "線上課程進修",
+        "flavor": "投資自己，但也要花錢。",
+        "payload": {
+          "cost": 8,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D077",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "寵物的醫療與飼料",
+        "flavor": "毛小孩也是家人。",
+        "payload": {
+          "cost": 4,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D078",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "生日派對籌備",
+        "flavor": "孩子一年一次的期待。",
+        "payload": {
+          "cost": 7,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D079",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "路跑報名與裝備",
+        "flavor": "為了那面完賽獎牌。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D080",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "家庭遊樂園一日遊",
+        "flavor": "門票餐飲停車一次噴。",
+        "payload": {
+          "cost": 9,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D081",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "訂閱制知識付費",
+        "flavor": "焦慮買單，看沒幾集。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D082",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "露營裝備採購",
+        "flavor": "入坑後就回不去了。",
+        "payload": {
+          "cost": 15,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D083",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "才藝成果發表花費",
+        "flavor": "服裝道具加場地。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D084",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "追星應援集資",
+        "flavor": "理智與熱情的拉鋸。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D085",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "年節伴手禮",
+        "flavor": "每一家都要準備一份。",
+        "payload": {
+          "cost": 9,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D086",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家族聚餐輪你作東",
+        "flavor": "三桌，長輩坐主位。",
+        "payload": {
+          "cost": 12,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D087",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "父母的醫療自費項目",
+        "flavor": "健保不給付的那些。",
+        "payload": {
+          "cost": 10,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D088",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "長輩生日祝壽",
+        "flavor": "儀式感不能少。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D089",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家中喪葬與白包",
+        "flavor": "人情義理的往來。",
+        "payload": {
+          "cost": 15,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D090",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "晚輩的紅包與註冊費",
+        "flavor": "做長輩的心意。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D091",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "父母的照護耗材",
+        "flavor": "尿布、營養品、輔具。",
+        "payload": {
+          "cost": 5,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D092",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "祖厝的修繕分攤",
+        "flavor": "老家的事，大家一起扛。",
+        "payload": {
+          "cost": 11,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D093",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "逢年過節的孝親金",
+        "flavor": "包給爸媽的那份。",
+        "payload": {
+          "cost": 7,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D094",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家族旅遊的分攤",
+        "flavor": "帶著長輩一起走走。",
+        "payload": {
+          "cost": 13,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D095",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "父母的手機與網路費",
+        "flavor": "替他們繳了也不提。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D096",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "結婚禮金的旺季",
+        "flavor": "一個月來了三張帖。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D097",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "長輩的計程車與代步",
+        "flavor": "行動不便後的日常。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D098",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家庭保險的續期",
+        "flavor": "一家人的保障不能斷。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 3
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D099",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "中秋烤肉團",
+        "flavor": "一家烤肉萬家香，也萬家花錢。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D100",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "端午粽子禮盒",
+        "flavor": "南部粽北部粽都想吃。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D101",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "公司福委聚餐分攤",
+        "flavor": "說是自由參加，其實很難不去。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D102",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "新開的火鍋吃到飽",
+        "flavor": "揪團衝一波。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D103",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "孩子的手搖飲零用",
+        "flavor": "放學一杯，積少成多。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D104",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "健康氣炸鍋入手",
+        "flavor": "炸物罪惡感少一點。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D105",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "訂閱制生鮮箱",
+        "flavor": "每週一箱，方便但不便宜。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D106",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "過年圍爐加菜金",
+        "flavor": "長輩說難得團圓。",
+        "payload": {
+          "cost": 7,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D107",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "冬至湯圓與補品",
+        "flavor": "進補的季節到了。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D108",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "咖啡機與豆子",
+        "flavor": "在家煮，長期比外買省。",
+        "payload": {
+          "cost": 9,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D109",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "小孩鞋子又太小",
+        "flavor": "三個月換一雙。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D110",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "職場的季度添裝",
+        "flavor": "體面也是專業的一部分。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D111",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "運動機能服採購",
+        "flavor": "開始跑步後裝備接連買。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D112",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "過年新衣傳統",
+        "flavor": "一人一套討吉利。",
+        "payload": {
+          "cost": 8,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D113",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "西裝修改與換季",
+        "flavor": "身材變了，衣服得改。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D114",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "嬰兒推車與揹巾",
+        "flavor": "帶小孩的必要裝備。",
+        "payload": {
+          "cost": 10,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D115",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "登山裝備入門",
+        "flavor": "防水外套與登山鞋一次購足。",
+        "payload": {
+          "cost": 14,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D116",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "飾品與手錶的犒賞",
+        "flavor": "對自己好一點。",
+        "payload": {
+          "cost": 12,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D117",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "抽油煙機故障",
+        "flavor": "油煙倒灌整間廚房。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D118",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "馬桶與水管阻塞",
+        "flavor": "半夜還得叫水電。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D119",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "窗戶氣密與隔熱",
+        "flavor": "夏天電費有感下降。",
+        "payload": {
+          "cost": 16,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D120",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "社區公設修繕特別分攤",
+        "flavor": "電梯大修，每戶都要出。",
+        "payload": {
+          "cost": 12,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D121",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "家用網路升級光纖",
+        "flavor": "在家工作的剛需。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D122",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "除濕機與空氣清淨機",
+        "flavor": "梅雨季的生存工具。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D123",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "陽台外推修復",
+        "flavor": "颱風後才發現漏。",
+        "payload": {
+          "cost": 20,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D124",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "智慧門鈴與監視器",
+        "flavor": "出門在外看得到家。",
+        "payload": {
+          "cost": 9,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D125",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "地板重鋪",
+        "flavor": "舊木地板翹起來了。",
+        "payload": {
+          "cost": 24,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D126",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "太陽能熱水器",
+        "flavor": "初期投資，長期省瓦斯。",
+        "payload": {
+          "cost": 30,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D127",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "車庫鐵捲門維修",
+        "flavor": "卡在半空中上不去。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D128",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "汽車冷氣不冷",
+        "flavor": "夏天沒冷氣像蒸籠。",
+        "payload": {
+          "cost": 7,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D129",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "機車雨天打滑擦傷",
+        "flavor": "小傷小修，荷包還是痛。",
+        "payload": {
+          "cost": 3,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D130",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "國道電子收費儲值",
+        "flavor": "跑長途一下就見底。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D131",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "單車進廠保養",
+        "flavor": "變速卡卡的該調了。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D132",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "計程車尖峰加成",
+        "flavor": "趕時間只能認了。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D133",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "孩子的安全座椅升級",
+        "flavor": "長大了要換大的。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D134",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "汽車保險桿板金",
+        "flavor": "停車小擦撞。",
+        "payload": {
+          "cost": 5,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D135",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "長輩共乘的油錢分攤",
+        "flavor": "載爸媽出遊也是心意。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D136",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "電動車充電樁安裝",
+        "flavor": "家裡要拉專用電。",
+        "payload": {
+          "cost": 22,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D137",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "過年返鄉的油錢過路費",
+        "flavor": "南來北往一趟不少。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D138",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "孩子的暑期夏令營",
+        "flavor": "放電又學東西，但要花錢。",
+        "payload": {
+          "cost": 12,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D139",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "家庭桌遊採購",
+        "flavor": "週末夜的親子時光。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D140",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "線上健身課程訂閱",
+        "flavor": "在家也能練。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D141",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "音樂串流家庭方案",
+        "flavor": "全家共用一個帳號。",
+        "payload": {
+          "cost": 0,
+          "optional": true,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D142",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "跨年連假小旅行",
+        "flavor": "訂房要趁早，價格也漂亮。",
+        "payload": {
+          "cost": 15,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D143",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "相機租借與旅拍",
+        "flavor": "出國前的準備。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D144",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "孩子的樂器維護",
+        "flavor": "小提琴換弦與保養。",
+        "payload": {
+          "cost": 3,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D145",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "職業球賽門票",
+        "flavor": "現場氣氛無可取代。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D146",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "登山嚮導與入園費",
+        "flavor": "百岳行前的必要花費。",
+        "payload": {
+          "cost": 8,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D147",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "攝影後製軟體年費",
+        "flavor": "修圖的工具也要錢。",
+        "payload": {
+          "cost": 4,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D148",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "陪長輩的溫泉小旅行",
+        "flavor": "泡湯養生兩相宜。",
+        "payload": {
+          "cost": 10,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D149",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "孩子的繪本與課外書",
+        "flavor": "閱讀的投資最划算。",
+        "payload": {
+          "cost": 3,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D150",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "父母的假牙與配鏡",
+        "flavor": "上了年紀的必要支出。",
+        "payload": {
+          "cost": 12,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D151",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "長輩的助聽器",
+        "flavor": "聽得清楚，話才聊得下去。",
+        "payload": {
+          "cost": 18,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D152",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家族掃墓與祭祖",
+        "flavor": "慎終追遠的年度支出。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D153",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "替父母換部好走的鞋",
+        "flavor": "跌倒最傷，鞋子要挑。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D154",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "長輩的營養補充品",
+        "flavor": "醫師建議的那幾樣。",
+        "payload": {
+          "cost": 5,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D155",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "兄弟姊妹的分攤協調",
+        "flavor": "照顧的錢，大家講清楚。",
+        "payload": {
+          "cost": 8,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D156",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "父母的旅遊平安險",
+        "flavor": "出遊前先保起來。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D157",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "老家的第四台與網路",
+        "flavor": "陪他們跟世界連著。",
+        "payload": {
+          "cost": 0,
+          "optional": false,
+          "recurringMonthly": 1
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D158",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "家族群組的年節紅包",
+        "flavor": "長輩帶頭發，你也得跟。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D159",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "孩子的生日蛋糕",
+        "flavor": "一年一次的儀式感。",
+        "payload": {
+          "cost": 2,
+          "optional": false
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D160",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "梅雨季的除濕防霉",
+        "flavor": "衣櫃長霉了得處理。",
+        "payload": {
+          "cost": 2,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D161",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "住",
+        "title": "門窗紗網更換",
+        "flavor": "蚊子季前的例行。",
+        "payload": {
+          "cost": 2,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D162",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "行",
+        "title": "停車場月租押金",
+        "flavor": "換工作換停車場。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D163",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "社區才藝班報名",
+        "flavor": "孩子想學畫畫。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6",
+        "requiresChild": true
+      },
+      {
+        "id": "LT_D164",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "孝親家庭",
+        "title": "長輩的復健課程",
+        "flavor": "出院後的必要花費。",
+        "payload": {
+          "cost": 6,
+          "optional": false,
+          "recurringMonthly": 2
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D165",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "食",
+        "title": "團購的冷凍海鮮",
+        "flavor": "一次囤一整箱。",
+        "payload": {
+          "cost": 5,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D166",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "育樂",
+        "title": "家庭年度大掃除外包",
+        "flavor": "年末請人幫忙。",
+        "payload": {
+          "cost": 6,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C081",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "治裝費獨立記帳月",
+        "flavor": "把這個月每一筆衣物支出都記下來。",
+        "eduNote": "看見數字,是控制數字的第一步。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C082",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "購物車過夜練習",
+        "flavor": "加入購物車,睡一覺再決定。",
+        "eduNote": "衝動的保鮮期通常不到 24 小時。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C083",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PARENTING",
+        "title": "帶孩子挑二手衣",
+        "flavor": "舊衣店裡教孩子分「需要」和「想要」。",
+        "eduNote": "金錢教育最好的教室,是結帳前的那三分鐘。",
+        "payload": {
+          "cost": 4
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C084",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "FILIAL",
+        "title": "陪媽媽逛市場買衣",
+        "flavor": "她嫌貴,你偷偷把標籤撕掉。",
+        "eduNote": "陪伴本身就是禮物,衣服只是藉口。",
+        "payload": {
+          "cost": 6
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C085",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "膠囊衣櫥挑戰",
+        "flavor": "三十件單品過一季。",
+        "eduNote": "選項變少,決定變快,錢包變厚。",
+        "payload": {
+          "cost": 5
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C086",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "舊衣改造手作課",
+        "flavor": "把三件舊襯衫改成一件新的。",
+        "eduNote": "動手做過,就捨不得亂買了。",
+        "payload": {
+          "cost": 7
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C087",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "學會看洗標保養衣物",
+        "flavor": "分類洗、反面曬,衣服多穿三年。",
+        "eduNote": "保養是最便宜的「再購買折扣」。",
+        "payload": {
+          "cost": 3
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C088",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PARENTING",
+        "title": "和孩子一起整理舊衣捐贈",
+        "flavor": "小了的衣服,讓它去需要的地方。",
+        "eduNote": "給予的習慣,比任何理財課都早該開始。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PARENTING",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C089",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "FILIAL",
+        "title": "替爸爸訂做一套西裝",
+        "flavor": "他說不用,但試穿時腰桿挺得特別直。",
+        "eduNote": "有些錢花下去,回報記在感情帳上。",
+        "payload": {
+          "cost": 25
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "FILIAL",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C090",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "關掉購物 App 通知",
+        "flavor": "限時特賣再也追不到你。",
+        "eduNote": "不看見,就不想要——環境比意志力可靠。",
+        "payload": {
+          "cost": 0
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "TEMPER",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_C091",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "CULTIVATE",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "治裝季度預算制",
+        "flavor": "每季一個信封,花完就等下一季。",
+        "eduNote": "預算不是限制自由,是把自由排進計畫。",
+        "payload": {
+          "cost": 2
+        },
+        "effects": [
+          {
+            "op": "GRANT_VIRTUE",
+            "axis": "PRUDENCE",
+            "delta": 1
+          }
+        ],
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T057",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "直播間的限量球鞋",
+        "flavor": "主播喊「最後三雙」,倒數計時開始。",
+        "eduNote": "限量是他們的行銷,不是你的機會。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你查了轉售行情,發現根本沒溢價,關掉直播。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你搶了兩雙想轉賣,掛了三個月乏人問津。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -46,
+                "label": "直播間的限量球鞋"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T058",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "週年慶滿千送百",
+        "flavor": "滿額禮加碼,湊單湊到停不下來。",
+        "eduNote": "「省到」的前提是你本來就要買。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你只買了清單上的兩件就離場。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -10,
+                "label": "週年慶滿千送百"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "為了滿額一路加購,刷出三倍預算。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -52,
+                "label": "週年慶滿千送百"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T059",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "PRUDENCE",
+        "title": "名牌包「保值」話術",
+        "flavor": "櫃姐說這咖只漲不跌,比定存好。",
+        "eduNote": "會漲的是熱門款拍賣價,不是你手上這咖的回收價。",
+        "virtueBranch": {
+          "axis": "PRUDENCE",
+          "threshold": 2,
+          "above": {
+            "narrative": "你回家查了二手行情,笑著沒買。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你當投資買下,轉賣時先打七折。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -85,
+                "label": "名牌包「保值」話術"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T060",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "TEMPER",
+        "title": "網購尺寸不合",
+        "flavor": "退貨要印單、包裝、跑超商。",
+        "eduNote": "嫌麻煩的成本,最後都變成衣櫃裡的沉沒成本。",
+        "virtueBranch": {
+          "axis": "TEMPER",
+          "threshold": 1,
+          "above": {
+            "narrative": "你乖乖走完退貨流程,錢回來了。",
+            "effects": []
+          },
+          "below": {
+            "narrative": "你嫌麻煩留著,又下單買了一件對的尺寸。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -9,
+                "label": "網購尺寸不合"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T061",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "PARENTING",
+        "title": "孩子吵著要名牌球鞋",
+        "flavor": "「全班都有,只有我沒有。」",
+        "eduNote": "比起那雙鞋,孩子更需要知道錢從哪裡來。",
+        "virtueBranch": {
+          "axis": "PARENTING",
+          "threshold": 1,
+          "above": {
+            "narrative": "你帶他挑了平價替代款,順便聊了預算怎麼分。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "孩子吵著要名牌球鞋"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你拗不過買單,下次他哭得更大聲。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -30,
+                "label": "孩子吵著要名牌球鞋"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_T062",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "TRIAL",
+        "category": "衣",
+        "virtueAxis": "FILIAL",
+        "title": "過年幫爸媽添新衣",
+        "flavor": "他們總說「舊的還能穿」。",
+        "eduNote": "孝親的錢要花在刀口上——合身,比昂貴重要。",
+        "virtueBranch": {
+          "axis": "FILIAL",
+          "threshold": 1,
+          "above": {
+            "narrative": "你記得尺寸與喜好,一套合身他們穿了一整年。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -12,
+                "label": "過年幫爸媽添新衣"
+              }
+            ]
+          },
+          "below": {
+            "narrative": "你隨手買了了事,尺寸不合來回退換還被唸。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -18,
+                "label": "過年幫爸媽添新衣"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D167",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "換季鞋櫃大失血",
+        "flavor": "一雙接一雙,結帳才痛。",
+        "payload": {
+          "cost": 8,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D168",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "上班制服汰換",
+        "flavor": "領口磨破了,不能再撐。",
+        "payload": {
+          "cost": 6,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D169",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "寒流前搶購羽絨外套",
+        "flavor": "氣溫驟降,全城都在找同一件。",
+        "payload": {
+          "cost": 12,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D170",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "婚宴伴娘服裝費",
+        "flavor": "好姊妹的大日子,治裝不能省。",
+        "payload": {
+          "cost": 9,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D171",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "運動機能服升級",
+        "flavor": "開始跑步之後,棉T不夠用了。",
+        "payload": {
+          "cost": 7,
+          "optional": true
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D172",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "皮鞋換底與保養",
+        "flavor": "好鞋换個底,又是三年。",
+        "payload": {
+          "cost": 4,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      },
+      {
+        "id": "LT_D173",
+        "deck": "LIFE_TAPESTRY",
+        "kind": "TAPESTRY",
+        "subKind": "DAILY",
+        "category": "衣",
+        "title": "網購衣物退貨運費",
+        "flavor": "來回兩趟運費,比衣服還不值。",
+        "payload": {
+          "cost": 2,
+          "optional": false
+        },
+        "moduleReq": "M6"
+      }
+    ]
+  }
+}

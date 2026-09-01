@@ -1,0 +1,118 @@
+{
+  "packId": "special",
+  "packVersion": "1.0.0",
+  "requiresEngine": ">=1",
+  "cards": {
+    "OPPORTUNITY_SPECIAL": [
+      {
+        "id": "SP01",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "BUSINESS",
+        "title": "同學的連鎖藥妝店，缺一個股東",
+        "flavor": "EMBA 同組報告的那個人，開口第一句是「先問你要不要」。",
+        "eduNote": "最好的案子從來不會出現在公開市場——但這不代表它們沒有風險。",
+        "payload": {
+          "price": 6000,
+          "monthlyProfit": 204,
+          "volatileProfit": true
+        }
+      },
+      {
+        "id": "SP02",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "REALESTATE",
+        "title": "校友讓出的市中心整層商辦",
+        "flavor": "他要移民，開的價比市場低一成，條件是三週內完成。",
+        "eduNote": "人脈換到的是「先看到」和「談得動」，不是「一定賺」——你還是要自己算。",
+        "payload": {
+          "price": 24000,
+          "downPayment": 4800,
+          "monthlyRent": 170,
+          "monthlyCost": 16
+        }
+      },
+      {
+        "id": "SP03",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "STARTUP",
+        "title": "指導教授的實驗室要衍生新創",
+        "flavor": "技術還在論文階段，但團隊你認識三個。",
+        "eduNote": "看得懂技術不等於看得懂生意；認識創辦人也不等於降低風險。沒有月現金流，全押在退出價差上。",
+        "payload": {
+          "investAmount": 2000,
+          "equityPct": 0.12,
+          "postMoney": 16000
+        }
+      },
+      {
+        "id": "SP04",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "BUSINESS",
+        "title": "學長的區域物流站要頂讓",
+        "flavor": "他升上去了，站點要交給信得過的人。",
+        "eduNote": "「信得過的人」是一種折價，但接手後每天要面對的是同一批車和同一批司機。",
+        "payload": {
+          "price": 7500,
+          "monthlyProfit": 264,
+          "volatileProfit": true
+        }
+      },
+      {
+        "id": "SP05",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "REALESTATE",
+        "title": "同學家族的老市場店面（三代持有）",
+        "flavor": "從不掛牌，這次是因為要分家。",
+        "eduNote": "稀缺的東西通常也難脫手——買之前先想清楚你打算怎麼賣掉它。",
+        "payload": {
+          "price": 20000,
+          "downPayment": 4000,
+          "monthlyRent": 146,
+          "monthlyCost": 12
+        }
+      },
+      {
+        "id": "SP06",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "BUSINESS",
+        "title": "同學新開的寵物旅館，找人一起出",
+        "flavor": "EMBA 分組報告的組員，週末帶你去看場地。",
+        "eduNote": "入場金額小不代表風險小——人脈帶來的案子，最貴的成本是拉不下臉拒絕。",
+        "payload": {
+          "price": 800,
+          "monthlyProfit": 27,
+          "volatileProfit": true
+        },
+        "tierS15c": true
+      },
+      {
+        "id": "SP07",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "BUSINESS",
+        "title": "教授實驗室的檢測服務要對外接單",
+        "flavor": "「先做小的試試看」，教授這樣說。",
+        "eduNote": "小額入場的好處是可以先試水溫。真正的門票是那通電話，不是那筆錢。",
+        "payload": {
+          "price": 1200,
+          "monthlyProfit": 39,
+          "volatileProfit": false
+        },
+        "tierS15c": true
+      },
+      {
+        "id": "SP08",
+        "deck": "OPPORTUNITY_SPECIAL",
+        "kind": "BUSINESS",
+        "title": "學長的連鎖洗車據點，缺一個小股東",
+        "flavor": "他只缺一個名額，開口就說金額不用大。",
+        "eduNote": "小股東拿得到分潤，但拿不到決定權。入股前先問清楚誰說了算。",
+        "payload": {
+          "price": 1600,
+          "monthlyProfit": 55,
+          "volatileProfit": true
+        },
+        "tierS15c": true
+      }
+    ]
+  }
+}

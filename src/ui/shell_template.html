@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FinFlow 財商沙盒</title>
+
+<!-- STYLE_PLACEHOLDER -->
+
+</head>
+<body>
+<div id="rotate"><div class="ic">↻</div><div>請將 iPad 轉為橫向以進行遊戲</div></div>
+<div id="app" class="hide">
+  <div id="main">
+    <!-- S17：左欄＝總經訊息／系統訊息／玩家卡 -->
+    <div id="leftCol">
+      <div id="infoL"></div>
+      <div id="dynamics"><div id="pawnsHd"></div><div id="pawns"></div></div>
+    </div>
+    <!-- S17：中欄＝重大事件警告／盤面／股市與交易所／操作區（操作區固定在最下面） -->
+    <div id="finBoard">
+      <div id="warnBox"></div>
+      <div id="boardWrap">
+        <svg id="boardSvg" viewBox="0 0 520 700" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="boardCenter"></div>
+        <div id="bkTray" class="hide"></div>
+      </div>
+      <div id="infoM"></div>
+      <div class="fbSec" id="opsBox">
+        <!-- S17：標題與三顆小圖示同一列（原本圖示是 absolute，會壓到下面那排按鈕） -->
+        <div id="opsHd">
+          <h4>操作區</h4>
+          <div id="opsIcons">
+            <button class="iconbtn" id="btnHelp" title="玩法與說明書">❔</button>
+            <button class="iconbtn" id="btnSim" title="模擬器">📊</button>
+            <button class="iconbtn" id="btnDev" title="調參面板">⚙</button>
+          </div>
+        </div>
+        <div id="opsGrid">
+          <button class="act" id="btnExchange">🤝 交易所</button>
+          <button class="act" id="btnMall">🛍 人生商城</button>
+          <button class="act" id="btnAuto">🤖 自動執行</button>
+          <button class="act" id="btnReport">📋 復盤</button>
+          <button class="act quiet" id="btnEnd">🏁 結束遊戲</button>
+        </div>
+      </div>
+    </div>
+    <div id="sheet"></div>
+  </div>
+</div>
+<div id="center"></div>
+<div id="toast"></div>
+<div id="bcast"></div>
+<div id="devpanel"><div class="hd"><b>調參面板</b><button class="iconbtn" id="devClose">✕</button></div><div id="devbody"></div></div>
+<div id="overlays"></div>
+
+<!-- DATA_PLACEHOLDER -->
+<!-- SCRIPT_PLACEHOLDER -->
+

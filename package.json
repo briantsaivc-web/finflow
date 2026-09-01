@@ -4,9 +4,10 @@
   "private": true,
   "description": "FinFlow 財商沙盒——單一 HTML 檔的財商桌遊數位版",
   "scripts": {
+    "build": "node build/bundle.js",
     "extract": "python3 tests/extract.py",
-    "test:engine": "npm run extract && node tests/gate.js",
-    "test:balance": "npm run extract && node tests/simtest.js",
+    "test:engine": "npm run build && npm run extract && node tests/gate.js",
+    "test:balance": "npm run build && npm run extract && node tests/simtest.js",
     "test:ui": "node tests/runtests.js && node tests/s17test.js && node tests/s18test.js && node tests/s19test.js && node tests/s20test.js",
     "test": "npm run test:engine && npm run test:ui"
   },

@@ -47,13 +47,21 @@
 - **GitHub Pages**：Settings → Pages → Source 選 `main` 分支、資料夾選 `/ (root)` → Save，幾分鐘後 `https://<帳號>.github.io/finflow/` 就是遊戲頁
 - **隨身碟／AirDrop**：直接把 `index.html` 傳到目標裝置，用瀏覽器開啟
 
-## 專案結構
+## 專案結構 (v2.25.1-gemini 重構版)
 
 ```
-index.html      遊戲本體（引擎＋內容＋介面全部內含，交付即此一檔）
-manual/         快速上手指南與完整規則手冊（HTML 原始檔＋PDF）
-docs/           歷次變更說明（一期 → S20b）＋ Firebase 設定指南
-tests/          自動化測試（見下方）
+index.html        遊戲本體（由 build/bundle.js 編譯產出，交付與發布即此一檔）
+card_editor.html  視覺化卡片工坊（即時預覽、ROI 自動計算、Schema 與冷卻審計、JSON 匯入匯出）
+src/              源碼層（資料、邏輯、連線、介面分離）
+  ├── data/       【資料層】11 個獨立卡包 JSON (base, mall, skill...) 與平衡參數
+  ├── engine/     【邏輯層】純函數狀態機 (applyAction)、複式記帳 (ledger)、AI 決策與平衡模擬
+  ├── network/    【連線層】多人 Lockstep 同步與 Firebase RTDB 適配器
+  ├── ui/         【介面層】DOM 渲染、CSS 樣式表、S20 互動教學
+  └── editor/     【編輯器】卡片工坊原始檔
+build/bundle.js   單檔打包工具（一鍵將 src/ 打包回 index.html）
+manual/           快速上手指南與完整規則手冊（HTML 原始檔＋PDF）
+docs/             歷次變更說明（一期 → S20b）＋ Firebase 設定指南
+tests/            自動化測試（見下方）
 ```
 
 ## 測試

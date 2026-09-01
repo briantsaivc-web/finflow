@@ -1,0 +1,531 @@
+/* S8：徽章要浮誇——這是整局的收尾，虛榮心值得被好好對待 */
+.bdgWrap{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.bdg{position:relative;min-width:210px;max-width:300px;flex:1 1 210px;
+  border-radius:14px;padding:14px 15px 13px;overflow:hidden;
+  border:1.5px solid var(--line);background:var(--panel2)}
+.bdg .bi{font-size:30px;line-height:1;display:block;margin-bottom:7px;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
+.bdg .bt{font-size:16px;font-weight:800;letter-spacing:.02em;line-height:1.2}
+.bdg .bd{font-size:12px;color:var(--tx2);margin-top:5px;line-height:1.45}
+.bdg .br{position:absolute;top:9px;right:11px;font-size:10px;font-weight:800;
+  letter-spacing:.14em;opacity:.9}
+.bdg.COMMON{border-color:rgba(107,127,152,.5)}
+.bdg.COMMON .br{color:var(--tx3)}
+.bdg.RARE{border-color:rgba(53,196,168,.75);
+  background:linear-gradient(150deg,rgba(53,196,168,.16),var(--panel2) 62%)}
+.bdg.RARE .bt{color:#7FE3CE} .bdg.RARE .br{color:#35C4A8}
+.bdg.LEGEND{border-color:rgba(242,193,78,.9);
+  background:linear-gradient(150deg,rgba(242,193,78,.24),rgba(232,112,155,.10) 48%,var(--panel2) 78%);
+  box-shadow:0 0 0 1px rgba(242,193,78,.28), 0 6px 22px rgba(242,193,78,.13)}
+.bdg.LEGEND .bt{color:#FFD97A;font-size:17px} .bdg.LEGEND .br{color:#F2C14E}
+.bdg.LEGEND .bi{font-size:34px}
+.bdgHd{font-size:17px;font-weight:800;margin-top:18px;letter-spacing:.02em}
+/* S5：決策卡的現金狀態列——買不買得起，不該讓玩家自己去別的面板查 */
+.cashbar{font-size:12.5px;color:var(--tx2);background:var(--panel2);
+  border:1px solid var(--line);border-radius:var(--r);
+  padding:6px 9px;margin-bottom:8px;letter-spacing:.02em}
+.cashbar b{color:var(--tx1)}
+.cashbar b.pos{color:var(--pos)} .cashbar b.neg{color:var(--neg)}
+/* ============================================================
+   FinFlow — 版面基準 iPad 橫向 1180x820（相容 1024x768 ~ 1366x1024）
+   色彩：深墨帳簿底 + 金色自由水位線；增=藍綠 減=橘紅（色盲友善）
+   ============================================================ */
+:root{
+  --ink:#0E1520; --ink2:#131D2B; --panel:#16202E; --panel2:#1B2839;
+  --line:#24344A; --line2:#2E4462;
+  --tx:#E8EEF5; --tx2:#9DB0C7; --tx3:#6B7F98;
+  --pos:#35C4A8; --neg:#F0803C; --gold:#F2C14E; --gold-d:#8A6B1F;
+  --opp:#3E7DD6; --life:#B45FD0; --mkt:#2E9E86; --evt:#D68C3E; --pay:#F2C14E; --lay:#C2493D;
+  --r:10px; --r2:16px;
+  --zoom:1;            /* 與下方 body{zoom} 同步：覆蓋層用它把 vh/vw 換算回實際視窗 */
+  --fs-body:15.5px; --fs-sm:14px; --fs-xs:13px;
+  --sans:"PingFang TC","Noto Sans TC","Heiti TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* 螢幕適配：以 iPad 橫向（~1180px）為基準，NB／PC 逐級放大 */
+@media (min-width:1440px){ body{zoom:1.12} :root{--zoom:1.12} }
+@media (min-width:1720px){ body{zoom:1.28} :root{--zoom:1.28} }
+@media (min-width:2100px){ body{zoom:1.5}  :root{--zoom:1.5}  }
+@media (max-width:1080px){ body{zoom:0.9}  :root{--zoom:0.9}  }
+/* zoom 會連 vh/vw 一起放大——所有 fixed 覆蓋層都要除回來，否則在 PC（≥1440px）上
+   視窗高度會被撐成 112~150%，上緣被切、下緣（開局鈕）也捲不到。 */
+:root{ --vh:calc(1vh / var(--zoom)); --vw:calc(1vw / var(--zoom)); }
+html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--tx);
+  font-family:var(--sans);font-size:var(--fs-body);-webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .gold{color:var(--gold)}
+.hide{display:none !important}
+
+/* ---------- 轉向遮罩 ---------- */
+#rotate{position:fixed;inset:0;height:calc(var(--vh)*100);width:calc(var(--vw)*100);z-index:900;background:var(--ink);display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;padding:40px}
+#rotate .ic{font-size:56px}
+@media (orientation:portrait) and (max-width:1100px){ #rotate{display:flex} }
+
+/* ---------- 主框架 ---------- */
+#app{display:grid;grid-template-rows:1fr;height:100%;width:100%}
+
+/* 操作區圖示鈕（原頂欄，八期併入）與停用樣式 */
+/* S17：操作區釘在中欄最下面，高度要省——圖示改成與按鈕同列的一小排 */
+/* 圖示三顆移到標題列右側，不再自己占一列 */
+#opsBox{padding:5px 12px 7px}
+#opsHd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+#opsHd h4{margin:0}
+#opsIcons{display:flex;gap:5px;flex:none}
+#opsIcons .iconbtn{padding:2px 7px;font-size:13.5px}
+#opsGrid .act{padding:7px 4px;font-size:13px}
+.act[disabled],.act:disabled{opacity:.34;cursor:not-allowed;filter:grayscale(1)}
+.mini[disabled],.mini:disabled{opacity:.34;cursor:not-allowed;filter:grayscale(1)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  background:var(--panel2);border:1px solid var(--line2);font-size:var(--fs-sm);white-space:nowrap}
+.badge b{font-weight:700}
+.macro-RECOVERY{border-color:#2F6E5B;color:#7FE3C7} .macro-BOOM{border-color:#8A6B1F;color:var(--gold)}
+.macro-RECESSION{border-color:#8A4B2A;color:#F5A96E} .macro-DEPRESSION{border-color:#7A2F2A;color:#F08A80}
+.iconbtn{width:38px;height:38px;border-radius:var(--r);display:grid;place-items:center;font-size:18px;
+  background:var(--panel2);border:1px solid var(--line2)}
+.iconbtn:active{background:var(--line2)}
+
+/* 主區：方案丙三欄（左：地圖＋玩家動作｜中：資訊與操作｜右：玩家狀態紀錄區） */
+/* S14a：三欄等寬。輪盤壓到左欄上半 ＝ 全畫面 1/6（實測大家不看盤面，把面積讓給玩家與財報） */
+#main{display:grid;grid-template-columns:1fr 1fr 1fr;min-height:0;min-width:0}
+/* S17：左欄改成三段——總經＋系統訊息（可捲）／玩家卡 */
+#leftCol{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--ink2);overflow:hidden}
+#infoL{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* S17：盤面移到中欄中段，可隨空間伸縮 */
+#boardWrap{position:relative;min-width:0;min-height:0;flex:1;display:grid;place-items:center;padding:4px;overflow:hidden}
+/* S17：重大事件警告固定在中欄最上面。沒有事件時保留同樣高度的空白帶，
+   讓盤面的位置不會跳動（Brian 的決定）。 */
+#warnBox{flex:none;min-height:62px;padding:8px 12px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center}
+#warnBox .wbox{width:100%;border:1px solid rgba(232,112,58,.45);background:rgba(232,112,58,.10);
+  border-radius:7px;padding:6px 9px;font-size:var(--fs-xs);color:#F4A582;line-height:1.5}
+#warnBox .wempty{width:100%;text-align:center;font-size:var(--fs-xs);color:var(--tx3);
+  border:1px dashed var(--line);border-radius:7px;padding:6px 9px}
+#infoM{flex:none;max-height:38%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#boardSvg{width:100%;height:100%;max-height:100%;display:block}
+.sp-label{font-size:13.5px;fill:var(--tx2);pointer-events:none;font-family:var(--sans);font-weight:600}
+/* 盤面中央：擲骰／回合按鈕（不再是 modal） */
+/* S17：盤面移到中欄後高度變矮，中央這一疊（骰子＋擲骰鈕）原尺寸會壓到格子上。
+   縮小並上移，讓它待在環的內圈裡。 */
+#boardCenter{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;pointer-events:none;max-width:56%;overflow:visible}
+#boardCenter > *{pointer-events:auto}
+#boardCenter .bigbtn{padding:7px 16px;font-size:14px;min-height:36px;min-width:112px}
+#boardCenter .npcThink{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);
+  padding:8px 12px;font-size:var(--fs-xs);color:var(--tx2);text-align:center;max-width:100%}
+#boardCenter .npcThink b{display:block;color:var(--tx);font-size:var(--fs-sm);margin-bottom:2px}
+
+/* 中欄：總經／股市／系統訊息／交易所／操作區 */
+/* S17：中欄不再整欄捲動——警告／盤面／股市／操作區各自定位，
+   盤面吃掉剩餘空間，操作區永遠釘在最下面（不用捲就按得到）。 */
+#finBoard{background:var(--ink2);border-left:1px solid var(--line);border-right:1px solid var(--line);
+  min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column}
+#opsBox{flex:none;border-top:1px solid var(--line);border-bottom:0}
+.lamp{display:inline-block;width:11px;height:11px;border-radius:99px;vertical-align:middle;margin-right:4px}
+#sysLog{font-size:13px;line-height:1.5;color:var(--tx2)}
+#sysLog .ln{padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.05)}
+#sysLog .ln.new{color:var(--gold);font-weight:600}
+#sysLog .tn{color:var(--tx3);margin-right:4px;font-variant-numeric:tabular-nums;font-weight:400}
+/* S17：操作區改三欄——5 顆鈕從三列變兩列，替盤面讓出高度 */
+#opsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+#opsGrid .act{padding:9px 4px;font-size:13.5px;text-align:center}
+#opsGrid .act.primary{background:linear-gradient(135deg,rgba(242,193,78,.22),rgba(242,193,78,.10));border-color:var(--gold-d)}
+.fbSec{padding:8px 12px;border-bottom:1px solid var(--line)}
+.fbSec:last-child{border-bottom:0}
+.fbSec h4{margin:0 0 6px;font-size:var(--fs-xs);letter-spacing:.16em;color:var(--tx3);font-weight:700}
+.fbGrid{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:var(--fs-sm)}
+/* S14a-2：總經那幾列一排兩欄，省一半高度 */
+.fbGrid.two{grid-template-columns:auto 1fr auto 1fr;column-gap:14px}
+.fbGrid .k{color:var(--tx2)} .fbGrid .v{text-align:right;font-weight:600}
+.fbRow{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);
+  font-size:var(--fs-sm);cursor:pointer}
+.fbRow:first-of-type{border-top:0}
+.fbRow:active{background:var(--panel)}
+.fbRow .nm{flex:1;min-width:34px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-xs)}
+.fbRow .px{font-variant-numeric:tabular-nums;min-width:44px;text-align:right;font-size:var(--fs-xs)}
+.fbRow .ch{font-variant-numeric:tabular-nums;min-width:42px;text-align:right;font-size:12.5px}
+.fbRow .yl{font-variant-numeric:tabular-nums;min-width:40px;text-align:right;font-size:12.5px;color:var(--tx3)}
+.spark{width:40px;height:22px;flex:none}
+.fbWarn{color:var(--neg)}
+
+/* 左欄底部：玩家動作列（每人一欄：狀態／動作） */
+/* S14a：玩家區從「一人一直欄」改成卡片格，一列三張、超過就往下排並可捲。
+   實測回饋是大家很在意別人在幹嘛，所以每張卡固定露出現金／淨現金流／被動收入／資產筆數／幸福感／夢想。 */
+#dynamics{background:var(--ink2);border-top:1px solid var(--line);min-width:0;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden}
+#pawnsHd{flex:none;display:flex;align-items:baseline;gap:8px;padding:6px 10px 3px;
+  font-size:var(--fs-xs);letter-spacing:.16em;color:var(--tx3);font-weight:700}
+#pawnsHd .sub{margin-left:auto;letter-spacing:0;font-weight:400;color:var(--tx3)}
+/* S17：四人局改成一列兩張、兩列放四人（3＋1 那張孤兒卡看起來不齊） */
+#pawns{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-content:start;
+  gap:6px;padding:0 8px 8px;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
+.pcol{border:1px solid var(--line);border-radius:10px;padding:6px 8px;min-width:0;text-align:left;
+  background:var(--panel);display:block}
+.pcol.active{border-color:rgba(53,196,168,.5);box-shadow:inset 0 0 0 1px rgba(53,196,168,.25)}
+.pcol.mine{border-color:var(--gold-d);background:linear-gradient(180deg,rgba(242,193,78,.08),rgba(242,193,78,.01))}
+/* S14a-2：已進夢想圈的玩家整張卡都亮起來，別人一眼看得到誰跑在前面 */
+.pcol.outer{border-color:var(--gold);box-shadow:0 0 0 1px rgba(242,193,78,.35),0 0 12px rgba(242,193,78,.18)}
+.pcol.out{opacity:.42}
+.pcol .pkv{display:grid;grid-template-columns:auto 1fr;gap:0 6px;font-size:12px;margin-top:3px}
+.pcol .pkv .k{color:var(--tx3);white-space:nowrap}
+.pcol .pkv .v{text-align:right;font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+.pcol .pdual{display:flex;justify-content:space-between;gap:6px;font-size:12px;margin-top:3px;
+  padding-top:3px;border-top:1px dashed var(--line)}
+.pcol .pdual b{font-family:var(--mono)}
+.pcol .nm{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden}
+/* S18：狀態改成名字列尾端的小標，不再自己佔一行 */
+.pcol .st{font-size:11px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-left:auto;flex:none;font-weight:400}
+.pcol .pkv .v .sub2{color:var(--tx3);font-weight:400;font-size:11px}
+/* S18：每輪紀錄併進幸福感那一列，不再自己佔一行 */
+.pcol .lgrow{font-size:11px;color:var(--blue,#5b9bd5);cursor:pointer;white-space:nowrap;flex:none}
+.pcol .lgrow:hover{color:var(--gold)}
+.pcol .ac{font-size:13.5px;color:var(--gold);margin-top:2px;overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4}
+.sp-cell{transition:filter .18s}
+.sp-cell.here{filter:brightness(1.55)}
+.pawn{transition:transform .18s cubic-bezier(.34,1.3,.64,1)}
+.pawn-ring{fill:none;stroke-width:2.5}
+
+/* 開局畫面：頁尾（種子＋開局鈕）常駐底部，內容再長也一定按得到 */
+.setupFoot{position:sticky;bottom:-20px;margin:14px -22px -20px;padding:14px 22px 16px;
+  background:linear-gradient(180deg,rgba(22,32,46,0),var(--panel) 14%);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  border-top:1px solid var(--line2);display:flex;gap:10px;align-items:center;z-index:2}
+
+/* V11.1：理賠明細 */
+.claimBox{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--r);padding:10px 12px;margin:9px 0}
+.claimBox .ttl{font-weight:700;font-size:14.5px;margin-bottom:6px}
+.claimTb{width:100%;border-collapse:collapse;font-size:13.5px}
+.claimTb td{padding:3px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
+.claimTb td.num{text-align:right;font-variant-numeric:tabular-nums}
+.claimTb tr.tot td{border-top:1px solid var(--line2);border-bottom:0;padding-top:5px}
+.claimBox .note{margin-top:7px;font-size:13px;line-height:1.55;color:var(--tx2)}
+
+/* V11.1：幸福感明細 */
+.wbTb{width:100%;border-collapse:collapse;font-size:13.5px}
+.wbTb th{text-align:left;color:var(--tx3);font-size:var(--fs-xs);font-weight:700;padding:3px 2px;border-bottom:1px solid var(--line)}
+.wbTb td{padding:4px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
+.wbTb td.num{text-align:right;font-variant-numeric:tabular-nums}
+.wbTb tr.tot td{border-top:1px solid var(--line2);border-bottom:0;font-weight:700;padding-top:6px}
+.wbClick{cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.28);text-underline-offset:3px}
+
+/* V10：人生商城 */
+.mallGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:6px 0 2px}
+.mallItem{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--r);padding:10px 12px;text-align:left}
+/* S14a-2：買不到的商品原本 opacity .4 ＋全灰，字幾乎看不見。
+   現在只降對比、不去彩度，讓「還看得清楚在賣什麼」跟「現在買不了」同時成立。 */
+.mallItem:disabled{opacity:.82;filter:none;cursor:not-allowed;
+  background:rgba(255,255,255,.02);border-style:dashed;border-color:var(--line)}
+.mallItem:disabled .tt{color:var(--tx2)}
+.mallItem:disabled .fl{color:var(--tx3)}
+.mallItem:disabled .pr{color:#B99444}
+.mallItem:disabled .ic{filter:grayscale(.5);opacity:.85}
+.mallItem .ic{font-size:19px;line-height:1}
+.mallItem .tt{font-weight:700;font-size:14.5px;margin:3px 0 1px}
+.mallItem .fl{color:var(--tx3);font-size:12.5px;line-height:1.45}
+.mallItem .pr{color:var(--gold);font-size:13px;margin-top:5px;font-variant-numeric:tabular-nums}
+.mallGroup{color:var(--tx3);font-size:var(--fs-xs);letter-spacing:.14em;margin:12px 0 2px;font-weight:700}
+.mallOn{border-color:var(--pos);box-shadow:inset 0 0 0 1px rgba(53,196,168,.35)}
+
+/* 決策 modal：置中 fixed，內容再長也可捲（方案乙定案） */
+#center{position:fixed;inset:0;height:calc(var(--vh)*100);width:calc(var(--vw)*100);
+  z-index:600;display:none;align-items:center;justify-content:center;
+  padding:calc(var(--vh)*3) 16px;background:rgba(6,10,16,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#center.on{display:flex}
+#center > *{width:min(calc(var(--vw)*94),460px);max-height:calc(var(--vh)*86);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin}
+#center > .wide{width:min(calc(var(--vw)*94),780px)}
+.pickGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.bigbtn{padding:16px 30px;border-radius:var(--r2);background:linear-gradient(180deg,var(--gold),#D9A72F);
+  color:#1A1206;font-weight:800;font-size:19px;letter-spacing:.06em;box-shadow:0 6px 20px rgba(242,193,78,.22);
+  min-height:56px;min-width:170px}
+.bigbtn:active{transform:translateY(1px)}
+.bigbtn[disabled]{background:var(--panel2);color:var(--tx3);box-shadow:none}
+/* S17：盤面變矮，骰子跟著縮一號 */
+#dice{width:52px;height:52px;border-radius:13px;background:var(--panel2);border:1px solid var(--line2);
+  display:grid;place-items:center;font-size:26px;font-weight:800}
+#dice.rolling{animation:shake .5s}
+@keyframes shake{0%,100%{transform:none}25%{transform:rotate(-13deg) scale(1.08)}75%{transform:rotate(13deg) scale(1.08)}}
+
+/* ===================== S20：互動教學的熱點層 =========================== */
+/* 擋點層：教學裡的示範盤面是「靜態展示」，不該被點動。
+   沒有這層的話，玩家點一下擲骰，示範局就會真的往前跑，
+   說明卡講第 5 格、畫面卻換成別的面板——框跟內容就對不起來了。 */
+#tutShield{position:fixed;inset:0;z-index:875;background:transparent}
+#tutLayer{position:fixed;inset:0;z-index:880;pointer-events:none}
+#tutLayer>*{pointer-events:auto}
+/* 高亮框：把被說明的那一塊圈起來。被選中的那塊維持原樣，只加金邊與外光暈。
+   S20b：原本用 box-shadow 0 0 0 9999px 壓暗全螢幕——兩個問題：
+   （a）深色主題再壓暗 55% 幾乎看不出差別，看起來像整面都灰掉；
+   （b）自由模式同時圈 15 塊時遮罩疊加成全黑（實測踩過）。
+   改用 .tutMask 四片挖洞式遮罩，見下。 */
+.tutRing{border:1.5px solid rgba(242,193,78,.55);border-radius:10px;pointer-events:none}
+.tutRing.solo{border-width:2px;border-color:var(--gold);
+  box-shadow:0 0 18px rgba(242,193,78,.55)}
+/* 遮罩：焦點框的上／下／左／右四片，中間留洞——被選中的區塊完全不蓋，內容正常；
+   其餘去彩度＋壓暗，才看得出「只有這一區是重點」。四片互不重疊，不會疊黑。 */
+.tutMask{background:rgba(12,16,22,.55);pointer-events:none;
+  -webkit-backdrop-filter:grayscale(1) brightness(.6);backdrop-filter:grayscale(1) brightness(.6)}
+/* 編號圓點：iPad 沒有 hover，一律用看得見、點得到的圓點當觸控目標 */
+.tutPin{width:26px;height:26px;border-radius:50%;border:2px solid #1A1206;
+  background:linear-gradient(180deg,var(--gold),#D9A72F);color:#1A1206;
+  font-weight:900;font-size:13px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.6);padding:0}
+.tutPin:active{transform:scale(.92)}
+.tutPin.on{box-shadow:0 0 0 3px rgba(242,193,78,.35),0 3px 10px rgba(0,0,0,.6)}
+/* 說明卡：三段，每段一句話 */
+.tutCard{position:fixed;width:min(330px,80vw);background:var(--panel);
+  border:1px solid var(--gold-d);border-radius:12px;padding:11px 13px;
+  box-shadow:0 18px 46px rgba(0,0,0,.65);font-size:13px;line-height:1.55}
+.tutCard .hd{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.tutCard .hd .no{width:20px;height:20px;border-radius:50%;background:var(--gold);
+  color:#1A1206;font-weight:900;font-size:12px;display:grid;place-items:center;flex:none}
+.tutCard .hd b{font-size:15px}
+.tutCard .hd .zone{margin-left:auto;font-size:11px;color:var(--tx3)}
+.tutCard .row{display:flex;gap:7px;margin-top:4px}
+.tutCard .row .k{flex:none;width:52px;color:var(--tx3);font-size:11.5px;padding-top:1px}
+.tutCard .row .v{color:var(--tx2)}
+.tutCard .row.warn .k{color:#F2C14E}
+.tutCard .row.warn .v{color:#F4D48A}
+/* 錨點大到整面畫面（第二層面板）時，卡片只能疊上去；至少讓底下透出來 */
+.tutCard.over{opacity:.96}
+/* 底部導覽列 */
+.tutBar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
+  background:var(--ink2);border:1px solid var(--line2);border-radius:999px;
+  padding:7px 14px;box-shadow:0 10px 30px rgba(0,0,0,.6);max-width:94vw}
+.tutBar.top{bottom:auto;top:14px}
+.tutBar .lbl{color:var(--tx3);font-size:12px;white-space:nowrap}
+.tutBar .act{padding:5px 12px;font-size:13px}
+ol.tutPit{margin:6px 0 0;padding-left:20px;color:var(--tx2);font-size:13.5px;line-height:1.7}
+ol.tutPit li{margin:5px 0}
+ol.tutPit li:first-child{color:var(--gold);font-weight:700}
+
+/* S18：結算彙總的分類小標（系統／自己／其他玩家） */
+.tb tr.catHd td{background:var(--panel2);border-top:1px solid var(--line2);
+  font-weight:700;font-size:var(--fs-xs);color:var(--tx2);padding-top:6px}
+.tb tr.catHd .cnt{color:var(--tx3);font-weight:400}
+
+/* 卡牌 / 決策面板 */
+.card{width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r2);
+  padding:14px 16px;box-shadow:0 18px 44px rgba(0,0,0,.5);max-height:86vh;overflow:auto;
+  animation:pop .2s cubic-bezier(.2,1.2,.4,1)}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.card h3{margin:0 0 3px;font-size:18px;letter-spacing:.02em}
+.card .flavor{color:var(--tx2);font-size:var(--fs-sm);margin-bottom:10px;line-height:1.5}
+.card .edu{background:rgba(242,193,78,.09);border-left:3px solid var(--gold-d);padding:8px 10px;
+  border-radius:0 8px 8px 0;font-size:var(--fs-sm);color:#E6D6A8;margin:9px 0;line-height:1.55}
+.kv{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:var(--fs-sm);margin:8px 0}
+.kv .k{color:var(--tx2)} .kv .v{text-align:right}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.opt{padding:12px 14px;border-radius:var(--r);background:var(--panel2);border:1px solid var(--line2);
+  text-align:left;min-height:46px;line-height:1.4}
+.opt:active{background:var(--line2)}
+.opt.rec{border-color:var(--gold-d);box-shadow:inset 0 0 0 1px rgba(242,193,78,.2)}
+.opt.rec::after{content:"建議";float:right;font-size:var(--fs-xs);color:var(--gold);margin-left:8px}
+/* S10：還沒解鎖的第三扇門——看得到、打不開，但要看起來值得去解鎖 */
+.opt.locked{border:1px dashed var(--gold-d);background:linear-gradient(180deg,rgba(242,193,78,.06),rgba(242,193,78,0));
+  color:var(--tx2);cursor:not-allowed}
+.opt.locked::after{content:"🔒 待解鎖";float:right;font-size:var(--fs-xs);color:var(--gold-d);margin-left:8px}
+.opt.locked .qm{font-size:1.9em;font-weight:900;color:var(--gold);letter-spacing:.06em;
+  text-shadow:0 0 10px rgba(242,193,78,.35);line-height:1.1}
+.opt.locked small{color:var(--tx3)}
+/* S12：長面板的置頂列——標題與關閉鈕黏在最上面，不必捲到最後才關得掉 */
+.panelTop{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;
+  gap:10px;background:var(--panel);padding:2px 0 8px;margin:-2px 0 0;border-bottom:1px solid var(--line)}
+.panelTop h2{margin:0}
+.panelTop .act{flex:0 0 auto;padding:5px 12px;font-size:12.5px}
+/* S11：代打中的視覺提示——要讓人一眼看出現在不是自己在下決定 */
+#autopilotBar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;
+  background:rgba(242,193,78,.14);border:1px solid var(--gold-d);color:var(--gold);
+  padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700;
+  box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none}
+body.autopilot #board{outline:2px dashed rgba(242,193,78,.35);outline-offset:-4px}
+.opt small{display:block;color:var(--tx2);font-size:var(--fs-xs);margin-top:3px}
+.opt[disabled]{opacity:.4}
+.slider{margin:10px 0 4px}
+.slider input{width:100%;accent-color:var(--gold)}
+.preview{background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;
+  font-size:var(--fs-sm);margin-top:8px}
+
+/* 右欄財報 */
+/* S14a（決定 D）：右欄整欄捲到底，不做上固定下捲的兩段式 */
+#sheet{background:var(--ink2);display:flex;flex-direction:column;min-height:0;min-width:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px}
+/* 狀態區細項表 */
+.dtb{width:100%;border-collapse:collapse;font-size:13px}
+.dtb th{color:var(--tx3);font-weight:700;text-align:left;padding:2px 4px;border-bottom:1px solid var(--line);
+  letter-spacing:.05em;white-space:nowrap}
+.dtb td{padding:2.5px 4px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtb .num{text-align:right}
+.mini{padding:4px 7px;font-size:13px;border-radius:7px;background:var(--panel2);border:1px solid var(--line2);min-height:26px}
+.mini[disabled]{opacity:.35}
+.mini.gold{border-color:var(--gold-d);color:var(--gold)}
+.qty{width:40px;background:var(--ink);border:1px solid var(--line2);border-radius:6px;color:var(--tx);
+  padding:3px 3px;font-family:var(--mono);font-size:13px;text-align:center}
+/* S14a：資產／負債／庫存股票改成整欄寬的多欄表，欄位變多 → 固定欄寬避免撐破右欄 */
+.dtb.ret{table-layout:fixed;font-size:11.5px}
+.dtb.ret td,.dtb.ret th{padding:2.5px 3px}
+.dtb.ret col.c-nm{width:26%} .dtb.ret col.c-n{width:13%} .dtb.ret col.c-y{width:12%}
+.dtb.ret col.c-own{width:15%} .dtb.ret col.c-op{width:30px}
+.dtb.stk{table-layout:fixed;font-size:11.5px}
+.dtb.stk td,.dtb.stk th{padding:2.5px 2px}
+.dtb.stk .qty{width:32px;padding:2px 1px;font-size:11.5px}
+.dtb.stk .mini{padding:2px 4px;font-size:11.5px;min-height:20px;margin-left:1px}
+.dtb.stk col.c-nm{width:16%} .dtb.stk col.c-px{width:10.5%} .dtb.stk col.c-u{width:4.5%}
+.dtb.stk col.c-pl{width:10.5%} .dtb.stk col.c-op{width:30%} .dtb.stk col.c-mr{width:8%}
+.dtb.stk td:nth-child(7){overflow:visible;text-overflow:clip}
+/* 筆電／平板（≤1600px）欄位會被截掉——再縮一級字與間距，讓數字完整看得到 */
+@media (max-width:1600px){
+  .dtb.ret,.dtb.stk{font-size:10.5px}
+  .dtb.ret td,.dtb.ret th,.dtb.stk td,.dtb.stk th{padding:2px 1.5px}
+  .dtb.stk .mini{padding:1px 3px;font-size:10.5px;min-height:18px}
+  .dtb.stk .qty{width:26px;font-size:10.5px}
+  .dtb.ret col.c-nm{width:23%} .dtb.stk col.c-nm{width:15%}
+  .pcol .nm{font-size:12.5px} .pcol .pkv{font-size:11px} .pcol .pdual{font-size:11px}
+}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.twoCol > *{min-width:0;overflow:hidden}
+.twoCol .dtb{table-layout:fixed}
+.twoCol .dtb td:first-child,.twoCol .dtb th:first-child{width:34%}
+.twoCol .dtb td:last-child,.twoCol .dtb th:last-child{width:34px}
+#sheet .sec{padding:10px 13px;border-bottom:1px solid var(--line)}
+#sheet h4{margin:0 0 7px;font-size:var(--fs-xs);letter-spacing:.16em;color:var(--tx3);font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:var(--fs-sm)}
+.row.total{border-top:1px solid var(--line);margin-top:5px;padding-top:6px;font-weight:700;font-size:var(--fs-body)}
+.row .lbl{color:var(--tx2)} .row .val{font-weight:600}
+.flash{animation:flash 1.5s ease-out}
+@keyframes flash{0%{background:rgba(242,193,78,.28)}100%{background:transparent}}
+#holdings{min-height:0}
+.hold{display:flex;justify-content:space-between;gap:8px;padding:7px 13px;border-bottom:1px solid var(--line);
+  font-size:var(--fs-sm);cursor:pointer}
+.hold:active{background:var(--panel)}
+.hold .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hold .sub{color:var(--tx3);font-size:var(--fs-xs)}
+.freedom{padding:11px 13px;background:var(--panel);border-top:1px solid var(--line2)}
+.bar{height:12px;border-radius:99px;background:var(--ink);overflow:hidden;border:1px solid var(--line2);margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));
+  transition:width .5s cubic-bezier(.2,.8,.3,1)}
+.freedom .cap{display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--tx2);margin-top:5px}
+
+/* 玩家動態橫卡（原底欄 pchip 改為整列） */
+/* M7 信用評級章 */
+.crb{display:inline-block;min-width:17px;text-align:center;font-size:13px;font-weight:700;line-height:1.5;
+  padding:0 5px;border-radius:4px;border:1px solid;letter-spacing:.04em;vertical-align:middle}
+.crb.A{color:var(--gold);border-color:var(--gold-d);background:rgba(242,193,78,.10)}
+.crb.B{color:var(--tx3);border-color:#4A4F59;background:rgba(255,255,255,.04)}
+.crb.C{color:var(--neg);border-color:#7A3E1E;background:rgba(240,128,60,.10)}
+.pchip{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:var(--r);background:var(--panel);
+  border:1px solid var(--line);width:100%;font-size:var(--fs-xs);text-align:left;flex:none}
+.pchip > div{flex:1;min-width:0}
+.pbar{height:6px;border-radius:99px;background:var(--ink);overflow:hidden;border:1px solid var(--line2);margin:3px 0 2px}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold))}
+.pchip.active{border-color:var(--gold);box-shadow:0 0 0 1px rgba(242,193,78,.3)}
+.pchip.out{opacity:.42}
+.laLine{font-size:13px;color:var(--gold);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.laLine.dim{color:var(--tx3)}
+.pchip .dot{width:11px;height:11px;border-radius:99px;flex:none}
+.pchip .nm{font-size:var(--fs-sm);font-weight:600}
+.act{padding:11px 15px;border-radius:var(--r);background:var(--panel2);border:1px solid var(--line2);
+  font-size:var(--fs-sm);min-height:44px;white-space:nowrap}
+.act:active{background:var(--line2)}
+.act.primary{background:linear-gradient(180deg,var(--gold),#D9A72F);color:#1A1206;font-weight:800;border-color:transparent}
+.act.on{border-color:var(--gold);background:rgba(242,193,78,.14);box-shadow:inset 0 0 0 1px var(--gold);color:var(--gold);font-weight:700}
+.act.bkR{border-color:rgba(229,72,77,.55);color:#FF9296;background:rgba(229,72,77,.10)}
+.act.bkG{border-color:rgba(53,196,168,.55);color:#5FE0C4;background:rgba(53,196,168,.10)}
+.act[disabled]{opacity:.35}
+/* S14a-2：低頻且不可逆的操作（結束遊戲）不該長得像主要行動鈕 */
+.act.quiet{background:transparent;border-color:var(--line);color:var(--tx3);font-weight:400}
+.act.quiet:hover{border-color:var(--neg);color:var(--neg)}
+/* S14a-2：股市六種操作各自一個顏色，避免一整排長得一樣按錯 */
+.act.buyCash{background:rgba(53,196,168,.16);border-color:rgba(53,196,168,.6);color:#5FE0C4;font-weight:700}
+.act.buyMargin{background:rgba(242,193,78,.14);border-color:rgba(242,193,78,.6);color:var(--gold);font-weight:700}
+.act.sellSome{background:rgba(91,155,213,.16);border-color:rgba(91,155,213,.6);color:#8FC0EA;font-weight:700}
+.act.sellAll{background:rgba(229,72,77,.14);border-color:rgba(229,72,77,.55);color:#FF9296;font-weight:700}
+.act.dca{background:rgba(155,127,212,.16);border-color:rgba(155,127,212,.6);color:#C0A9F0;font-weight:700}
+.act.divRe{background:rgba(232,112,155,.14);border-color:rgba(232,112,155,.55);color:#F09BC0;font-weight:700}
+.act.buyCash[disabled],.act.buyMargin[disabled],.act.sellSome[disabled],
+.act.sellAll[disabled],.act.dca[disabled],.act.divRe[disabled]{opacity:.34}
+
+/* ---------- 記帳：拖曳分類 ---------- */
+#bkTray{position:absolute;left:0;right:0;bottom:0;padding:10px;display:flex;gap:9px;flex-wrap:wrap;
+  justify-content:center;pointer-events:auto}
+.pcard{padding:9px 12px;border-radius:var(--r);background:var(--panel2);border:1px solid var(--line2);
+  font-size:var(--fs-sm);touch-action:none;user-select:none;box-shadow:0 5px 16px rgba(0,0,0,.45)}
+.pcard.drag{position:fixed;z-index:800;pointer-events:none;transform:scale(1.05);border-color:var(--gold)}
+.pcard.sel{border-color:var(--gold);background:rgba(242,193,78,.14);box-shadow:0 0 0 2px rgba(242,193,78,.35)}
+.pcard.bad{animation:bad .4s}
+@keyframes bad{0%,100%{transform:none}20%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
+.dropzone{outline:2px dashed var(--gold);outline-offset:-4px;background:rgba(242,193,78,.07)}
+
+/* ---------- 覆蓋層（開局 / 復盤 / 調參 / 自測） ---------- */
+/* 九期：全服公告（重大事件橫幅） */
+#bcast{position:fixed;left:0;right:0;top:0;width:calc(var(--vw)*100);z-index:820;display:flex;justify-content:center;
+  pointer-events:none;padding:10px 12px}
+#bcast .bc{pointer-events:auto;background:linear-gradient(135deg,rgba(242,193,78,.97),rgba(240,160,60,.97));
+  color:#221803;border-radius:14px;padding:11px 20px;max-width:min(760px,calc(var(--vw)*94));
+  box-shadow:0 14px 40px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);
+  animation:bcIn .38s cubic-bezier(.2,1.2,.3,1);text-align:center}
+#bcast .bc .ttl{font-size:17px;font-weight:800;letter-spacing:.04em}
+#bcast .bc .sub{font-size:14px;margin-top:2px;opacity:.85}
+#bcast .bc.warn{background:linear-gradient(135deg,rgba(226,84,74,.97),rgba(190,58,50,.97));color:#fff}
+#bcast .bc.warn .sub{opacity:.92}
+@keyframes bcIn{from{transform:translateY(-24px);opacity:0}to{transform:none;opacity:1}}
+.overlay{position:fixed;inset:0;height:calc(var(--vh)*100);width:calc(var(--vw)*100);z-index:700;background:rgba(6,10,16,.82);display:flex;
+  align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(3px)}
+.sheetbox{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:20px 22px;
+  width:min(920px,calc(var(--vw)*94));max-height:calc(var(--vh)*92);overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.sheetbox h2{margin:0 0 4px;font-size:23px;letter-spacing:.03em}
+.sheetbox .sub{color:var(--tx2);font-size:var(--fs-sm);margin-bottom:16px}
+.grid{display:grid;gap:9px}
+.pick{padding:11px 13px;border-radius:var(--r);background:var(--panel2);border:1px solid var(--line2);text-align:left}
+.pick.on{border-color:var(--gold);background:rgba(242,193,78,.11)}
+.pick .t{font-weight:700;font-size:var(--fs-body)}
+.pick .d{color:var(--tx2);font-size:var(--fs-xs);margin-top:3px;line-height:1.5}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px}
+.tab{padding:7px 13px;border-radius:99px;background:var(--panel2);border:1px solid var(--line2);font-size:var(--fs-sm)}
+.tab.on{background:var(--gold);color:#1A1206;font-weight:700;border-color:transparent}
+table.tb{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+table.tb th,table.tb td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+table.tb th:first-child,table.tb td:first-child{text-align:left}
+table.tb th{color:var(--tx3);font-size:var(--fs-xs);letter-spacing:.1em;font-weight:700}
+
+/* 調參面板 */
+#devpanel{position:fixed;top:0;right:0;bottom:0;height:calc(var(--vh)*100);width:min(400px,calc(var(--vw)*92));z-index:750;background:var(--ink2);
+  border-left:1px solid var(--line2);transform:translateX(100%);transition:transform .26s cubic-bezier(.2,.8,.3,1);
+  display:flex;flex-direction:column}
+#devpanel.on{transform:none}
+#devpanel .hd{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+#devbody{flex:1;overflow-y:auto;padding:6px 0 40px}
+.cfgroup>summary{padding:9px 15px;font-weight:700;font-size:var(--fs-sm);cursor:pointer;background:var(--panel);
+  border-bottom:1px solid var(--line);list-style:none}
+.cfgroup>summary::-webkit-details-marker{display:none}
+.cfgroup>summary::before{content:"▸ ";color:var(--tx3)}
+.cfgroup[open]>summary::before{content:"▾ "}
+.cfrow{padding:8px 15px;border-bottom:1px solid var(--line)}
+.cfrow .l{display:flex;justify-content:space-between;font-size:var(--fs-sm);gap:8px}
+.cfrow .d{color:var(--tx3);font-size:var(--fs-xs);margin-top:2px}
+.cfrow input[type=range]{width:100%;accent-color:var(--gold);margin-top:5px}
+.cfrow input[type=number]{width:82px;background:var(--ink);border:1px solid var(--line2);border-radius:6px;
+  color:var(--tx);padding:3px 6px;font-family:var(--mono);font-size:var(--fs-sm)}
+.hotdot{width:6px;height:6px;border-radius:99px;background:var(--pos);display:inline-block;margin-left:5px}
+
+/* 記錄 / 提示 */
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);z-index:820;display:flex;
+  flex-direction:column;gap:7px;align-items:center;pointer-events:none}
+.toast{background:var(--panel2);border:1px solid var(--line2);border-radius:99px;padding:9px 17px;
+  font-size:var(--fs-sm);box-shadow:0 8px 26px rgba(0,0,0,.5);animation:tin .3s}
+.toast.warn{border-color:#8A4B2A;color:#F5A96E} .toast.good{border-color:#2F6E5B;color:#7FE3C7}
+@keyframes tin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.log{font-family:var(--mono);font-size:var(--fs-xs);color:var(--tx2);white-space:pre-wrap;line-height:1.6}
+.ok{color:var(--pos)} .fail{color:var(--neg)}
+svg text{user-select:none}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+/* S14b：接近回合上限時的倒數提示 */
+#turnBadge.endingSoon,#turnLabel.endingSoon{ color:#F2C14E; }
+#turnLabel.endingSoon{ background:rgba(242,193,78,.14); border-radius:5px; padding:1px 6px; }

@@ -1,0 +1,354 @@
+{
+  "packId": "m4",
+  "packVersion": "1.1.0",
+  "cards": {
+    "MACRO_EVENT": [
+      {
+        "id": "MA01",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "央行祭出信用管制",
+        "flavor": "第七波，這次連第二戶都限。",
+        "eduNote": "政策一改，你能借到的錢就變少——槓桿不是永遠都在。",
+        "priority": 90,
+        "effects": [
+          {
+            "op": "SET_PARAM",
+            "param": "maxLTV",
+            "value": 0.5,
+            "durationTurns": 8,
+            "label": "信用管制"
+          }
+        ],
+        "stages": [
+          "BOOM"
+        ]
+      },
+      {
+        "id": "MA02",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "青年購屋利息補貼",
+        "flavor": "財政部說要幫年輕人一把。",
+        "eduNote": "補貼會降低你的月付息，但它有到期日。",
+        "priority": 40,
+        "effects": [
+          {
+            "op": "SET_PARAM",
+            "param": "mortgageSpread",
+            "value": 0.009,
+            "durationTurns": 6,
+            "label": "利息補貼"
+          }
+        ],
+        "stages": [
+          "RECOVERY",
+          "RECESSION"
+        ]
+      },
+      {
+        "id": "MA03",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "科技業大規模裁員",
+        "flavor": "公告貼在內部網站上。",
+        "eduNote": "景氣反轉時，主動收入是最脆弱的那一項。",
+        "priority": 60,
+        "effects": [
+          {
+            "op": "SPACE_EFFECT_MULT",
+            "spaceType": "LAYOFF",
+            "factor": 2,
+            "durationTurns": 4,
+            "label": "裁員潮"
+          }
+        ],
+        "stages": [
+          "RECESSION",
+          "DEPRESSION"
+        ]
+      },
+      {
+        "id": "MA04",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "出口接單暢旺",
+        "flavor": "貨櫃排到下個月。",
+        "eduNote": "景氣好的時候，先反應的是事業利潤而不是薪水。",
+        "priority": 30,
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 1.3,
+            "durationTurns": 4,
+            "label": "出口暢旺"
+          }
+        ],
+        "stages": [
+          "RECOVERY",
+          "BOOM"
+        ]
+      },
+      {
+        "id": "MA05",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "通膨升溫，物價全面上漲",
+        "flavor": "便當又漲了十塊。",
+        "eduNote": "通膨會同時墊高你的支出與自由門檻。",
+        "priority": 50,
+        "effects": [
+          {
+            "op": "ADD_RECURRING_EXPENSE",
+            "target": "all",
+            "amount": 4,
+            "label": "物價上漲",
+            "durationTurns": 6
+          }
+        ],
+        "stages": [
+          "BOOM"
+        ]
+      },
+      {
+        "id": "MA06",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "租金補貼擴大辦理",
+        "flavor": "房客申請通過了。",
+        "eduNote": "補貼流向房客，但收租方的空置率會下降。",
+        "priority": 20,
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 1.08,
+            "durationTurns": 6,
+            "label": "租金補貼"
+          }
+        ],
+        "stages": [
+          "RECESSION",
+          "DEPRESSION"
+        ]
+      },
+      {
+        "id": "MA07",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "銀行全面緊縮授信",
+        "flavor": "行員說今年額度用完了。",
+        "eduNote": "流動性收縮時，好機會反而最多——前提是你手上有現金。",
+        "priority": 80,
+        "effects": [
+          {
+            "op": "SET_PARAM",
+            "param": "maxLTV",
+            "value": 0.6,
+            "durationTurns": 5,
+            "label": "授信緊縮"
+          },
+          {
+            "op": "SET_PARAM",
+            "param": "cashoutLTV",
+            "value": 0.5,
+            "durationTurns": 5,
+            "label": "增貸緊縮"
+          }
+        ],
+        "stages": [
+          "RECESSION",
+          "DEPRESSION"
+        ]
+      },
+      {
+        "id": "MA08",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "股市當沖降稅延長",
+        "flavor": "成交量放大。",
+        "eduNote": "交易成本下降會讓人交易更頻繁，這通常不是好事。",
+        "priority": 10,
+        "effects": [
+          {
+            "op": "SET_PARAM",
+            "param": "stockVolatilityMult",
+            "value": 1.4,
+            "durationTurns": 5,
+            "label": "量能放大"
+          }
+        ],
+        "stages": [
+          "BOOM",
+          "RECOVERY"
+        ]
+      },
+      {
+        "id": "MA09",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "強震來襲，老屋受損",
+        "flavor": "凌晨的搖晃把所有人搖醒，牆上多了一道裂縫。",
+        "eduNote": "天災不挑景氣。緊急預備金與保險，是唯一能提前做的事。",
+        "priority": 95,
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": -35,
+            "label": "修繕與停業損失",
+            "propertyClaim": true
+          },
+          {
+            "op": "ASSET_VALUE_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 0.9,
+            "label": "房屋受損跌價"
+          }
+        ],
+        "disaster": true
+      },
+      {
+        "id": "MA10",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "強颱過境，全台停班停市",
+        "flavor": "風雨假放了兩天，鐵皮屋頂飛了一片。",
+        "eduNote": "對做生意的人，停業一天就是負現金流一天。",
+        "priority": 85,
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": -18,
+            "label": "防災與災後清理",
+            "propertyClaim": true
+          },
+          {
+            "op": "ASSET_INCOME_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 0.75,
+            "durationTurns": 3,
+            "label": "停業影響"
+          }
+        ],
+        "disaster": true
+      },
+      {
+        "id": "MA11",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "豪雨土石流，山區聯外中斷",
+        "flavor": "新聞畫面裡，整條路變成了河。",
+        "eduNote": "供應鏈斷一段，物價就漲一波——災害的帳單常常晚幾個月才到。",
+        "priority": 70,
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": -12,
+            "label": "物資與交通損失",
+            "propertyClaim": true
+          },
+          {
+            "op": "ADD_RECURRING_EXPENSE",
+            "target": "all",
+            "amount": 3,
+            "durationTurns": 4,
+            "label": "物流成本上升"
+          }
+        ],
+        "disaster": true
+      },
+      {
+        "id": "MA12",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "銀行大舉抽銀根",
+        "flavor": "通知書寫著：additional collateral required。",
+        "eduNote": "銀行雨天收傘是常態。槓桿開滿的人，第一滴雨就出局。",
+        "priority": 92,
+        "effects": [
+          {
+            "op": "SET_PARAM",
+            "param": "maxLTV",
+            "value": 0.4,
+            "durationTurns": 6,
+            "label": "抽銀根"
+          },
+          {
+            "op": "SET_PARAM",
+            "param": "cashoutLTV",
+            "value": 0.3,
+            "durationTurns": 6,
+            "label": "增貸凍結"
+          },
+          {
+            "op": "SET_PARAM",
+            "param": "stockVolatilityMult",
+            "value": 1.5,
+            "durationTurns": 6,
+            "label": "市場動盪"
+          }
+        ],
+        "stages": [
+          "RECESSION",
+          "DEPRESSION"
+        ]
+      },
+      {
+        "id": "MA13",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "title": "金融風暴，資產全面重挫",
+        "flavor": "開盤十分鐘，跌幅榜整片同一個顏色。",
+        "eduNote": "系統性風險來的時候，「分散」救不了你，「現金與低槓桿」才行。",
+        "priority": 99,
+        "effects": [
+          {
+            "op": "ASSET_VALUE_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 0.85,
+            "label": "不動產重挫"
+          },
+          {
+            "op": "ASSET_INCOME_MULT",
+            "target": "all",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 0.8,
+            "durationTurns": 4,
+            "label": "消費急凍"
+          },
+          {
+            "op": "SET_PARAM",
+            "param": "stockVolatilityMult",
+            "value": 1.8,
+            "durationTurns": 6,
+            "label": "市場恐慌"
+          }
+        ],
+        "stages": [
+          "DEPRESSION"
+        ]
+      }
+    ]
+  }
+}

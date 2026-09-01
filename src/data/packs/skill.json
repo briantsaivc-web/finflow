@@ -1,0 +1,1182 @@
+{
+  "packId": "skill",
+  "packVersion": "1.7.0",
+  "requiresEngine": ">=1",
+  "cards": {
+    "SKILL": [
+      {
+        "id": "SKL_DRIVE",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "考取駕照",
+        "flavor": "住台北有捷運，考完三年沒摸過方向盤。",
+        "eduNote": "有些準備的價值，要等機會出現那天才結算。",
+        "hint": "交通類：可能在需要機動性的場合派上用場",
+        "cost": 20,
+        "recurringMonthly": 0,
+        "turns": 4,
+        "tier": "MID",
+        "family": "MOBILITY",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_SPANISH",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "西班牙語進修",
+        "flavor": "每週兩晚，同事問你學這個要幹嘛。",
+        "eduNote": "語言打開的門，你不會事先知道門後有什麼。",
+        "hint": "語言類：可能在涉外場合派上用場",
+        "cost": 25,
+        "recurringMonthly": 2,
+        "turns": 6,
+        "tier": "MID",
+        "family": "LANGUAGE",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_PLUMB",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "基礎水電",
+        "flavor": "報名時家人笑：又不是要當師傅。",
+        "eduNote": "會自己動手的人，維護成本永遠比別人低。",
+        "hint": "手作類：可能在需要修繕的場合派上用場",
+        "cost": 15,
+        "recurringMonthly": 0,
+        "turns": 3,
+        "tier": "SMALL",
+        "family": "HANDS",
+        "decayable": true,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_CPR",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "急救 CPR",
+        "flavor": "一個週末的課，發完證書就丟抽屜。",
+        "eduNote": "有些學習的回報不是錢，是那天你能不能站出來。",
+        "hint": "安全類：可能在有人出事的場合派上用場",
+        "cost": 8,
+        "recurringMonthly": 0,
+        "turns": 2,
+        "tier": "SMALL",
+        "family": "SAFETY",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_PRESENT",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "簡報與說故事",
+        "flavor": "同事都說「內容好就好，誰在乎投影片」。",
+        "eduNote": "好東西講不清楚，等於沒有。",
+        "hint": "表達類：可能在需要說服別人的場合派上用場",
+        "cost": 18,
+        "recurringMonthly": 0,
+        "turns": 4,
+        "tier": "MID",
+        "family": "COMMUNICATION",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_BOOK",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "記帳與看財報",
+        "flavor": "上完課才發現自己以前根本沒在管錢。",
+        "eduNote": "看得懂數字的人，比較不容易被數字騙。",
+        "hint": "財務類：可能在評估一門生意時派上用場",
+        "cost": 20,
+        "recurringMonthly": 0,
+        "turns": 4,
+        "tier": "MID",
+        "family": "FINANCE",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_NEGO",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "談判與溝通",
+        "flavor": "學費不便宜，上完好像也沒變得比較會吵架。",
+        "eduNote": "談判不是把對方壓下去，是找到雙方都能走的路。",
+        "hint": "表達類：可能在議價或交易的場合派上用場",
+        "cost": 18,
+        "recurringMonthly": 0,
+        "turns": 4,
+        "tier": "MID",
+        "family": "COMMUNICATION",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_LAW",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "法律常識",
+        "flavor": "學的時候想：我這輩子又不會上法院。",
+        "eduNote": "不懂規則的人，最容易在規則裡吃虧。",
+        "hint": "財務類：可能在遇到糾紛或可疑提案時派上用場",
+        "cost": 22,
+        "recurringMonthly": 0,
+        "turns": 4,
+        "tier": "MID",
+        "family": "FINANCE",
+        "decayable": true,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_CODE",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "程式與自動化",
+        "flavor": "半夜自學，同事覺得你很無聊。",
+        "eduNote": "技術是最快增值、也是折舊最快的資產。",
+        "hint": "技術類：可能在職涯轉折時派上用場（技術會過時，需要持續更新）",
+        "cost": 30,
+        "recurringMonthly": 0,
+        "turns": 6,
+        "tier": "MID",
+        "family": "TECH",
+        "decayable": true,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_SWIM",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "學會游泳",
+        "flavor": "每次去海邊都只能坐在岸上顧包包。",
+        "eduNote": "有些能力，一輩子只需要用到一次，但那一次無可取代。",
+        "hint": "安全類：可能在親水活動的場合派上用場",
+        "cost": 10,
+        "recurringMonthly": 0,
+        "turns": 3,
+        "tier": "SMALL",
+        "family": "SAFETY",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_PHOTO",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "title": "攝影",
+        "flavor": "買了相機，拍完三次貓就放著。",
+        "eduNote": "一項不務正業的技能，有時會在最需要的那天變成正業。",
+        "hint": "創作類：可能在需要留下紀錄的場合派上用場",
+        "cost": 15,
+        "recurringMonthly": 0,
+        "turns": 3,
+        "tier": "SMALL",
+        "family": "CREATIVE",
+        "decayable": false,
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKL_CAR_FOOD",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "tier": "LARGE",
+        "family": "CAREER",
+        "title": "餐飲創業養成班",
+        "cost": 55,
+        "turns": 6,
+        "recurringMonthly": 2,
+        "decayable": false,
+        "hint": "你有沒有想過，如果哪天不做現在這行了，還能靠什麼吃飯？",
+        "flavor": "每週兩晚在中央廚房，回家滿身油煙味。",
+        "eduNote": "第二專長不是為了馬上換工作，是為了讓你在被迫換的時候還有得選。",
+        "secondCareer": {
+          "professionId": "PRO_FOOD",
+          "sideIncome": 16,
+          "sideCost": 6,
+          "sideLabel": "週末擺攤"
+        }
+      },
+      {
+        "id": "SKL_CAR_DATA",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "tier": "LARGE",
+        "family": "CAREER",
+        "title": "資料分析轉職營",
+        "cost": 48,
+        "turns": 6,
+        "recurringMonthly": 2,
+        "decayable": true,
+        "hint": "你有沒有想過，如果哪天不做現在這行了，還能靠什麼吃飯？",
+        "flavor": "六個月的線上課，最後要交一份真實資料的分析報告。",
+        "eduNote": "技術類的第二專長回報快，但也是最會過時的那一種。",
+        "secondCareer": {
+          "professionId": "PRO_DATA",
+          "sideIncome": 14,
+          "sideCost": 4,
+          "sideLabel": "接案分析"
+        }
+      },
+      {
+        "id": "SKL_CAR_PLUMB",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "tier": "LARGE",
+        "family": "CAREER",
+        "title": "水電技術士證照班",
+        "cost": 40,
+        "turns": 6,
+        "recurringMonthly": 1,
+        "decayable": true,
+        "hint": "你有沒有想過，如果哪天不做現在這行了，還能靠什麼吃飯？",
+        "flavor": "術科考場在職訓中心，考官盯著你接線。",
+        "eduNote": "有牌的手藝在景氣壞的時候特別值錢——因為壞掉的東西不會等景氣。",
+        "secondCareer": {
+          "professionId": "PRO_PLUMBER",
+          "sideIncome": 12,
+          "sideCost": 3,
+          "sideLabel": "假日修繕接單"
+        }
+      },
+      {
+        "id": "SKL_CARPENTRY",
+        "deck": "SKILL",
+        "kind": "SKILL",
+        "tier": "MID",
+        "family": "HANDS",
+        "title": "木作與居家修繕",
+        "cost": 25,
+        "turns": 4,
+        "recurringMonthly": 0,
+        "decayable": false,
+        "hint": "手作類：自己動手把空間變好，可能在跟房子有關的地方派上用場",
+        "flavor": "週末在社區大學的木工教室，鋸子和砂紙。",
+        "eduNote": "同樣一間房，有人租不掉，有人租得又快又好——差別常常在願不願意自己動手。"
+      }
+    ],
+    "LIFE_EVENT": [
+      {
+        "id": "SKE_TEAMTRIP",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "部門團建要上山",
+        "flavor": "主管在群組問：誰能開車載一車人？",
+        "eduNote": "機會不會等你準備好，它只會問你準備好了沒。",
+        "skillBranch": {
+          "requires": "SKL_DRIVE",
+          "have": {
+            "narrative": "你開車，主管坐副駕。回程他說「下個案子你來帶」。",
+            "effects": [
+              {
+                "op": "SALARY_MULT",
+                "factor": 1.1,
+                "label": "被看見的機動力"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你搭別人的車坐在後座，一路聽他們在前座把下一季的分工聊完了。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_CLIENT",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "南美客戶下週來訪",
+        "flavor": "老闆在會議上問：有沒有人會西班牙語？",
+        "eduNote": "語言打開的門，你不會事先知道門後有什麼。",
+        "skillBranch": {
+          "requires": "SKL_SPANISH",
+          "have": {
+            "narrative": "你上桌翻譯兼聊足球，客戶指名你當窗口。",
+            "effects": [
+              {
+                "op": "SALARY_MULT",
+                "factor": 1.15,
+                "label": "外語加給"
+              },
+              {
+                "op": "GRANT_JOY",
+                "amount": 1
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你在辦公室加班，看同事被帶去晚宴。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_HEATER",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "租客半夜打電話：熱水器不出熱水",
+        "flavor": "電話那頭的聲音，聽起來已經在生氣了。",
+        "eduNote": "會自己動手的人，維護成本永遠比別人低。",
+        "skillBranch": {
+          "requires": "SKL_PLUMB",
+          "have": {
+            "narrative": "你隔天自己換掉零件，順便跟租客混熟，續約談定。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -4,
+                "label": "零件費"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "叫師傅、急件加價，租客不爽，下期不續約。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -18,
+                "label": "急件修繕與空租損失"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_BANQUET",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "尾牙上，隔壁桌的長輩突然倒下",
+        "flavor": "現場一片慌亂，有人喊「誰會急救」。",
+        "eduNote": "有些學習的回報不是錢，是那天你能不能站出來。",
+        "skillBranch": {
+          "requires": "SKL_CPR",
+          "have": {
+            "narrative": "你壓胸壓到救護車來，人救回來了。全場沒有人記得那晚的菜色。",
+            "effects": [
+              {
+                "op": "GRANT_JOY",
+                "amount": 3
+              },
+              {
+                "op": "GRANT_VIRTUE",
+                "axis": "TEMPER",
+                "delta": 1
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你只能打 119，然後站在旁邊看著。那幾分鐘很長。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_BUDGET",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "年度預算會議",
+        "flavor": "你的案子要跟另外兩個部門搶同一筆錢。",
+        "eduNote": "好東西講不清楚，等於沒有。",
+        "skillBranch": {
+          "requires": "SKL_PRESENT",
+          "have": {
+            "narrative": "三頁講完，當場拍板。專案上線，年底獎金入袋。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": 45,
+                "label": "專案獎金"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你講了二十分鐘，主管低頭看手機。案子砍掉。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_FAKEBOOK",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "朋友邀你合資頂讓一間小吃攤",
+        "flavor": "「月營收很漂亮」，他把報表推到你面前。",
+        "eduNote": "看得懂數字的人，比較不容易被數字騙。",
+        "skillBranch": {
+          "requires": "SKL_BOOK",
+          "have": {
+            "narrative": "你翻了兩年流水，看出那營收是抓旺季推估的，笑著婉拒。",
+            "effects": []
+          },
+          "miss": {
+            "narrative": "你憑感覺投了，三個月後才發現淡季根本撐不住。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -70,
+                "label": "看走眼的投資"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_HAGGLE",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "店面成交前的最後一輪議價",
+        "flavor": "屋主說這個價已經是底線了。",
+        "eduNote": "談判不是把對方壓下去，是找到雙方都能走的路。",
+        "skillBranch": {
+          "requires": "SKL_NEGO",
+          "have": {
+            "narrative": "你看出他急著出手，多要了一成的裝修補貼。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": 35,
+                "label": "議價省下的錢"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你照開價成交，還覺得自己賺到。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_PONZI",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "老同學拿「保證月配 8%」的海外基金來找你",
+        "flavor": "群組裡已經有五個人投了，他們都說很穩。",
+        "eduNote": "不懂規則的人，最容易在規則裡吃虧。",
+        "skillBranch": {
+          "requires": "SKL_LAW",
+          "have": {
+            "narrative": "你當場看出是資金盤，還把群組其他人拉住。",
+            "effects": [
+              {
+                "op": "GRANT_VIRTUE",
+                "axis": "PRUDENCE",
+                "delta": 1
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你投了，半年後平台關站，群組解散得很安靜。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -200,
+                "label": "資金盤losses"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_AILAYOFF",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "公司導入 AI，部門要精簡一半人力",
+        "flavor": "名單下週公布，辦公室很安靜。",
+        "eduNote": "技術是最快增值、也是折舊最快的資產。",
+        "skillBranch": {
+          "requires": "SKL_CODE",
+          "have": {
+            "narrative": "你半夜自學的那些東西，讓你變成負責導入的那個人。",
+            "effects": [
+              {
+                "op": "SALARY_MULT",
+                "factor": 1.25,
+                "label": "轉型主力"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你在名單上。重新找工作花了一段時間。",
+            "effects": [
+              {
+                "op": "SALARY_MULT",
+                "factor": 0.8,
+                "label": "重新開始"
+              },
+              {
+                "op": "SKIP_TURNS",
+                "turns": 2,
+                "label": "求職空窗"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_WEDDING",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "好友婚禮前一週，攝影師落跑",
+        "flavor": "新娘在電話那頭快哭了。",
+        "eduNote": "一項不務正業的技能，有時會在最需要的那天變成正業。",
+        "skillBranch": {
+          "requires": "SKL_PHOTO",
+          "have": {
+            "narrative": "你頂上，成品出乎意料的好，賓客搶著要你名片。",
+            "effects": [
+              {
+                "op": "GRANT_JOY",
+                "amount": 2
+              },
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": 20,
+                "label": "謝禮與後續案子"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "大家用手機亂拍，那天的照片後來沒人再打開過。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_DROWNING",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "海邊玩水，姪子被浪捲離岸邊",
+        "flavor": "岸上的人都在喊，但沒有人下水。",
+        "eduNote": "有些能力一輩子只用到一次，但那一次無可取代。",
+        "skillBranch": {
+          "requires": "SKL_SWIM",
+          "have": {
+            "narrative": "你游過去把人拖回來。上岸後你們都在發抖。",
+            "effects": [
+              {
+                "op": "GRANT_JOY",
+                "amount": 3
+              },
+              {
+                "op": "GRANT_VIRTUE",
+                "axis": "TEMPER",
+                "delta": 1
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你只能在岸上大叫等救生員。那段時間長得像一輩子。",
+            "effects": []
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_CARCRASH",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "你被追撞，對方一口咬定是你煞太急",
+        "flavor": "路口沒有目擊者，只有兩台車卡在那裡。",
+        "eduNote": "遇到事情知道下一步該做什麼，本身就是一種保險。",
+        "skillBranch": {
+          "requires": "family:SAFETY",
+          "have": {
+            "narrative": "你冷靜拍照、報案、調閱行車記錄，肇責清楚。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -8,
+                "label": "自付額"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "現場沒拍沒報案，事後各說各話，肇責五五分。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -45,
+                "label": "和解與修車"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_OT",
+        "deck": "LIFE_EVENT",
+        "kind": "LIFE_EVENT",
+        "moduleReq": "M8",
+        "requiresLearning": true,
+        "title": "公司臨時接了急單，連兩週加班",
+        "flavor": "下班走出大樓時，補習班已經拉下鐵門。",
+        "eduNote": "學習最貴的成本從來不是學費，是你被別的事情吃掉的時間。",
+        "effects": [
+          {
+            "op": "DELAY_LEARNING",
+            "turns": 1,
+            "label": "加班中斷進度"
+          }
+        ]
+      },
+      {
+        "id": "SKE_CAREGIVE",
+        "deck": "LIFE_EVENT",
+        "kind": "LIFE_EVENT",
+        "moduleReq": "M8",
+        "requiresLearning": true,
+        "title": "家裡有人住院，你請假輪班照顧",
+        "flavor": "課本躺在醫院陪病床邊，一頁都沒翻。",
+        "eduNote": "人生不會等你把課上完才發生。計畫要留餘裕，餘裕就是你的護城河。",
+        "effects": [
+          {
+            "op": "DELAY_LEARNING",
+            "turns": 1,
+            "label": "照顧家人中斷進度"
+          },
+          {
+            "op": "CASH_DELTA",
+            "amount": -8,
+            "label": "看護與交通"
+          }
+        ]
+      },
+      {
+        "id": "SKE_INTRAIN",
+        "deck": "LIFE_EVENT",
+        "kind": "LIFE_EVENT",
+        "moduleReq": "M8",
+        "title": "公司開了一堂內訓，人資問你要不要去",
+        "flavor": "名額有限，週六整天，不強制。",
+        "eduNote": "別人給的機會也是機會——但通常只留給願意犧牲週六的人。",
+        "requiresNotSkill": "SKL_BOOK",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "amount": -3,
+            "label": "教材與交通"
+          },
+          {
+            "op": "GRANT_SKILL",
+            "skillId": "SKL_BOOK",
+            "label": "公司內訓"
+          }
+        ]
+      }
+    ],
+    "MACRO_EVENT": [
+      {
+        "id": "MAS01",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "moduleReq": "M8",
+        "title": "生成式 AI 全面進入開發流程",
+        "flavor": "你昨天寫三天的東西，它三分鐘給你一版。",
+        "eduNote": "技能會折舊。真正保值的不是你學過什麼，是你還在不在學。",
+        "priority": 70,
+        "stages": [
+          "BOOM",
+          "RECOVERY"
+        ],
+        "effects": [
+          {
+            "op": "DECAY_SKILL",
+            "target": "all",
+            "family": "TECH",
+            "warnTurns": 2,
+            "label": "AI 取代基礎開發"
+          }
+        ]
+      },
+      {
+        "id": "MAS02",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "moduleReq": "M8",
+        "title": "民法與稅法同步大修",
+        "flavor": "新聞跑馬燈整天在跑，事務所電話接不完。",
+        "eduNote": "你以為記住的規則，其實是那一年的規則。",
+        "priority": 65,
+        "stages": [
+          "BOOM",
+          "RECOVERY",
+          "RECESSION"
+        ],
+        "effects": [
+          {
+            "op": "DECAY_SKILL",
+            "target": "all",
+            "skillId": "SKL_LAW",
+            "warnTurns": 2,
+            "label": "法規大修"
+          }
+        ]
+      },
+      {
+        "id": "MAS03",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO",
+        "moduleReq": "M8",
+        "title": "技術士證照制度改制，舊證落日",
+        "flavor": "公告貼在工會門口，三個月內要換照。",
+        "eduNote": "證照不是終身有效的護身符，是需要續期的門票。",
+        "priority": 55,
+        "stages": [
+          "RECOVERY",
+          "RECESSION",
+          "DEPRESSION"
+        ],
+        "effects": [
+          {
+            "op": "DECAY_SKILL",
+            "target": "all",
+            "skillId": "SKL_PLUMB",
+            "warnTurns": 2,
+            "label": "舊證落日"
+          }
+        ]
+      }
+    ],
+    "DIGITAL": [
+      {
+        "id": "DIG_COURSE",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "線上課程：看懂一張財報",
+        "requires": "SKL_BOOK",
+        "flavor": "錄了十二支影片，剪到凌晨三點。",
+        "eduNote": "課程上架那天不是終點，是長尾的第一天——沒人續作的課會被演算法忘記。",
+        "hint": "要先看得懂財報，才教得了別人",
+        "payload": {
+          "cost": 30,
+          "monthlyCost": 2,
+          "threshold": 4,
+          "baseIncome": 18
+        }
+      },
+      {
+        "id": "DIG_YT_FIX",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "YouTube 頻道：自己動手修",
+        "requires": "SKL_PLUMB",
+        "flavor": "手機架在水槽旁邊，一邊修一邊講。",
+        "eduNote": "實作型內容的長尾最長——因為壞掉的東西每年都會壞。",
+        "hint": "手上要真的有這門手藝，鏡頭騙不了人",
+        "payload": {
+          "cost": 18,
+          "monthlyCost": 2,
+          "threshold": 5,
+          "baseIncome": 16
+        }
+      },
+      {
+        "id": "DIG_PHOTO",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "圖庫授權與線上攝影課",
+        "requires": "SKL_PHOTO",
+        "flavor": "上傳了四百張，前三個月賣出兩張。",
+        "eduNote": "授權型收入前期幾乎是零，這是它勸退大多數人的方式。",
+        "hint": "要有拿得出手的作品",
+        "payload": {
+          "cost": 22,
+          "monthlyCost": 1,
+          "threshold": 6,
+          "baseIncome": 20
+        }
+      },
+      {
+        "id": "DIG_TOOL",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "自動化小工具訂閱制",
+        "requires": "SKL_CODE",
+        "flavor": "本來只是自己要用，朋友問能不能也給他一份。",
+        "eduNote": "訂閱制的甜蜜與詛咒是同一件事：你得一直維護它。",
+        "hint": "要寫得出來，也要修得動",
+        "payload": {
+          "cost": 35,
+          "monthlyCost": 3,
+          "threshold": 4,
+          "baseIncome": 24
+        }
+      },
+      {
+        "id": "DIG_NEWS",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "知識型電子報訂閱制",
+        "requires": "SKL_PRESENT",
+        "flavor": "每週寄一封，寫的時候覺得沒人看，退訂的時候才知道有。",
+        "eduNote": "訂閱制的收入看起來最像被動收入，其實最不被動——你得一直交稿。",
+        "hint": "會講故事的人，才留得住讀者",
+        "payload": {
+          "cost": 12,
+          "monthlyCost": 2,
+          "threshold": 5,
+          "baseIncome": 15
+        }
+      },
+      {
+        "id": "DIG_SPANISH",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "西語教學 Podcast",
+        "requires": "SKL_SPANISH",
+        "flavor": "每集十五分鐘，錄音室是你家衣櫃。",
+        "eduNote": "語言內容的觀眾換得快，但每一批新學習者都會從第一集開始聽。",
+        "hint": "要真的會講，不能只是會查",
+        "payload": {
+          "cost": 15,
+          "monthlyCost": 1,
+          "threshold": 5,
+          "baseIncome": 14
+        }
+      }
+    ],
+    "BADGE": [
+      {
+        "id": "BDG_READY",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "📖",
+        "title": "書到用時",
+        "desc": "技能真的派上用場 5 次以上——你準備的東西，機會來的時候接得住。",
+        "rule": "ready",
+        "group": "學習",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_TWOTRADE",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🔧",
+        "title": "兩把刷子",
+        "desc": "轉到不同產業的第二專長——整個產業一起倒的時候，你還有另一條路。",
+        "rule": "twoTrade",
+        "group": "學習",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_LIFELONG",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🎓",
+        "title": "終身學習者",
+        "desc": "學成 4 項以上，而且一次都沒半途放棄。",
+        "rule": "lifelong",
+        "group": "學習",
+        "priority": 2,
+        "exclusiveWith": "BDG_QUITTER",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_QUITTER",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🥱",
+        "title": "半途而廢專家",
+        "desc": "放棄學習 3 次以上——沉沒成本這門課，你上得很貴。",
+        "rule": "quitter",
+        "group": "學習",
+        "priority": 1,
+        "exclusiveWith": "BDG_LIFELONG",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_WASTED",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🌫",
+        "title": "白學了",
+        "desc": "有 3 項以上技能整局沒用上。這不是你的錯——機會本來就不保證出現。",
+        "rule": "wasted",
+        "group": "學習",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_LONGTAIL",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "📡",
+        "title": "長尾獵人",
+        "desc": "至少有一個數位資產真的起飛了。",
+        "rule": "longtail",
+        "group": "數位",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_VIRAL",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🚀",
+        "title": "演算法寵兒",
+        "desc": "做出一個爆紅的內容——享受它，但別把它當成常態。",
+        "rule": "viral",
+        "group": "數位",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_GHOST",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "👻",
+        "title": "荒廢的頻道",
+        "desc": "有內容因為停更而歸零。長尾屬於持續的人。",
+        "rule": "ghost",
+        "group": "數位",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_PRODIGY",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🌟",
+        "title": "投資神童",
+        "desc": "第 40 輪之前就達成財務自由。",
+        "rule": "prodigy",
+        "group": "投資",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_KARATE",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🥋",
+        "title": "空手道大師",
+        "desc": "達成自由，而且身上一毛負債都沒有。",
+        "rule": "karate",
+        "group": "投資",
+        "priority": 2,
+        "exclusiveWith": "BDG_LEVER",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_LEVER",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🎚",
+        "title": "槓桿藝術家",
+        "desc": "最高槓桿踩到 3 倍以上，還全身而退。",
+        "rule": "lever",
+        "group": "投資",
+        "priority": 1,
+        "exclusiveWith": "BDG_KARATE",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_LANDLORD",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🏘",
+        "title": "房產大亨",
+        "desc": "同時持有 4 筆以上不動產。",
+        "rule": "landlord",
+        "group": "投資",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_TYCOON",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🏭",
+        "title": "事業王",
+        "desc": "同時經營 5 門以上事業。",
+        "rule": "tycoon",
+        "group": "投資",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_CASHFLOW",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "💧",
+        "title": "現金流獵人",
+        "desc": "被動收入達到每月支出的兩倍以上。",
+        "rule": "cashflow",
+        "group": "投資",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_TAKEPROFIT",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "✂️",
+        "title": "落袋為安",
+        "desc": "主動停利 3 次以上——帳上的獲利不是你的錢，賣掉才是。",
+        "rule": "takeProfit",
+        "group": "投資",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_NETWORK",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🎓",
+        "title": "人脈存摺",
+        "desc": "靠海外留學或 EMBA 打開了那扇門。",
+        "rule": "network",
+        "group": "準備",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_INSURED",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🛡",
+        "title": "有備無患",
+        "desc": "醫療險與住宅火險同時在保——把賠不起的風險換成確定成本。",
+        "rule": "insured",
+        "group": "準備",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_VIRTUE",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🪷",
+        "title": "修養有成",
+        "desc": "四個品格軸全部滿級。",
+        "rule": "virtue",
+        "group": "品格",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_SAVED",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🍀",
+        "title": "化險為夷",
+        "desc": "品格在考驗中替你省下 300 以上。",
+        "rule": "saved",
+        "group": "品格",
+        "rarity": "COMMON"
+      },
+      {
+        "id": "BDG_CAT",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🐈",
+        "title": "九命怪貓",
+        "desc": "從自由圈跌回兩次以上，最後還是沒倒。",
+        "rule": "cat",
+        "group": "危機",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_ALMOST",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "😮‍💨",
+        "title": "差一步",
+        "desc": "三度逼近自由又跌回去——差的往往不是運氣，是水位。",
+        "rule": "almost",
+        "group": "危機",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_TOP_LEARNER",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🧠",
+        "title": "最會學的人",
+        "desc": "全場學成技能最多。",
+        "rule": "topLearner",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_TOP_GAMBLER",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🎲",
+        "title": "最敢賭的人",
+        "desc": "全場最高槓桿。",
+        "rule": "topGambler",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_TOP_FREE",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🕊",
+        "title": "最早自由的人",
+        "desc": "全場最早達成財務自由。",
+        "rule": "topFree",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_TOP_FAMILY",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "💗",
+        "title": "最會照顧家人的人",
+        "desc": "全場幸福感最高。",
+        "rule": "topFamily",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_TOP_BARGAIN",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🧾",
+        "title": "最會撿便宜的人",
+        "desc": "全場靠技能省下最多。",
+        "rule": "topBargain",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_TOP_SURVIVOR",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🪨",
+        "title": "最慘但沒倒的人",
+        "desc": "全場淨值最低，但撐到最後沒有出局。",
+        "rule": "topSurvivor",
+        "group": "頭銜",
+        "rel": true,
+        "rarity": "LEGEND"
+      }
+    ]
+  }
+}
