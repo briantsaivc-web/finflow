@@ -708,6 +708,14 @@ function soleWinner(ctx, key, p, minV){
 }
 
 badges.rules = {
+  directorHero: function(S,p){
+    return (p.ledger||[]).some(function(e){ return e.summary && e.summary.indexOf("請辭獨立董事") >= 0; });
+  },
+  scamImmune: function(S,p){
+    var hasAudit = E.hasSkill && (E.hasSkill(p, "SKL_BOOK") || E.hasSkill(p, "SKL_CPA_AUDIT"));
+    var hasLaw = E.hasSkill && (E.hasSkill(p, "SKL_LAW") || E.hasSkill(p, "SKL_GOV_LEGAL"));
+    return (hasAudit || hasLaw) && (p.stats.passedOpps || 0) >= 2;
+  },
   // 學習線
   ready:    function(S,p){ return (p.stats.skillsUsed||0) >= 5; },
   twoTrade: function(S,p){
@@ -839,6 +847,29 @@ ui.showReport = function(){
     if((a.playerStage==="OUTER")!==(b.playerStage==="OUTER")) return a.playerStage==="OUTER"?-1:1;
     if(a.playerStage==="OUTER"&&b.playerStage==="OUTER") return b.dreamProgress-a.dreamProgress;
     return b.derived.netWorth-a.derived.netWorth; });
+  // 差一點就成功（Near-Miss Effect）進度條與提示
+  var myPlayer = S.players[ui.myId()];
+  if(myPlayer && !myPlayer.bankrupt){
+    var passDiff = myPlayer.derived.totalExpenses - myPlayer.derived.passiveIncome;
+    var nmBox = el("div", "near-miss-card");
+    nmBox.style.cssText = "background:linear-gradient(135deg,rgba(242,193,78,.15),rgba(53,196,168,.12));border:1px solid rgba(242,193,78,.4);padding:12px 16px;border-radius:10px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;";
+    var nmLeft = el("div");
+    if(myPlayer.playerStage === "OUTER"){
+      var leftDream = S.config.dreamCost - myPlayer.dreamProgress;
+      if(leftDream > 0){
+        nmLeft.innerHTML = "<b style='color:#F2C14E;font-size:14px'>🌟 離圓滿終局只差一步！</b><div style='color:var(--tx2);font-size:12.5px;margin-top:3px'>你已達成財務自由，離最終圓夢僅差 <b>" + leftDream + " 點進度</b>！</div>";
+      } else {
+        nmLeft.innerHTML = "<b style='color:#35C4A8;font-size:14px'>🎉 完美圓夢達成！</b><div style='color:var(--tx2);font-size:12.5px;margin-top:3px'>你成功穿越財務風暴，實現了人生的終極理想。</div>";
+      }
+    } else if(passDiff > 0 && passDiff <= myPlayer.derived.totalExpenses * 0.4){
+      nmLeft.innerHTML = "<b style='color:#F2C14E;font-size:14px'>🔥 差一點就達成財務自由！</b><div style='color:var(--tx2);font-size:12.5px;margin-top:3px'>離被動收入大於總支出只差 <b>" + M(passDiff) + "</b>（相當於只要再入手 1 間收租套房）！</div>";
+    } else {
+      nmLeft.innerHTML = "<b style='color:#6B7F98;font-size:14px'>📊 對局策略復盤總結</b><div style='color:var(--tx2);font-size:12.5px;margin-top:3px'>總資產淨值 " + M(myPlayer.derived.netWorth) + "，月被動收入 " + M(myPlayer.derived.passiveIncome) + "。</div>";
+    }
+    nmBox.appendChild(nmLeft);
+    box.appendChild(nmBox);
+  }
+
   var rt=el("table","tb"); rt.style.marginTop="6px";
   rt.innerHTML="<tr><th>名次</th><th>玩家</th><th>結局</th><th>淨值</th><th>被動收入</th><th>自由輪</th><th>圓夢</th><th>幸福感</th><th>頭銜</th></tr>";
   ranked.forEach(function(x,i){
@@ -981,6 +1012,22 @@ ui.showReport = function(){
     players:S.players.map(function(x){ return {name:x.name, profession:x.professionId, nw:x.derived.netWorth,
       passive:x.derived.passiveIncome, free:x.freeAtTurn, dream:x.dreamProgress, bankrupt:x.bankrupt}; })}},
     "finflow-replay.json"); };
+  var replaySameSeed = el("button","opt primary","🔄 相同種子再戰一次");
+  replaySameSeed.title = "使用完全相同的開局與牌序，考驗不同決策能否逆轉結局！";
+  replaySameSeed.onclick = function(){
+    ov.remove(); ui._reported = false;
+    var origSeed = S.seed;
+    var cfg = JSON.parse(JSON.stringify(S.config));
+    var mods = S.enabledModules.slice();
+    $("app").classList.remove("hide");
+    var S_new = E.initGame(origSeed, cfg, mods);
+    ui.S = S_new;
+    ui.render();
+    ui.tick();
+    ui.toast("已使用相同種子開局，驗證不同策略的因果！", "pos");
+  };
+  opts.appendChild(replaySameSeed);
+
   var again=el("button","opt","再玩一局");
   again.onclick=function(){ ov.remove(); ui._reported=false; ui.S=null; $("app").classList.add("hide"); ui.showSetup(); };
   // S14b：時間到才結束的局，桌上常常還想再打一段。續攤＝把上限往後推，局內狀態一律不動。

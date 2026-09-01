@@ -1227,6 +1227,28 @@
         "group": "頭銜",
         "rel": true,
         "rarity": "LEGEND"
+      },
+      {
+        "id": "BDG_DIRECTOR_HERO",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🚢",
+        "title": "人間清醒",
+        "desc": "在獨立董事弊案爆發前夕及時跳船請辭，全身而退免除上億民事求償。",
+        "rule": "directorHero",
+        "group": "危機",
+        "rarity": "RARE"
+      },
+      {
+        "id": "BDG_SCAM_IMMUNE",
+        "deck": "BADGE",
+        "kind": "BADGE",
+        "icon": "🛡️",
+        "title": "鋼鐵避險王",
+        "desc": "運用財報審計或法規常識，識破並多次拒絕高息龐氏與假保本投資陷阱。",
+        "rule": "scamImmune",
+        "group": "投資",
+        "rarity": "RARE"
       }
     ]
   }
