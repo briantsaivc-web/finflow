@@ -348,6 +348,69 @@
         "stages": [
           "DEPRESSION"
         ]
+      },
+      {
+        "id": "MKT_BODA_FRAUD",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "科技股王審計假帳風暴",
+        "subtitle": "名牌科技股被爆透過海外子公司虛增營收，引發市場恐慌拋售。",
+        "flavor": "財經雜誌剛封他為年度典範，隔週公司突然宣布帳上數十億現金全在海外凍結（歷史原型：博達案）。",
+        "eduNote": "營收會騙人、獲利會造假，唯有真正的現金流量表騙不了人。",
+        "effects": [
+          {
+            "op": "STOCK_CRASH",
+            "category": "GROWTH",
+            "factor": 0.6
+          }
+        ]
+      },
+      {
+        "id": "MKT_TAIDIAN_DELIST",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "老牌權值股黑天鵝掏空",
+        "subtitle": "老牌權值傳產龍頭爆發高達兩百億掏空弊案，股票淪為壁紙停止交易。",
+        "flavor": "爸媽存了一輩子的傳產龍頭股，一夕之間爆出海外兩百億黑洞（歷史原型：太電案）。",
+        "eduNote": "資產規模大不代表不會倒，公司治理與內部稽核才是資產的防腐劑。",
+        "effects": [
+          {
+            "op": "STOCK_CRASH",
+            "category": "VALUE",
+            "factor": 0.5
+          }
+        ]
+      },
+      {
+        "id": "MACRO_DUAL_CARD_CRISIS",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "全台信用緊縮與雙卡風暴",
+        "subtitle": "高利現金卡違約潮引發銀行全面收緊信貸，消費貸利率調升至上限。",
+        "flavor": "借錢是件快樂的事——直到帳單上的循環利率跳到 18%（歷史原型：雙卡風暴）。",
+        "eduNote": "用短期高利消費貸去支撐生活或投資，是通往破產最快的一條路。",
+        "effects": [
+          {
+            "op": "INTEREST_RATE_HIKE",
+            "points": 3
+          }
+        ]
+      },
+      {
+        "id": "MKT_BIOTECH_UNBLIND",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "夢幻新藥解盲無量崩盤",
+        "subtitle": "投機生技股臨床解盲未達預期，連續跌停鎖死引發融資斷頭潮。",
+        "flavor": "群組每天都在傳『解盲一定過』，賭贏翻倍、賭輸無量跌停賣都賣不掉（歷史原型：基亞浩鼎案）。",
+        "eduNote": "全靠單一事件下注的投機不是投資，一旦失敗流動性直接歸零。",
+        "effects": [
+          {
+            "op": "STOCK_CRASH",
+            "category": "SPECULATIVE",
+            "factor": 0.4
+          }
+        ]
       }
     ]
   }

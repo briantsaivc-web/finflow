@@ -999,6 +999,59 @@
           "equityPct": 0.08,
           "postMoney": 6500
         }
+      },
+      {
+        "id": "OPP_HONGYUAN_FUND",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "封閉型民間高息專案",
+        "flavor": "鄰居每個月都在領利息，介紹人拍胸脯保證絕對穩當，名額只剩這週！",
+        "eduNote": "你貪他的高利息，他要你的全家本金。世上沒有年化 30% 還保本的生意（歷史原型：鴻源吸金案）。",
+        "group": "高息投資",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 100,
+          "downPayment": 100,
+          "monthlyProfit": 3,
+          "isScam": true,
+          "scamDelayTurns": 3,
+          "scamLoss": 100
+        }
+      },
+      {
+        "id": "OPP_GOLD_REPURCHASE",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "實體黃金保本回購專案",
+        "flavor": "業務把沉甸甸的金條擺在眼前，合約白紙黑字寫著保證原價買回加贈年息。",
+        "eduNote": "『保本』與『高於定存數倍的利息』在財務物理學上是互相矛盾的（歷史原型：聖石金業案）。",
+        "group": "黃金貴金屬",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 150,
+          "downPayment": 150,
+          "monthlyProfit": 1,
+          "isScam": true,
+          "scamDelayTurns": 3,
+          "scamLoss": 150
+        }
+      },
+      {
+        "id": "OPP_RED_SLIP_HOUSING",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "預售屋紅單轉手套利",
+        "flavor": "房仲低聲說：現在買紅單卡位，等開盤轉約現賺，根本不用真的交屋。",
+        "eduNote": "預售屋槓桿是雙面刃；一旦政策收緊禁止轉約或限貸，繳不出尾款便是全額違約沒收。",
+        "group": "房地產",
+        "stage": "INNER",
+        "payload": {
+          "price": 1000,
+          "downPayment": 100,
+          "monthlyRent": 0
+        }
       }
     ],
     "OPPORTUNITY_LARGE": [
@@ -1234,6 +1287,25 @@
           "startup"
         ],
         "moduleReq": "M3"
+      },
+      {
+        "id": "OPP_OFFSHORE_VIP_FUND",
+        "deck": "OPPORTUNITY_LARGE",
+        "kind": "BUSINESS",
+        "title": "海外頂級機構專屬配息信託",
+        "flavor": "理專小聲透露：這是資產千萬以上的 VIP 才能投的海外無風險配息基金。",
+        "eduNote": "不在金融監管名冊內的境外商品，一旦出事跨國追償往往化為烏有（歷史原型：澳豐金融案）。",
+        "group": "海外信託",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 200,
+          "downPayment": 200,
+          "monthlyProfit": 1.4,
+          "isScam": true,
+          "scamDelayTurns": 4,
+          "scamLoss": 200
+        }
       }
     ],
     "LIFESTYLE": [
@@ -2379,6 +2451,298 @@
           "family"
         ],
         "moduleReq": null
+      },
+      {
+        "id": "EVT_GRAD_TRIP_PARIS_BALI",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "一生一次的畢業旅行",
+        "flavor": "開拓視野不一定要背負沉重債務；用適合自己口袋的方式創造回憶，才不會讓未來的自己替現在的浪漫買單。",
+        "eduNote": "體驗無價，但打腫臉充胖子的分期付款會讓未來的現金流嚴重窒息。",
+        "group": "青春與成長",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "✈️ 飛法國巴黎（奢華遠征）",
+              "sub": "支出 80、幸福感 +4，獲國際視野",
+              "cost": 80,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": -80
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 4
+                }
+              ]
+            },
+            {
+              "label": "🚲 去新北淡水八里（小資浪漫）",
+              "sub": "支出 6、幸福感 +2，情緒修養 +1",
+              "cost": 6,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": -6
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 2
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "TEMPER",
+                  "delta": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "CHOICE_MOTO_MONKEY",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "山道猴子的重機誘惑",
+        "flavor": "車行老闆熱情招攬：『少年欸，零元交車、免頭期，分期 84 期輕鬆繳，再送全車彩貼！』",
+        "eduNote": "買車是一時的快感，養車是每月雷打不動的現金流失血（油錢、保養、保險、折舊）。",
+        "group": "生活誘惑",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "🏍 簽下去零元交車",
+              "sub": "每月固定支出 +4.5 持續 2 年，幸福感 +3",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "ADD_RECURRING_EXPENSE",
+                  "amount": 4.5,
+                  "durationTurns": 24
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 3
+                }
+              ]
+            },
+            {
+              "label": "🛵 騎家裡買菜車",
+              "sub": "理智清醒，支出 0，謹慎修養 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "CHOICE_SUGAR_AUNTIE",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "神秘名媛的捷徑私訊",
+        "flavor": "天上掉下來的餡餅往往是捕鼠夾；想走捷徑的人，往往成為洗錢或詐騙的人頭戶。",
+        "eduNote": "借出銀行帳戶在法律上視為詐欺幫助犯，將面臨帳戶凍結與全額求償。",
+        "group": "灰色誘惑",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "⚠️ 冒險走捷徑赴約",
+              "sub": "現拿 10 萬，但埋下洗錢人頭帳戶定時炸彈",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": 100
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": -2
+                }
+              ]
+            },
+            {
+              "label": "💡 果斷封鎖檢舉",
+              "sub": "守住底線，謹慎修養 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "CHOICE_DAY_TRADING_GOD",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "少年股神當沖衝鋒",
+        "flavor": "論壇每天都在曬當沖無本翻倍對帳單，同學慫恿：『不開槓桿怎麼翻身？一萬塊也能玩！』",
+        "eduNote": "過度自信與頻繁當沖是散戶資本蒸發的主因，唯有紀律與複利能穿越週期。",
+        "group": "投資考驗",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "🎰 賭一把全倉當沖",
+              "sub": "違約交割慘賠 150，幸福感 −2",
+              "cost": 150,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": -150
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": -2
+                }
+              ]
+            },
+            {
+              "label": "📈 堅持定期定額指數 ETF",
+              "sub": "穩健複利，守法謹慎 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "CHOICE_CONTRACT_LOOPHOLE",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "合約漏洞的道德抉擇",
+        "flavor": "商譽是累積最慢、摧毀最快的無形資產；在沒人看見時做出的決定定義了你的品德。",
+        "eduNote": "誠信經商在短期看似放棄便宜，長期卻能累積最深厚的人脈信任紅利。",
+        "group": "商業誠信",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "🤝 主動告知並重新修正合約",
+              "sub": "守法謹慎 +1，幸福感 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": 1
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "label": "💸 裝作不知情鑽漏洞解約",
+              "sub": "現賺 100，但謹慎 −2",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": 100
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PRUDENCE",
+                  "delta": -2
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "DAILY_CRAM_SCHOOL_BILL",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "補習班繳費單與父母的付出",
+        "flavor": "教育是報酬率最高的長期投資，但學費是父母每個月默默省吃儉用換來的真金白銀。",
+        "eduNote": "父母在我們看不見的帳本上負重前行，珍惜教育資源是最高級的孝順。",
+        "group": "家庭反思",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "📖 感恩父母認真求學",
+              "sub": "孝親好感 +1，幸福感 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": 1
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "DAILY_PARENT_NIGHT_CALL",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "長輩深夜的問候電話",
+        "flavor": "陪伴不是剩餘時間的施捨，而是情感帳戶的日常存款。",
+        "eduNote": "再成功的事業也無法彌補家庭關係的疏離，溫暖傾聽能滋養一生的內心力量。",
+        "group": "孝親家庭",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "❤️ 放慢呼吸耐心聆聽 20 分鐘",
+              "sub": "孝親好感 +1，幸福感 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": 1
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "label": "💨 抱怨疲累匆匆掛斷",
+              "sub": "孝親好感 −1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": -1
+                }
+              ]
+            }
+          ]
+        }
       }
     ],
     "MARKET": [

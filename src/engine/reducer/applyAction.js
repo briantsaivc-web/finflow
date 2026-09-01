@@ -634,6 +634,8 @@ E.apply = function(state, action, opts){
     if(S.phase!=="ROLL" && S.phase!=="READY_END") return reject("WRONG_PHASE");
     if(p.bankrupt) return reject("BANKRUPT");
     if((S.skillSample||[]).indexOf(sk.id) < 0) return reject("NOT_AVAILABLE");
+    if(sk.requiresSkill && (!p.skills || !p.skills[sk.requiresSkill] || p.skills[sk.requiresSkill].decayed))
+      return reject("PREREQUISITE_REQUIRED");
     if(p.learning) return reject("ALREADY_LEARNING");
     if(p.skills[sk.id] && !p.skills[sk.id].decayed) return reject("ALREADY_KNOWN");
     if(S.turnNumber < (p.skillCooldownUntil||0)) return reject("COOLDOWN");
@@ -1726,6 +1728,43 @@ E.resolveTrial = function(S,p,card){
 /* ============================== 決策解析 ================================= */
 E.resolveDecision = function(S,p,d,optionId,params){
   switch(d.kind){
+    case "RESIGN_DIRECTORSHIP": {
+      if (optionId === "resign" && p.directorship) {
+        p.directorship.resigned = true;
+        E.ev("DIRECTOR_RESIGNED", { playerId: p.id, company: p.directorship.title });
+        ledger.post(S, p, "請辭獨立董事：" + p.directorship.title,
+          [{ account: "CASH", delta: 0, label: "及時辭任避險" }], { eduTags: ["directorship", "risk-control"] });
+      } else if (p.directorship) {
+        E.ev("DIRECTOR_STAYED", { playerId: p.id, company: p.directorship.title });
+      }
+      break;
+    }
+    case "APPOINT_DIRECTOR": {
+      if (optionId === "appoint") {
+        var comp = (params && params.company) || d.companyType || "B";
+        var compDefs = {
+          A: { title: "大型績優權值股", income: 8000, hasInsurance: true, crashTurn: S.turnNumber + 999, fineAmount: 40000 },
+          B: { title: "成長型科技新創板", income: 15000, hasInsurance: true, crashTurn: S.turnNumber + util.randInt(S, 3, 5), fineAmount: 120000 },
+          C: { title: "爭議家族小型股", income: 25000, hasInsurance: false, crashTurn: S.turnNumber + util.randInt(S, 2, 4), fineAmount: 200000 }
+        };
+        var sel = compDefs[comp] || compDefs.B;
+        p.directorship = {
+          companyType: comp,
+          title: sel.title,
+          monthlyIncome: sel.income,
+          hasInsurance: sel.hasInsurance,
+          crashTurn: sel.crashTurn,
+          fineAmount: sel.fineAmount,
+          termTurnsLeft: 6,
+          warned: false,
+          resigned: false
+        };
+        E.ev("DIRECTOR_APPOINTED", { playerId: p.id, company: sel.title, income: sel.income });
+        ledger.post(S, p, "就任獨立董事：" + sel.title,
+          [{ account: "CASH", delta: sel.income, label: "就任當期車馬費" }], { eduTags: ["directorship", "passive-income"] });
+      }
+      break;
+    }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT":
     case "DIGITAL_RESULT": break;   // 起飛結果已於 tickDigital 結算，此處純揭曉
 
@@ -3136,7 +3175,9 @@ E.beginTurn = function(S){
     if((S.decisionQueue||[]).some(function(d){ return d.kind==="BANKRUPTCY"; })){ E.syncPhase(S); return; }
   }
   E.tickRenewals(S,p);               // 產險自動續約、健檢／健身年約到期詢問
-  E.tickDelistWarn(S,p);             // S7b：下市警示在自己的回合才跳卡
+  E.tickDelistWarn(S,p);
+  E.tickDirectorship(S,p);           // 獨立董事車馬費、審計警訊與弊案結算
+  E.tickScamInvestments(S,p);        // 偽裝高息投資延遲引爆處理             // S7b：下市警示在自己的回合才跳卡
   E.ev("TURN_START",{playerId:p.id, turn:S.turnNumber});
 };
 
@@ -3447,6 +3488,87 @@ E.finishByRanking = function(S, reason){
     return b.derived.netWorth-a.derived.netWorth; });
   S.winner = rank.length?rank[0].id:null;
   E.ev("GAME_OVER",{reason:reason||"MAX_TURNS", playerId:S.winner});
+};
+
+/* ==================== 獨立董監事與偽裝投資機制 ==================== */
+E.tickDirectorship = function(S, p){
+  if(!p.directorship || p.bankrupt) return;
+  var d = p.directorship;
+
+  // 1) 未請辭每輪發放車馬費
+  if(!d.resigned){
+    d.termTurnsLeft = (d.termTurnsLeft || 6) - 1;
+    ledger.post(S, p, "獨立董事車馬費：" + d.title,
+      [{ account: "CASH", delta: d.monthlyIncome, label: "車馬費收入" }], { eduTags: ["directorship", "cashflow"] });
+  }
+
+  // 2) 爆雷前 1 輪審計預警（具備財會審計技能者可識破）
+  if(!d.resigned && S.turnNumber === d.crashTurn - 1 && !d.warned){
+    var hasAudit = E.hasSkill && (E.hasSkill(p, "SKL_BOOK") || E.hasSkill(p, "SKL_CPA_AUDIT"));
+    if(hasAudit){
+      d.warned = true;
+      S.decisionQueue.push({
+        decisionId: util.uid(S, "D"),
+        kind: "RESIGN_DIRECTORSHIP",
+        playerId: p.id,
+        title: "⚠️ 審計警訊：假帳弊案即將爆發！",
+        company: d.title,
+        text: "你在查核本季財務報告時，發現異常關係人鉅額借貸且憑證不全，" + d.title + " 即將爆發弊案！你是否要立即跳船請辭？",
+        options: [
+          { optionId: "resign", label: "💡 立即請辭獨立董事（及時停損，免除民事連帶賠償）" },
+          { optionId: "stay", label: "⚠️ 抱持僥倖，繼續留任領取本期車馬費" }
+        ]
+      });
+      E.ev("DIRECTOR_AUDIT_WARNING", { playerId: p.id, company: d.title });
+    }
+  }
+
+  // 3) 弊案引爆結算輪次
+  if(S.turnNumber >= d.crashTurn){
+    if(d.resigned){
+      E.ev("DIRECTOR_CRASH_AVOIDED", { playerId: p.id, company: d.title });
+      p.directorship = null;
+    } else {
+      var fine = d.fineAmount || 150000;
+      var actualFine = d.hasInsurance ? util.r2(fine * 0.2) : fine;
+      ledger.post(S, p, "獨立董事連帶賠償：" + d.title + (d.hasInsurance ? "（D&O 責任險承擔 80%）" : "（無責任險，全額自負）"),
+        [{ account: "CASH", delta: -actualFine, label: "弊案連帶民事賠償" }], { eduTags: ["directorship", "liability"] });
+      if(E.addJoy) E.addJoy(p, d.hasInsurance ? -2 : -5);
+      p.skippedTurns = (p.skippedTurns || 0) + (d.hasInsurance ? 1 : 2);
+      p.skipReason = "應訴假帳掏空訴訟";
+      E.ev("DIRECTOR_CRASH", { playerId: p.id, company: d.title, fine: actualFine, insured: d.hasInsurance });
+      p.directorship = null;
+    }
+    return;
+  }
+
+  // 4) 任期滿順利卸任
+  if(!d.resigned && d.termTurnsLeft <= 0){
+    if(E.addJoy) E.addJoy(p, 2);
+    p.virtue = (p.virtue || 0) + 1;
+    ledger.post(S, p, "獨立董事任期圓滿卸任",
+      [{ account: "CASH", delta: 0, label: "聲譽積累" }], { eduTags: ["directorship"] });
+    E.ev("DIRECTOR_TERM_COMPLETE", { playerId: p.id, company: d.title });
+    p.directorship = null;
+  }
+};
+
+E.tickScamInvestments = function(S, p){
+  if(!p.scamInvestments || !p.scamInvestments.length || p.bankrupt) return;
+  p.scamInvestments = p.scamInvestments.filter(function(inv){
+    if(S.turnNumber < inv.crashTurn){
+      if(inv.monthlyDividend > 0){
+        ledger.post(S, p, "高息專案固定分紅：" + inv.title,
+          [{ account: "CASH", delta: inv.monthlyDividend, label: "分紅入帳" }], { eduTags: ["scam-dividend"] });
+      }
+      return true;
+    }
+    ledger.post(S, p, "專案資金鏈斷裂爆雷：" + inv.title + "（負責人潛逃）",
+      [{ account: "CASH", delta: -Math.min(p.cash, 10000), label: "追討訴訟費" }], { eduTags: ["scam-crash"] });
+    if(E.addJoy) E.addJoy(p, -3);
+    E.ev("SCAM_INVESTMENT_CRASH", { playerId: p.id, title: inv.title });
+    return false;
+  });
 };
 
 })(ns);

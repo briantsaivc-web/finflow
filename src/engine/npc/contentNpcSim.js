@@ -1014,6 +1014,11 @@ npc.decide = function(S,p,d){
   var A=function(opt,params){ return { type:"DECIDE", playerId:p.id,
     payload:{ decisionId:d.decisionId, optionId:opt, params:params||{} } }; };
   switch(d.kind){
+    case "RESIGN_DIRECTORSHIP": return A("resign");
+    case "APPOINT_DIRECTOR": {
+      if(w.cashReserveFloor >= 4) return A("pass");
+      return A("appoint", { company: (w.capitalGainAppetite >= 0.7 ? "B" : "A") });
+    }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT": return A("ok");   // 盲盒自動開盒
 
     // M8 S1：NPC 學習判斷——決定論評估（付得起且現金留有水位），刻意不使用 RNG

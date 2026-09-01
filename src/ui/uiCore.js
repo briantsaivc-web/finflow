@@ -1518,6 +1518,23 @@ ui.renderCenter = function(){
 function cardFace(card){
   var wrap=el("div");
   wrap.appendChild(el("h3",null,card.title||card.name));
+  if(card.scamWarning){
+    var me = ui.S && ui.S.players[ui.myId()];
+    var hasLaw = me && E.hasSkill && (E.hasSkill(me, "SKL_LAW") || E.hasSkill(me, "SKL_GOV_LEGAL"));
+    var hasAudit = me && E.hasSkill && (E.hasSkill(me, "SKL_BOOK") || E.hasSkill(me, "SKL_CPA_AUDIT"));
+    if(hasLaw){
+      var wL=el("div","scam-warn");
+      wL.style.cssText="background:rgba(240,128,60,.18);color:#F0803C;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:700;margin:6px 0;border:1px solid rgba(240,128,60,.4);";
+      wL.textContent="⚠️ 法律審查警訊：境外無主管機關核備，無實質履約保證，跨國追償難度極高！";
+      wrap.appendChild(wL);
+    }
+    if(hasAudit){
+      var wA=el("div","scam-audit");
+      wA.style.cssText="background:rgba(255,90,95,.2);color:#FF5A5F;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:700;margin:6px 0;border:1px solid rgba(255,90,95,.4);";
+      wA.textContent="🚨 財務審計警報：交叉比對現金流不足以支撐高額配息，極高機率為後金補前金之龐氏資金盤！";
+      wrap.appendChild(wA);
+    }
+  }
   if(card.flavor) wrap.appendChild(el("div","flavor",card.flavor));
   return wrap;
 }
@@ -1713,6 +1730,16 @@ ui.decisionCard = function(S,p,d){
       + (dv.netCashflow>=0?"+":"")+M(dv.netCashflow)+"</b>"
       + "　每月支出 <b class='num'>"+M(dv.totalExpenses)+"</b>";
     card.appendChild(bar);
+  }
+
+  // 獨立董事審計預警與請辭抉擇
+  if(d.kind==="RESIGN_DIRECTORSHIP"){
+    card.appendChild(el("h3",null,d.title||"⚠️ 審計警訊：假帳弊案即將爆發！"));
+    card.appendChild(el("div","flavor",d.text||"查核本季財務報告發現異常關係人鉅額借貸且憑證不全，公司即將爆發弊案！"));
+    var oR=el("div","opts");
+    oR.appendChild(optBtn("💡 立即請辭獨立董事","及時停損，免除後續民事連帶賠償與官司",function(){ decide("resign"); },true));
+    oR.appendChild(optBtn("⚠️ 抱持僥倖，繼續留任","繼續領取本期車馬費，但下輪 100% 承受弊案賠償與停走",function(){ decide("stay"); },false));
+    card.appendChild(oR); c.appendChild(card); return;
   }
 
   // V3：商城比賽——親自擲骰
