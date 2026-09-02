@@ -234,6 +234,20 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       close(); return "seed "+seed;
     });
 
+    step("AI 系統架構：數位資產一律專業身分；科技技能在產業變革中不過時",()=>{
+      const S=fresh(9315), me=S.players[0];
+      const dg=(ns.content.cards.DIGITAL||[])[0]; A(dg,"應有數位資產卡");
+      A(!E.digitalPro(S,me,dg),"沒技能不該是專業");
+      giveSkill(me,"SKL_CODE"); giveSkill(me,"SKL_AI_ARCH");
+      A(E.digitalPro(S,me,dg),"有 AI 架構應算專業");
+      E.applyEffects(S,me,[{op:"DECAY_SKILL",family:"TECH",warnTurns:0}],"產業變革");
+      A(!S.activeGlobalEvents.some(e=>e.kind==="SKILL_DECAY_PENDING"&&e.playerId===me.id&&e.skillId==="SKL_CODE"),"程式設計不該被排入過時");
+      const S2=fresh(9316), me2=S2.players[0]; giveSkill(me2,"SKL_CODE");
+      E.applyEffects(S2,me2,[{op:"DECAY_SKILL",family:"TECH",warnTurns:0}],"產業變革");
+      A(S2.activeGlobalEvents.some(e=>e.kind==="SKILL_DECAY_PENDING"&&e.playerId===me2.id&&e.skillId==="SKL_CODE"),"沒有 AI 架構的人程式設計應被排入過時");
+      return "OK";
+    });
+
     step("商城 NPC 前置檢查 canBuyMall 仍在（S21 死結修法的核心）",()=>{
       const S=fresh(9314), me=S.players[1];
       A(typeof ns.npc.canBuyMall==="function","canBuyMall 應存在");

@@ -500,6 +500,7 @@ E.digitalOn = function(S){
 // 開始經營：扣建置成本、每月維護費進支出水位、佔用「經營中」的時間槽
 // S9：有沒有那門手藝，決定「爬多久」與「紅得起來的機率」，但不決定「能不能做」
 E.digitalPro = function(S, p, card){
+  if(E.hasSkill(p, "SKL_AI_ARCH")) return true;   // S22：AI 系統架構——任何數位資產都算「有手藝」
   return !!(card && card.requires && E.hasSkill(p, card.requires));
 };
 // 回傳這張卡對這個玩家的實際參數（UI 的對照表與引擎共用同一份計算，才不會對不上）

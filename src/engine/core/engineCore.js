@@ -762,6 +762,8 @@ E.applyEffects = function(S, p, effects, label, opts){
             if(!dsc.decayable) return;                            // 只有「會過時」的技能會被點名
             if(ef.skillId && sid!==ef.skillId) return;
             if(ef.family && dsc.family!==ef.family) return;
+            // S22：AI 系統架構——科技類技能在產業變革事件中不過時（跟得上變革的人）
+            if(dsc.family==="TECH" && E.hasSkill(t, "SKL_AI_ARCH")) return;
             var rec = t.skills[sid];
             if(rec.decayed || rec.decayPendingUntil) return;       // 已過時／已在預告中
             rec.decayPendingUntil = S.turnNumber + warnD;

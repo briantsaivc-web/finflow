@@ -2,7 +2,7 @@
 
 台灣在地化的財商桌遊（數位版）。單一 HTML 檔、零相依套件、可離線遊玩，專為 iPad Safari 與 PC 瀏覽器設計，全程繁體中文。
 
-**目前版本：v2.27.0-S22**　·　線上試玩：https://finflow-brian.netlify.app
+**目前版本：v2.27.0-S22**　·　線上試玩：https://briantsaivc-web.github.io/finflow/
 
 ## 怎麼玩
 
@@ -28,7 +28,7 @@
 - 《快速上手指南》（3 頁，給第一次玩的人）——或者直接在遊戲裡按 ❔ → 🎓 互動教學
 - 《完整規則手冊》（13 頁，20 節，給想搞懂所有機制的人）
 
-兩份都對應 v2.24.0-S19；HTML 原始檔在 `manual/`，改完跑 `node manual/topdf.js` 重新產出 PDF（需要 playwright 與 CJK 字型）。
+兩份都對應 v2.27.0-S22；HTML 原始檔在 `manual/`，改完跑 `node manual/topdf.js` 重新產出 PDF（需要 playwright 與 CJK 字型）。
 
 ## 多人連線
 
@@ -43,8 +43,8 @@
 
 任選一種，都是把單一檔案放上去而已：
 
-- **Netlify**：把 `index.html` 拖進 Netlify 部署頁即完成（現行做法）
-- **GitHub Pages**：Settings → Pages → Source 選 `main` 分支、資料夾選 `/ (root)` → Save，幾分鐘後 `https://<帳號>.github.io/finflow/` 就是遊戲頁
+- **GitHub Pages**（現行做法）：Settings → Pages → Source 選 `main` 分支、資料夾選 `/ (root)`，之後每次 push 到 `main` 幾分鐘後自動更新 https://briantsaivc-web.github.io/finflow/
+- **Netlify**：把 `index.html` 拖進 Netlify 部署頁即完成
 - **隨身碟／AirDrop**：直接把 `index.html` 傳到目標裝置，用瀏覽器開啟
 
 ## 專案結構（S21 起拆成源碼層＋打包）
