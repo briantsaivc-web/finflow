@@ -2276,6 +2276,150 @@
       "label": "談判技能成交折讓",
       "desc": "具備談判技能時，買方在拍賣／轉讓的成交價折讓比例（賣方同額減收）",
       "hot": false
+    },
+    {
+      "key": "stockDivRestock",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "股市",
+      "label": "股息每輪重算",
+      "desc": "1＝每輪依殖利率上限與景氣係數重算每張股息；0＝S22 行為（買進時依面額定死）",
+      "hot": true
+    },
+    {
+      "key": "stockYieldCapMonthly",
+      "value": 0.015,
+      "min": 0,
+      "max": 0.05,
+      "step": 0.001,
+      "group": "股市",
+      "label": "殖利率上限（月）",
+      "desc": "每張股息不得超過現價乘以這個比例。0.015＝年化 18%；0＝不設上限",
+      "hot": true
+    },
+    {
+      "key": "divMult_RECOVERY",
+      "value": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "group": "股市",
+      "label": "股息係數：復甦",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "divMult_BOOM",
+      "value": 1.1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "group": "股市",
+      "label": "股息係數：過熱",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "divMult_RECESSION",
+      "value": 0.8,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "group": "股市",
+      "label": "股息係數：衰退",
+      "desc": "景氣差，公司賺得少，配息跟著砍",
+      "hot": true
+    },
+    {
+      "key": "divMult_DEPRESSION",
+      "value": 0.5,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "group": "股市",
+      "label": "股息係數：蕭條",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "stockPerSymbolFloor",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "股市",
+      "label": "個股自訂股價下限",
+      "desc": "1＝高股息股用自己的地板（面額 40%）；0＝全部共用全域下限",
+      "hot": true
+    },
+    {
+      "key": "delistMode",
+      "value": "hazard",
+      "options": [
+        "hazard",
+        "fixed"
+      ],
+      "group": "難度",
+      "label": "下市判定方式",
+      "desc": "hazard＝每輪擲一次倒閉機率（門檻每局暗抽）；fixed＝S22 的固定門檻＋緩衝後必倒",
+      "hot": true
+    },
+    {
+      "key": "delistDdMin",
+      "value": 0.75,
+      "min": 0.5,
+      "max": 0.95,
+      "step": 0.05,
+      "group": "難度",
+      "label": "危險區跌幅門檻（下限）",
+      "desc": "每局在上下限之間暗抽一個門檻，玩家算不出確切數字",
+      "hot": false
+    },
+    {
+      "key": "delistDdMax",
+      "value": 0.9,
+      "min": 0.5,
+      "max": 0.99,
+      "step": 0.01,
+      "group": "難度",
+      "label": "危險區跌幅門檻（上限）",
+      "desc": "",
+      "hot": false
+    },
+    {
+      "key": "delistHazardRecession",
+      "value": 0.08,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01,
+      "group": "難度",
+      "label": "倒閉機率：衰退",
+      "desc": "進入危險區後，衰退期每輪的基礎倒閉機率",
+      "hot": true
+    },
+    {
+      "key": "delistHazardDepression",
+      "value": 0.25,
+      "min": 0,
+      "max": 0.8,
+      "step": 0.01,
+      "group": "難度",
+      "label": "倒閉機率：蕭條",
+      "desc": "跌破九成再加倍",
+      "hot": true
+    },
+    {
+      "key": "delistHazardPerTurn",
+      "value": 0.03,
+      "min": 0,
+      "max": 0.2,
+      "step": 0.01,
+      "group": "難度",
+      "label": "危險區每多撐一輪的加成",
+      "desc": "撐越久越危險",
+      "hot": false
     }
   ]
 }

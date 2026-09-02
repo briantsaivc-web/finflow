@@ -2,7 +2,7 @@
 
 台灣在地化的財商桌遊（數位版）。單一 HTML 檔、零相依套件、可離線遊玩，專為 iPad Safari 與 PC 瀏覽器設計，全程繁體中文。
 
-**目前版本：v2.27.0-S22**　·　線上試玩：https://briantsaivc-web.github.io/finflow/
+**目前版本：v2.28.0-S23a**　·　線上試玩：https://briantsaivc-web.github.io/finflow/
 
 ## 怎麼玩
 
@@ -28,7 +28,7 @@
 - 《快速上手指南》（3 頁，給第一次玩的人）——或者直接在遊戲裡按 ❔ → 🎓 互動教學
 - 《完整規則手冊》（13 頁，20 節，給想搞懂所有機制的人）
 
-兩份都對應 v2.27.0-S22；HTML 原始檔在 `manual/`，改完跑 `node manual/topdf.js` 重新產出 PDF（需要 playwright 與 CJK 字型）。
+兩份都對應 v2.28.0-S23a；HTML 原始檔在 `manual/`，改完跑 `node manual/topdf.js` 重新產出 PDF（需要 playwright 與 CJK 字型）。
 
 ## 多人連線
 
@@ -95,7 +95,8 @@ node tests/s17test.js       # 主畫面版面：6 種解析度 × 18 項 = 108 �
 node tests/s18test.js       # 通知分類與版面密度：實跑 30 輪量 20 項
 node tests/s19test.js       # 借款、商城、非回合守門：16 項
 node tests/s20test.js       # 互動教學：20 個熱點全走一次＋遮罩／靜止性 32 項
-node tests/s22test.js       # S21/S22 機制接線：獨立董事、吸金盤、案例事件、定時炸彈、階梯技能、再戰 15 項
+node tests/s22test.js       # S21/S22 機制接線：獨立董事、吸金盤、案例事件、定時炸彈、階梯技能、再戰 16 項
+node tests/s23test.js       # S23a 股息重算與下市機率制：18 項
 node tests/mptest.js        # 多人連線 7 項
 node tests/mp2.js           # 真的開三個分頁跑一局多人 9 項
 ```
@@ -127,6 +128,7 @@ npm test                    # build → extract → gate → 自我測試 → �
 
 | 版本 | 主題 |
 |---|---|
+| v2.28.0-S23a | 股息每輪重算（殖利率上限 18%＋景氣係數）、高股息股地板 25%、台灣案例事件一局一次、下市改機率制（門檻每局暗抽、每輪擲一次、風險等級） |
 | v2.27.0-S22 | 收編 Gemini 重構版：S21 機制全部接線（獨立董事、吸金盤爆雷、案例事件真的改價、定時炸彈）、金額量級修正、NPC 乾跑拿掉（模擬器回到 30 ms/局）、卡片工坊改由打包產生 |
 | v2.26.2-S21c | 安太座動態月薪計價、小孩牙齒矯正與生活教育卡、遊艇會籍與 Costco 黑鑽會員（Gemini） |
 | v2.26.1-S21b | 差一點就成功復盤卡、相同種子再戰、危機徽章（Gemini） |

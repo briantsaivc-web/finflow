@@ -86,6 +86,7 @@ M.registry.M1 = {
       h.push(S.stockPrices[def.symbol]); if(h.length>12) h.shift();
     });
     E.revalueStocks(S);
+    E.restockDividends(S);  // S23a：價格更新後重算每張股息（殖利率上限＋景氣係數）
     E.tickDelist(S);        // S7b：價格更新後才判斷下市（警示→緩衝→歸零）
     // V10：帳上獲利達門檻 → 提示玩家停利或續抱（每個部位只提示一次）
     var gp=E.cfg(S,"stockGainAlertPct");
@@ -357,8 +358,13 @@ M.registry.M4 = {
     E.ev("MACRO_TRANSITION",{from:from,to:to});
     M.onMacroTransition(S,from,to);
     if(util.rand(S) < S.config.policyEventProb){
-      var card=E.drawCard(S,"MACRO_EVENT",function(c){ return !c.stages || c.stages.indexOf(to)>=0; });
+      // S23a：台灣真實案例事件（博達、太電、解盲、雙卡）一局各只來一次——
+      // 同一局連炸兩次同一件事既不真實，也會把股市打到與平衡設計無關的地方。
+      var card=E.drawCard(S,"MACRO_EVENT",function(c){
+        if(c.oncePerGame && S.macroDone && S.macroDone[c.id]) return false;
+        return !c.stages || c.stages.indexOf(to)>=0; });
       if(card){
+        if(card.oncePerGame){ S.macroDone=S.macroDone||{}; S.macroDone[card.id]=1; }
         // S13.1 NEW-02：總體事件依定義就是全體事件。內容若漏標 target，
         // applyEffects 會退化成 targets=[p]（＝players[0]），變成只有一號座位吃到景氣紅利。
         // 這裡把玩家級的 op 強制視為 all；不改動原始卡物件（避免污染 ns.content.byId）。
@@ -1063,7 +1069,15 @@ npc.decide = function(S,p,d){
     case "BUY": return npc.scoreBuy(S,p,d,w,A);
     // S7b：下市警示——電腦玩家一律停損（決定論）。
     // 這不是最佳解，而是「看到警示就處理」的基準行為，讓真人有得比較。
-    case "DELIST_WARN": return A("sell");
+    /* S7b／S23a：下市警示——電腦玩家的基準行為。
+       固定模式（必倒）一律停損；機率模式看風險等級：中以上一律賣，
+       低風險只有保守派會賣（其餘性格願意賭它撐過去）。這不是最佳解，
+       而是讓真人有得比較的一條基準線。 */
+    case "DELIST_WARN": {
+      var lvlW = d.level;
+      if(!lvlW) return A("sell");
+      if(lvlW==="低" && (w.cashReserveFloor||3) < 4) return A("keep");
+      return A("sell"); }
 
     // 數位資產：付得起、且時間槽空著就做——這是把時間換成長尾的唯一途徑
     case "START_DIGITAL": {
@@ -1174,7 +1188,7 @@ npc.scoreBuy = function(S,p,d,w,A){
   } else if(c.kind==="STOCK"){
     var def=ns.content.stockBySymbol[c.payload.symbol], price=S.stockPrices[def.symbol]||c.payload.offerPrice;
     var units=Math.max(1, Math.floor(Math.min(p.cash*0.35, 900)/price));
-    if(units>=1) consider("cash", util.r2(price*units), util.r2(price*units*def.dividendYieldMonthly),
+    if(units>=1) consider("cash", util.r2(price*units), util.r2(units*E.stockDivPerUnit(S,def)),   // S23a：與引擎同一個入口
       0, E.stockVol(S,def)*30*w.capitalGainAppetite, {units:units});   // S15b：電腦玩家的評分也走同一個入口
   } else if(c.kind==="BUSINESS"){
     consider("cash", c.payload.price, util.r2(c.payload.monthlyProfit*E.incomeMultFor(S,"BUSINESS")), 0, 0.2);

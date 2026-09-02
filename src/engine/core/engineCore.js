@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.27.0-S22", date:"2026-09-02" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.28.0-S23a", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -446,7 +446,12 @@ E.oppCompare = function(S, card, viewer){
   } else if(card.kind==="STOCK"){
     var def=ns.content.stockBySymbol[pl.symbol];
     entry=util.r2(E.isDelisted(S,pl.symbol) ? 0 : (E.stockPrice(S,pl.symbol)||pl.offerPrice||0));
-    income=def?util.r2(entry*def.dividendYieldMonthly):0;
+    /* S23a：原本寫 entry×月配息率（拿現價當面額用），與引擎實際入帳的數字對不上——
+       實際入帳走的是「面額 × 配息率」。改走與買進、每輪重算同一個入口。
+       這個修正掛在 stockDivRestock 開關後面：關掉＝連同這個既有缺陷一起回到 S22，
+       否則「開關全關要能重現基線」這條會斷（NPC 的二選一會讀 oppCompare）。 */
+    var drOn = E.cfg(S,"stockDivRestock"); if(drOn===undefined) drOn = 1;
+    income = def ? (drOn ? util.r2(E.stockDivPerUnit(S,def)) : util.r2(entry*def.dividendYieldMonthly)) : 0;
     note = (def && def.dividendYieldMonthly>0) ? "以 1 張計；主要靠價差" : "不配息，靠價差";
   } else if(card.kind==="STARTUP"){
     entry=util.r2(pl.investAmount||0);
@@ -886,8 +891,16 @@ E.stockRoundTripRate = function(S, def){
         ? def.taxRate : (E.cfg(S,"stockTaxRate")||0);
   return f*2+t;      // 費率不能過 util.r2——那是給金額用的（四捨五入到小數兩位，0.00585 會變成 0.01）
 };
+/* S23a：地板可依個股覆寫。高股息股的地板原本與投機股共用 0.1（＝跌到面額一成），
+   配上「面額固定配息」就變成年化 58% 的印鈔機；把它的地板拉到 0.4，價格不會再掉到
+   那個荒謬的區間。開關關掉＝回到全域單一地板（鐵律 4）。 */
+E.stockFloorMult = function(S, def){
+  var on = E.cfg(S,"stockPerSymbolFloor"); if(on===undefined) on = 1;
+  if(on && def && def.floorMult!==undefined && isFinite(def.floorMult)) return def.floorMult;
+  return S.config.stockFloorMult;
+};
 E.clampPrice = function(S, def, v){
-  return util.r2(Math.min(def.face*S.config.stockCapMult, Math.max(def.face*S.config.stockFloorMult, v)));
+  return util.r2(Math.min(def.face*S.config.stockCapMult, Math.max(def.face*E.stockFloorMult(S,def), v)));
 };
 
 /* 股價變動後，重估所有玩家的股票資產（產生分錄） */
@@ -906,8 +919,72 @@ E.revalueStocks = function(S){
   });
   if(Math.abs(agg)>=0.5) E.ev("HOLDINGS_REVALUED",{playerId:p.id, delta:util.r2(agg)}); });
 };
-// 每股月配息（依面值固定）與目前殖利率（隨現價浮動）
+/* ==================== S23a：每張月股息 ====================
+   S22 以前：股息＝面額 × 月配息率，買進時算一次就定死，價格再怎麼跌都不變。
+   實測（Brian 第 87–91 輪的每輪紀錄）暴露的漏洞：高股息股跌到面額 16% 時，
+   殖利率變成月 2.4%＝年化 29%，定期定額＋股息再投入滾成印鈔機（被動收入 148 萬／月）。
+   現實裡股價跌成那樣，公司盈餘早就撐不住配息了。
+
+   S23a 改成每輪重算，兩道閘門：
+     殖利率上限  每張股息不得超過「現價 × stockYieldCapMonthly(1.5%)」→ 年化 18% 封頂
+                 （刻意留在 18%：房地產隨手就有 50%，壓太低沒人想玩這個機制）
+     景氣係數    復甦 1.0／過熱 1.1／衰退 0.8／蕭條 0.5——景氣差，配息跟著砍
+   價格在面額 27% 以上時上限咬不到，正常區間的手感與 S22 完全一樣。         */
+E.stockDivPerUnit = function(S, def){
+  if(!def) return 0;
+  var base = def.face * def.dividendYieldMonthly;
+  if(!(base>0)) return 0;
+  var on = E.cfg(S,"stockDivRestock"); if(on===undefined) on = 1;
+  if(!on) return base;                                // 開關關掉＝S22 行為（面額固定）
+  var price = E.stockPrice(S, def);
+  var capR = E.cfg(S,"stockYieldCapMonthly"); if(capR===undefined) capR = 0.015;
+  var v = (capR>0 && price>0) ? Math.min(base, price*capR) : base;
+  var stage = (S.macro && S.macro.stage) || "RECOVERY";
+  var mm = E.cfg(S,"divMult_"+stage);
+  if(mm===undefined || !isFinite(mm)) mm = 1;
+  return v*mm;
+};
+/* 註：這裡刻意【不】過 util.r2——它是「每一張」的金額，會再乘上張數。
+   先四捨五入到分再乘，100 張的 ETF 就會差 0.2（實測：0.132→0.13）。
+   與 E.stockRoundTripRate 同一個道理：單價與費率留原值，金額在最後一步才收斂。 */
+// 這張股票現在為什麼配這麼多／這麼少——介面用（不影響計算）
+E.stockDivReason = function(S, def){
+  if(!def || !(def.dividendYieldMonthly>0)) return "";
+  var on = E.cfg(S,"stockDivRestock"); if(on===undefined) on = 1;
+  if(!on) return "";
+  var base = def.face*def.dividendYieldMonthly, price = E.stockPrice(S,def);
+  var capR = E.cfg(S,"stockYieldCapMonthly"); if(capR===undefined) capR = 0.015;
+  var stage = (S.macro && S.macro.stage) || "RECOVERY";
+  var mm = E.cfg(S,"divMult_"+stage); if(mm===undefined || !isFinite(mm)) mm = 1;
+  var out=[];
+  if(capR>0 && price>0 && price*capR < base) out.push("殖利率上限 "+util.pct(capR,1)+"／月");
+  if(mm!==1) out.push("景氣係數 ×"+mm);
+  return out.join("、");
+};
+// 每股月配息（S23a 起改走 E.stockDivPerUnit；這個入口保留給只有 def 沒有 S 的呼叫端）
 E.stockPerShareDiv = function(def){ return util.r2(def.face*def.dividendYieldMonthly); };
+/* 每輪重算所有玩家手上股票的月股息。股價變動之後、下市判定之前跑。
+   差額走 INCOME_PASSIVE 分錄，玩家在每輪紀錄裡看得到「配息被砍」這件事。 */
+E.restockDividends = function(S){
+  var on = E.cfg(S,"stockDivRestock"); if(on===undefined) on = 1;
+  if(!on) return;
+  S.players.forEach(function(p){
+    if(p.bankrupt) return;
+    p.assets.forEach(function(a){
+      if(a.kind!=="STOCK") return;
+      var def = ns.content.stockBySymbol[a.symbol];
+      if(!def || !(def.dividendYieldMonthly>0)) return;
+      var want = util.r2(a.units * E.stockDivPerUnit(S,def));
+      var d = util.r2(want - (a.monthlyIncome||0));
+      if(!d) return;
+      a.monthlyIncome = want;
+      var why = E.stockDivReason(S,def);
+      ledger.post(S, p, E.stockName(S,a.symbol)+" 股息調整"+(why?("（"+why+"）"):""),
+        [{account:"INCOME_PASSIVE", delta:d, refId:a.instanceId, label:"每張月股息 "+util.money(E.stockDivPerUnit(S,def))}],
+        {eduTags:["dividend","valuation"]});
+    });
+  });
+};
 /* S16：股價的唯一存取入口。
    實測回報：畫面寫「已下市，只剩壁紙」，價格卻顯示 12,000／張，線圖還往上噴。
    根因是全檔 9 處寫成 `S.stockPrices[x] || def.face`——下市價是 **0**，在 JS 裡是 falsy，
@@ -924,7 +1001,7 @@ E.isDelisted = function(S, symOrDef){
   var def = (typeof symOrDef==="string") ? ns.content.stockBySymbol[symOrDef] : symOrDef;
   return !!(def && S.delisted && S.delisted[def.symbol]);
 };
-E.stockYield = function(S, def){ var pr=E.stockPrice(S,def); return pr>0 ? (def.face*def.dividendYieldMonthly)/pr : 0; };
+E.stockYield = function(S, def){ var pr=E.stockPrice(S,def); return pr>0 ? E.stockDivPerUnit(S,def)/pr : 0; };
 // 與「上一期」比較的漲跌（不是與面額比）。
 // 用面額當基準會洩漏地板：看到 −90% 就等於知道離 stockFloorMult 不遠了，
 // 玩家可以據此推測底部。期間變化不帶這個資訊。

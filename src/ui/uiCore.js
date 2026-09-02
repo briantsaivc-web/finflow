@@ -2052,9 +2052,29 @@ ui.decisionCard = function(S,p,d){
     var cbW=util.sum(myLots,function(a){ return a.costBasis||0; });
     var marg=myLots.some(function(a){ return a.linkedLiabilityId; });
     card.appendChild(el("h3",null,"⚠️ 償債能力警示："+E.stockName(S,d.symbol)));
-    card.appendChild(el("div","flavor",
-      "交易所發出警示：這檔股票已跌破門檻，且景氣處於蕭條。"+
-      "<b class='gold'>若在第 "+d.until+" 輪前情況沒有改善，將終止上市——持股歸零。</b>"));
+    /* S23a：固定模式講「第 N 輪前」；機率模式沒有倒數，只有風險等級——
+       看得懂帳的人（財務記帳／高階審計）才看得到實際百分比與撐了幾輪。 */
+    if(d.level){
+      var wchW=(S.delistWatch||{})[d.symbol]||{};
+      var canSeeW = E.hasSkill && (E.hasSkill(p,"SKL_BOOK")||E.hasSkill(p,"SKL_CPA_AUDIT"));
+      card.appendChild(el("div","flavor",
+        "交易所發出警示：這檔股票已跌破警戒跌幅，且景氣正在收縮。"+
+        "<b class='gold'>沒有倒數計時——只要還在這個區間，每一輪都可能直接終止上市。</b>"));
+      var lvW=el("div","kv");
+      lvW.appendChild(el("div","k","倒閉風險"));
+      lvW.appendChild(el("div","v num"+(d.level==="高"?" neg":""), d.level));
+      if(canSeeW){
+        lvW.appendChild(el("div","k","本輪倒閉機率（財務專業）"));
+        lvW.appendChild(el("div","v num neg", util.pct(d.hazard||0,0)));
+        lvW.appendChild(el("div","k","已在危險區"));
+        lvW.appendChild(el("div","v num",(wchW.streak||1)+" 輪（每多一輪風險再加）"));
+      }
+      card.appendChild(lvW);
+    } else {
+      card.appendChild(el("div","flavor",
+        "交易所發出警示：這檔股票已跌破門檻，且景氣處於蕭條。"+
+        "<b class='gold'>若在第 "+d.until+" 輪前情況沒有改善，將終止上市——持股歸零。</b>"));
+    }
     var kvW=el("div","kv");
     kvW.appendChild(el("div","k","你的持股市值")); kvW.appendChild(el("div","v num",M(util.r2(mvW))));
     kvW.appendChild(el("div","k","當初投入")); kvW.appendChild(el("div","v num",M(util.r2(cbW))));
@@ -2065,11 +2085,15 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(kvW);
     card.appendChild(el("div","edu",
       "撈底的人常說「都跌成這樣了還能跌到哪」——能，可以跌到歸零。"+
+      (d.level?"　沒有人會通知你「就是這一輪」；停損是判斷，不是算出來的。":"")+
       (marg?"　你這筆有融資：下市後股票沒了，借的錢仍要還。":"")));
     var oW=el("div","opts");
     oW.appendChild(optBtn("停損賣出","現在認賠 "+M(util.r2(cbW-mvW))+"，換回 "+M(util.r2(mvW)),
       function(){ decide("sell"); }, true));
-    oW.appendChild(optBtn("續抱，賭它撐過去","可能全部歸零，也可能等到景氣翻身",function(){ decide("hold"); }));
+    oW.appendChild(optBtn("續抱，賭它撐過去",
+      d.level ? ("每輪都在擲骰："+(d.level==="高"?"風險高":d.level==="中"?"風險中等":"風險目前偏低")+"，撐越久機率越高")
+              : "可能全部歸零，也可能等到景氣翻身",
+      function(){ decide("hold"); }));
     card.appendChild(oW); c.appendChild(card); return;
   }
 
@@ -3073,7 +3097,7 @@ ui.buyStock = function(S,p,d,cd,card,c,decide){
     var maxNow = Math.max(1, Math.floor(p.cash/perUnitOwn));
     if(+rng.max!==maxNow){ rng.max=maxNow; if(state.units>maxNow){ state.units=maxNow; rng.value=maxNow; } }
     var total=util.r2(price*state.units), own=state.margin?util.r2(total*S.config.marginRatio):total;
-    var div=util.r2(state.units*E.stockPerShareDiv(def));
+    var div=util.r2(state.units*E.stockDivPerUnit(S,def));    // S23a：與引擎入帳同一個數字
     lbl.textContent=T("dec.units")+"："+state.units+" 張　投入 "+M(total)+"　（上限 "+maxNow+" 張）";
     if(marginRow){ marginRow._t0.className="tab"+(state.margin?"":" on"); marginRow._t1.className="tab"+(state.margin?" on":""); }
     pv.innerHTML="需現金 <b class='num'>"+M(own)+"</b>"+(state.margin?"（其餘融資 "+M(total-own)+"）":"")+
@@ -4043,7 +4067,12 @@ ui.showStockPanel = function(focusSymbol){
     var px=el("b","num",M(price)+" / 張"); px.style.cssText="margin-left:auto;font-size:17px"; th.appendChild(px);
     th.appendChild(el("span","num "+(chg>=0?"pos":"neg"),(chg>=0?"▲":"▼")+util.pct(Math.abs(chgP),1)+"（較上期）"));
     sec.appendChild(th);
+    /* S23a：股息不再是「面額 × 固定率」定死的數字——殖利率上限與景氣係數會砍它。
+       三個數字（每張股息、殖利率、為什麼被砍）全部從 E.stockDivPerUnit 那條路來，
+       介面與引擎不會各算一份。 */
+    var dpuP = E.stockDivPerUnit(S,def), whyP = E.stockDivReason(S,def);
     sec.appendChild(el("div",null,"殖利率 "+util.pct(E.stockYield(S,def),2)+"／月"+
+      (dpuP>0?("　·　每張月股息 "+M(dpuP)+(whyP?("（"+whyP+"）"):"")):"")+
       (delisted?"　·　⚠ 已下市，只剩壁紙":"")+
       (cashPos?("　·　現股 "+cashPos.units+" 張・成本 "+M(unitCost)+"／張・未實現 "+
         ((cashPos.marketValue-cashPos.costBasis)>=0?"+":"")+M(util.r2(cashPos.marketValue-cashPos.costBasis))):"　·　未持有")))

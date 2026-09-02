@@ -652,7 +652,8 @@
       "vol": 0.075,
       "macroBeta": 1.4,
       "maxMove": 0.25,
-      "driftBonus": 0.004
+      "driftBonus": 0.004,
+      "delistHazardMult": 0.05
     },
     {
       "profile": "成熟產業、現金流穩，每月都配息。漲的時候跟不上別人，但崩盤時是全場跌最少的——防禦力就是它的報酬。",
@@ -665,7 +666,8 @@
       "vol": 0.028,
       "macroBeta": 0.5,
       "maxMove": 0.12,
-      "driftBonus": -0.001
+      "driftBonus": -0.001,
+      "floorMult": 0.25
     },
     {
       "profile": "一次買一籃子，漲跌就是大盤本身。不會讓你一夕致富，也不會讓你一夕歸零——是拿來當基準的那一檔。",
@@ -693,7 +695,8 @@
       "macroBeta": 1.8,
       "maxMove": 0.3,
       "driftBonus": 0.006,
-      "delistable": true
+      "delistable": true,
+      "delistHazardMult": 1
     }
   ],
   "cards": {

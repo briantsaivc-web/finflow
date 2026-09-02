@@ -367,7 +367,7 @@ E.apply = function(state, action, opts){
       var bc = E.stockBuyCost(S, def, total, ownCash);      // S15b：自備款＋手續費
       if(p.cash<bc.cash) return reject("NO_CASH");
       accept();
-      var div=util.r2(units*def.face*def.dividendYieldMonthly);
+      var div=util.r2(units*E.stockDivPerUnit(S,def));      // S23a：股息走統一入口（含殖利率上限與景氣係數）
       var mergeTo = margin ? null : ex;                       // 融資一律獨立部位
       var aid=mergeTo?mergeTo.instanceId:util.uid(S,"A");
       if(mergeTo){ mergeTo.units+=units; mergeTo.costBasis=util.r2(mergeTo.costBasis+total);
@@ -2097,7 +2097,7 @@ E.buyAsset = function(S,p,card,optionId,params){
     var def = ns.content.stockBySymbol[pl.symbol];
     // 六期：現股與融資分倉——融資買進一律獨立部位（各自維持率），現股只與現股合併
     var ex = margin ? null : p.assets.filter(function(x){return x.kind==="STOCK"&&x.symbol===pl.symbol&&!(x.flags&&x.flags.margin);})[0];
-    var div = util.r2(units*def.face*def.dividendYieldMonthly);
+    var div = util.r2(units*E.stockDivPerUnit(S,def));      // S23a：同上
     if(ex){ ex.units+=units; ex.costBasis=util.r2(ex.costBasis+total); ex.marketValue=util.r2(ex.marketValue+total);
       ex.monthlyIncome=util.r2(ex.monthlyIncome+div); id=ex.instanceId;
       ex.ownCash=util.r2((ex.ownCash!==undefined?ex.ownCash:ex.costBasis-total)+ownCash); }   // S14a：加碼也累加自備現金
@@ -2295,16 +2295,57 @@ E.tickDelistWarn = function(S, p){
   if(S.delisted && S.delisted[w.symbol]) return;                  // 已經來不及了
   if(!(S.delistWatch && S.delistWatch[w.symbol])) return;          // 警示已解除
   if(!p.assets.some(function(a){ return a.kind==="STOCK" && a.symbol===w.symbol; })) return;  // 已經賣掉了
-  E.pushDecision(S,p,{ kind:"DELIST_WARN", symbol:w.symbol, until:w.until });
+  E.pushDecision(S,p,{ kind:"DELIST_WARN", symbol:w.symbol, until:w.until,
+                       hazard:w.hazard, level:w.level });   // S23a：機率模式帶風險等級
 };
 
 E.delistOn = function(S){
   if(!E.cfg(S,"delistEnabled")) return false;
   return S.enabledModules.indexOf("M1")>=0;
 };
+E.delistHazardMode = function(S){ return E.cfg(S,"delistMode")!=="fixed"; };   // 預設 hazard
+
+/* S23a：每局暗抽一個「跌到多深才算進入危險區」的門檻。
+   S22 是固定的面額 20%，玩家玩兩局就背起來了（實測回饋：「跌到 1200 就知道要倒」）。
+   改成開局在 delistDdMin~delistDdMax 之間抽一次、整局不變、種子決定（重放仍決定論），
+   玩家只知道大概範圍，不知道這一局的確切數字。                              */
+E.delistThresholdFor = function(S, def){
+  if(!def) return 1;
+  S.delistThreshold = S.delistThreshold || {};
+  if(S.delistThreshold[def.symbol]===undefined){
+    var lo=E.cfg(S,"delistDdMin"); if(lo===undefined) lo=0.75;
+    var hi=E.cfg(S,"delistDdMax"); if(hi===undefined) hi=0.90;
+    S.delistThreshold[def.symbol] = util.r2(lo + util.rand(S)*(hi-lo));
+  }
+  return S.delistThreshold[def.symbol];
+};
+// 這檔股票「這一輪」的倒閉機率（0＝安全）。純函式：只讀狀態不改狀態（門檻的暗抽除外）。
+E.delistHazard = function(S, def){
+  if(!E.delistOn(S) || !def) return 0;
+  var mult = (def.delistHazardMult!==undefined && isFinite(def.delistHazardMult))
+             ? def.delistHazardMult : (def.delistable ? 1 : 0);
+  if(!(mult>0)) return 0;                                  // 不會倒的股票（ETF、高股息）
+  if(S.delisted && S.delisted[def.symbol]) return 0;
+  var stage = S.enabledModules.indexOf("M4")>=0 ? (S.macro&&S.macro.stage) : null;
+  var base = 0;
+  if(stage==="RECESSION"){ base=E.cfg(S,"delistHazardRecession"); if(base===undefined) base=0.08; }
+  else if(stage==="DEPRESSION"){ base=E.cfg(S,"delistHazardDepression"); if(base===undefined) base=0.25; }
+  if(!(base>0)) return 0;                                  // 景氣好的時候撐得住，跌再深也不會倒
+  var price = S.stockPrices[def.symbol];
+  if(!isFinite(price) || !(def.face>0)) return 0;
+  var dd = 1 - price/def.face;                             // 從面額算起的跌幅
+  if(dd < E.delistThresholdFor(S,def)) return 0;           // 還沒進危險區
+  if(dd >= 0.90) base *= 2;                                // 跌破九成：風險加倍
+  var w = (S.delistWatch||{})[def.symbol];
+  var streak = w ? (w.streak||1) : 1;                      // 在危險區撐越久越危險
+  var per = E.cfg(S,"delistHazardPerTurn"); if(per===undefined) per=0.03;
+  return Math.max(0, Math.min(0.9, util.r2((base + per*(streak-1)) * mult)));
+};
+E.delistRiskLevel = function(h){ return h<=0 ? null : (h<0.1 ? "低" : (h<0.25 ? "中" : "高")); };
 // 這檔股票現在符合「快下市」的條件嗎（純判斷，不改狀態）
 E.delistRisk = function(S, def){
   if(!E.delistOn(S)) return false;
+  if(E.delistHazardMode(S)) return E.delistHazard(S,def) > 0;
   if(!def.delistable) return false;              // 只有投機股會走到下市
   if(S.delisted && S.delisted[def.symbol]) return false;
   var stage = S.enabledModules.indexOf("M4")>=0 ? (S.macro&&S.macro.stage) : null;
@@ -2319,11 +2360,41 @@ E.tickDelist = function(S){
   if(!E.delistOn(S)) return;
   S.delistWatch = S.delistWatch||{}; S.delisted = S.delisted||{};
   var warnT = E.cfg(S,"delistWarnTurns"); if(warnT===undefined) warnT=2;
+  var hazMode = E.delistHazardMode(S);
   ns.content.stockDefs.forEach(function(def){
     var sym=def.symbol;
     if(S.delisted[sym]) return;
-    var risky = E.delistRisk(S, def);
     var w = S.delistWatch[sym];
+    /* S23a 機率制：進危險區先給一輪緩衝（只警示不擲），之後每輪擲一次。
+       撐過去不代表安全，撐越久機率越高；景氣回來或價格漲回去就解除。 */
+    if(hazMode){
+      var haz = E.delistHazard(S, def);
+      if(!haz){
+        if(w){ delete S.delistWatch[sym];
+          S.players.forEach(function(pl){
+            if(pl.pendingDelistWarn && pl.pendingDelistWarn.symbol===sym) pl.pendingDelistWarn=null; });
+          E.ev("DELIST_CLEARED",{symbol:sym, name:E.stockName(S,sym)}); }
+        return;
+      }
+      var lvl = E.delistRiskLevel(haz);
+      if(!w){
+        S.delistWatch[sym] = { since:S.turnNumber, streak:1, hazard:haz, level:lvl };
+        E.ev("DELIST_WARNED",{symbol:sym, name:E.stockName(S,sym), price:S.stockPrices[sym],
+                              hazard:haz, level:lvl});
+        E.markDelistWarn(S, sym, {symbol:sym, hazard:haz, level:lvl});
+        return;                                    // delistGraceTurns：第一輪只警示，不擲
+      }
+      var prevLvl = w.level;
+      w.streak = (w.streak||1)+1; w.hazard = haz; w.level = lvl;
+      if(lvl!==prevLvl){                           // 風險等級變了才重跳卡，不要每輪都吵
+        E.ev("DELIST_RISK_CHANGED",{symbol:sym, name:E.stockName(S,sym), hazard:haz, level:lvl, from:prevLvl});
+        E.markDelistWarn(S, sym, {symbol:sym, hazard:haz, level:lvl});
+      }
+      if(util.rand(S) >= haz) return;              // 這一輪撐過去了
+      E.doDelist(S, def);
+      return;
+    }
+    var risky = E.delistRisk(S, def);
     if(!w){
       if(!risky) return;
       S.delistWatch[sym] = { since:S.turnNumber, until:S.turnNumber+warnT };
@@ -2349,6 +2420,26 @@ E.tickDelist = function(S){
       return;
     }
     if(S.turnNumber < w.until) return;                 // 還在緩衝期
+    E.doDelist(S, def);
+  });
+};
+
+// 警示要跳給持股者看，但【不能在這裡推決策】——tickDelist 跑在回合結束，
+// 此時的「當前玩家」不一定是持股者。引擎的不變式是「待決策一定屬於當前玩家」：
+// ui.tick 只驅動當前玩家，而畫面等的是決策的擁有者；兩者不一致就沒人會去動它 → 整局死當。
+// 所以先記在玩家身上，等輪到他自己時（E.beginTurn → E.tickDelistWarn）再跳卡。
+E.markDelistWarn = function(S, sym, info){
+  S.players.forEach(function(pl){
+    if(pl.bankrupt) return;
+    if(!pl.assets.some(function(a){ return a.kind==="STOCK" && a.symbol===sym && !(a.flags&&a.flags.wallpaper); })) return;
+    pl.pendingDelistWarn = info;
+  });
+};
+
+/* 真的下市：持股歸零、留一張市值 0 的壁紙當紀錄。融資的債不會跟著消失
+   ——sellAsset(…,0) 會把它轉成信貸留在身上（S23a 機率制沿用同一條路）。 */
+E.doDelist = function(S, def){
+  var sym = def.symbol;
     // 下市：持股歸零。融資的債不會消失——sellAsset(…,0) 會把它轉成信貸留在身上。
     S.delisted[sym]=true; delete S.delistWatch[sym];
     S.stockPrices[sym]=0;
@@ -2383,8 +2474,8 @@ E.tickDelist = function(S){
                          return a.flags && a.flags.wallpaper && a.symbol===sym
                                 && a.flags.delistedAt===S.turnNumber; }),
                          function(a){ return a.flags.lostAmount||0; }); }))});
-  });
 };
+
 
 /* ---------------------- 玩家間資產轉讓（含 AI 議價） ---------------------- */
 // M8 S3：談判與溝通——買方在成交當下爭到折讓；賣方同額減收，帳上金額守恆。
@@ -2970,7 +3061,7 @@ E.autoInvestOn = function(S){
 };
 
 // 用一筆預算去買某檔股票，回傳實際買了幾張與花掉多少（買不起就買 0 張）
-E.autoBuyUnits = function(S, p, sym, budget, why){
+E.autoBuyUnits = function(S, p, sym, budget, why, opts){
   var def=ns.content.stockBySymbol[sym]; if(!def) return {units:0, spent:0};
   if(S.delisted && S.delisted[sym]) return {units:0, spent:0, dead:true};
   var price=E.stockPrice(S,def);
@@ -2983,7 +3074,7 @@ E.autoBuyUnits = function(S, p, sym, budget, why){
   if(units<1) return {units:0, spent:0};
   var total=util.r2(price*units);
   var feeA=E.stockFee(S,total);
-  var div=util.r2(units*def.face*def.dividendYieldMonthly);
+  var div=util.r2(units*E.stockDivPerUnit(S,def));        // S23a：同上
   var ex=p.assets.filter(function(x){ return x.kind==="STOCK"&&x.symbol===sym&&!(x.flags&&x.flags.margin); })[0];
   var aid = ex ? ex.instanceId : util.uid(S,"A");
   if(ex){ ex.units+=units; ex.costBasis=util.r2(ex.costBasis+total);
@@ -2996,7 +3087,12 @@ E.autoBuyUnits = function(S, p, sym, budget, why){
             {account:"ASSET",delta:total,refId:aid,label:E.stockName(S,sym)}];
   if(feeA) post.push({account:"CASH",delta:-feeA,label:"券商手續費"});
   if(div) post.push({account:"INCOME_PASSIVE",delta:div,refId:aid,label:E.stockName(S,sym)+" 股息"});
-  ledger.post(S,p,why+"："+E.stockName(S,sym)+" ×"+units,post,{eduTags:["equity","auto-invest"]});
+  /* S23a：摘要要說清楚錢從哪來。原本只寫「股息再投入：〇〇 ×164」，
+     玩家看到現金又被扣一次會以為重複扣款——把本期股息與手續費寫進摘要。 */
+  var sumTxt = why+"："+E.stockName(S,sym)+" ×"+units;
+  if(opts && opts.dividend>0) sumTxt = why+"：本期股息 "+util.money(opts.dividend)+" → 買 "+E.stockName(S,sym)+" "+units+" 張";
+  ledger.post(S,p,sumTxt,post,{eduTags:["equity","auto-invest"],
+    detail:{ units:units, price:price, fee:feeA, dividend:(opts&&opts.dividend)||0 }});
   // spent 含手續費——carry（還沒湊滿一張的預算）要從實際花掉的金額算起
   return {units:units, spent:util.r2(total+feeA), price:price, fee:feeA};
 };
@@ -3036,7 +3132,7 @@ E.tickAutoInvest = function(S, p){
     p.divCarry=p.divCarry||{};
     var budget=util.r2((p.divCarry[sym]||0) + div);
     if(p.cash < budget){ p.divCarry[sym]=0; return; }
-    var r2=E.autoBuyUnits(S,p,sym,budget,"股息再投入");
+    var r2=E.autoBuyUnits(S,p,sym,budget,"股息再投入",{dividend:div});
     p.divCarry[sym]=util.r2(budget - r2.spent);
     if(r2.units>0) E.ev("DIV_REINVESTED",{playerId:p.id, symbol:sym, units:r2.units,
                                           spent:r2.spent, dividend:div});

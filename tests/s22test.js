@@ -27,7 +27,10 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     const decide=(S,p,opt,params)=>{ const d=pending(S); const r=E.apply(S,{type:"DECIDE",playerId:p.id,payload:{decisionId:d.decisionId,optionId:opt,params:params||{}}},{mutate:true}); A(!r.rejected,"DECIDE 被拒："+JSON.stringify((r.events||[]).slice(-1))); return r; };
 
     step("版本與單檔完整性",()=>{
-      A(ns.BUILD.ver==="v2.27.0-S22","版本字串應為 v2.27.0-S22，實得 "+ns.BUILD.ver);
+      // S23a：不要把版本字串釘死在某一期，否則每次發版舊測試都會紅。
+      // 只驗格式與「不早於 S22」；當期的確切版本由當期的測試（s23test）驗。
+      A(/^v\d+\.\d+\.\d+-S\d+/.test(ns.BUILD.ver),"版本字串格式不對，實得 "+ns.BUILD.ver);
+      A(parseInt(ns.BUILD.ver.split("-S")[1],10)>=22,"版本不應早於 S22，實得 "+ns.BUILD.ver);
       A(!ns.content.errors.length,"內容包載入錯誤："+ns.content.errors.join("；"));
       A(document.documentElement.outerHTML.length>0,"文件存在");
       return ns.BUILD.ver;

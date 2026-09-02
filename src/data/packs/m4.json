@@ -364,7 +364,8 @@
             "mult": 0.6,
             "label": "假帳風暴"
           }
-        ]
+        ],
+        "oncePerGame": true
       },
       {
         "id": "MKT_TAIDIAN_DELIST",
@@ -381,7 +382,8 @@
             "mult": 0.5,
             "label": "掏空弊案"
           }
-        ]
+        ],
+        "oncePerGame": true
       },
       {
         "id": "MACRO_DUAL_CARD_CRISIS",
@@ -406,7 +408,8 @@
             "durationTurns": 6,
             "label": "信用緊縮"
           }
-        ]
+        ],
+        "oncePerGame": true
       },
       {
         "id": "MKT_BIOTECH_UNBLIND",
@@ -423,7 +426,8 @@
             "mult": 0.4,
             "label": "解盲失敗"
           }
-        ]
+        ],
+        "oncePerGame": true
       }
     ]
   }

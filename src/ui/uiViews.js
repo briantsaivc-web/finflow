@@ -4870,7 +4870,10 @@ ns.selftest = {
       var mods=["M1","M2","M3","M4","M6","M8"];
 
       /* ---- (a) 股票下市：警示 → 緩衝 → 歸零，且融資的債留在身上 ---- */
+      // S23a：下市預設改成機率制（每輪擲一次），這一段驗的是【固定模式】那條路，
+      // 所以明確把模式釘住；機率制的行為由 tests/s23test.js 驗。
       var S=mkGame(5701,mods), p=S.players[0];
+      S.config.delistMode="fixed";
       var def=ns.content.stockDefs.filter(function(x){ return x.delistable; })[0];
       assert(def,"應有標記為可下市的投機股");
       var sym=def.symbol;
@@ -5876,6 +5879,8 @@ ns.selftest = {
       assert(before && before.units===20,"應先買到部位");
       var basis=before.costBasis, nw0=p.derived.netWorth;
       // 下市的條件是「蕭條期＋跌破面額的 delistPriceRatio」，兩個都要造出來
+      // S23a：同上，這一段驗固定模式（機率制在 s23test.js）
+      S.config.delistMode="fixed";
       S.macro.stage="DEPRESSION";
       S.stockPrices[spec.symbol]=util.r2(spec.face*0.05);
       assert(E.delistRisk(S,spec),"前置條件：此時應判定為有下市風險（否則下面測不到東西）");
