@@ -550,6 +550,87 @@
           "insurance"
         ],
         "moduleReq": null
+      },
+      {
+        "id": "ML_VIR5",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "title": "安太座",
+        "icon": "🙏",
+        "flavor": "廟公貼上紅紙，老婆看著收據說「今年安心了」。Happy wife, happy life.",
+        "eduNote": "有些支出買的不是資產，是家裡的安穩與笑容——這筆帳不會出現在報酬率裡。",
+        "payload": {
+          "costSalaryMult": 1.5,
+          "cost": 100,
+          "joy": 3
+        },
+        "tags": [
+          "family"
+        ],
+        "oncePerGame": false,
+        "moduleReq": null
+      },
+      {
+        "id": "ML_HEA3",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "健康身心",
+        "title": "小孩牙齒矯正",
+        "icon": "🦷",
+        "flavor": "為了孩子一生的自信笑容，這筆年度預算省不得。",
+        "eduNote": "醫療健康支出往往是一次性大額負擔，平時的緊急預備金就是為了這刻而存在。",
+        "payload": {
+          "cost": 150,
+          "joy": 2,
+          "reqChild": true
+        },
+        "tags": [
+          "medical",
+          "family"
+        ],
+        "oncePerGame": true,
+        "moduleReq": null
+      },
+      {
+        "id": "ML_LUX4",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "尊榮享受",
+        "title": "遊艇俱樂部會籍",
+        "icon": "🛥️",
+        "flavor": "迎風出海的頂級社交圈，碼頭泊位與年度保養也是頂級開銷。",
+        "eduNote": "頂級資產的入手價只是門票，每個月雷打不動的泊位與維護費才是現金流黑洞。",
+        "payload": {
+          "cost": 500,
+          "recurringMonthly": 8,
+          "joy": 2
+        },
+        "tags": [
+          "luxury"
+        ],
+        "oncePerGame": false,
+        "moduleReq": null
+      },
+      {
+        "id": "ML_LUX5",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "尊榮享受",
+        "title": "好市多 Costco 頂級黑鑽會員",
+        "icon": "💳",
+        "flavor": "推著滿載牛肉與生活用品的推車，結帳時享受 2% 尊榮回饋感。",
+        "eduNote": "會員費買的是批發採購的單價優勢，但要小心在大包裝誘惑下買了過多不需要的消耗品。",
+        "payload": {
+          "cost": 3,
+          "recurringMonthly": 0,
+          "joy": 1
+        },
+        "tags": [
+          "shopping"
+        ],
+        "oncePerGame": false,
+        "moduleReq": null
       }
     ]
   }

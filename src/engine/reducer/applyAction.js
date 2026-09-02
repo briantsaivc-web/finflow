@@ -2530,9 +2530,12 @@ E.npcAcceptReferral = function(S, tgt, card, fee){
 /* ===================== V10 §4 人生商城 ===================== */
 // 商品的「這次要付多少」。年繳型（產險）的保費也是成本——
 // 原本只算 payload.cost，導致產險顯示「免費」，而且 mallAffordable 也跟著繞過檢查。
-E.mallCost = function(S, it){
+E.mallCost = function(S, it, p){
   var pl=(it&&it.payload)||{};
-  return util.r2((pl.cost||0) + (pl.annualPremium||0));
+  var base = (pl.costSalaryMult && p && p.derived)
+    ? util.r2((p.derived.salaryIncome || 65) * pl.costSalaryMult)
+    : (pl.cost || 0);
+  return util.r2(base + (pl.annualPremium||0));
 };
 /* ===================== S7b：木作與居家修繕 =====================
    自己裝修 → 租金 +8%、空租機率減半。與水電的「省修繕費」刻意不重疊：
@@ -2613,12 +2616,12 @@ E.mallStillActive = function(S, p, it){
   return until!==undefined && S.turnNumber <= until;
 };
 E.mallAffordable = function(S, p, it){
-  var c=E.mallCost(S,it);
+  var c=E.mallCost(S,it,p);
   return p.cash >= c;
 };
 E.mallApply = function(S, p, it){
   var pl=it.payload||{}, post=[], notes=[];
-  var cost=E.mallCost(S,it);   // 已含年繳保費，不可在此重複加
+  var cost=E.mallCost(S,it,p);   // 已含年繳保費，不可在此重複加
   if(cost>0) post.push({account:"CASH",delta:-cost,label:it.title});
   if(pl.recurringMonthly){
     post.push({account:"EXPENSE",delta:util.r2(pl.recurringMonthly),label:it.title+" 每月"});

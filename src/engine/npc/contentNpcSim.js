@@ -862,9 +862,9 @@ npc.networkCourse = function(S,p){
     var pl=it.payload||{};
     if(!pl.network) return false;
     if(!npc.canBuyMall(S,p,it)) return false;
-    return p.cash - E.mallCost(S,it) - (pl.annualPremium||0) >= floor;
+    return p.cash - E.mallCost(S,it,p) - (pl.annualPremium||0) >= floor;
   }).sort(function(a,b){
-    var ca=E.mallCost(S,a), cb=E.mallCost(S,b);
+    var ca=E.mallCost(S,a,p), cb=E.mallCost(S,b,p);
     if(ca!==cb) return ca-cb;                 // 先買便宜的那張入場券
     return a.id<b.id?-1:1;                    // 決定論穩定排序
   });
@@ -903,9 +903,9 @@ npc.protectSelf = function(S,p){
     //   一買下去的月費馬上把自己踢回門檻以下。）
     var rmW = pl.recurringMonthly||0;
     if(rmW>0 && p.derived.passiveIncome < p.derived.totalExpenses + rmW) return false;
-    return p.cash - E.mallCost(S,it) - (pl.annualPremium||0) >= floorP * 3;   // 要很有餘裕才買
+    return p.cash - E.mallCost(S,it,p) - (pl.annualPremium||0) >= floorP * 3;   // 要很有餘裕才買
   }).sort(function(a,b){
-    var ca=E.mallCost(S,a), cb=E.mallCost(S,b);
+    var ca=E.mallCost(S,a,p), cb=E.mallCost(S,b,p);
     if(ca!==cb) return ca-cb;
     return a.id<b.id?-1:1;                        // 決定論穩定排序
   });
@@ -1087,7 +1087,7 @@ npc.decide = function(S,p,d){
     case "RENEW_MALL": {
       var itN = ns.content.byId[d.itemId];
       if(!itN) return A("stop");
-      var costN = E.mallCost(S,itN);
+      var costN = E.mallCost(S,itN,p);
       var floorN = (w.cashReserveFloor||3) * Math.max(1, p.derived.totalExpenses);
       var rmN = (itN.payload||{}).recurringMonthly||0;
       // 續約也是消費：月費若會讓自己跨不過自由門檻就不續；現金也要留得住兩倍保留水位

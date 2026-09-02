@@ -1645,6 +1645,67 @@
           "travel"
         ],
         "moduleReq": null
+      },
+      {
+        "id": "LS21",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "社團慶功宴",
+        "flavor": "孩子在校際比賽得獎，全隊一起吃火鍋慶祝，家長分攤餐費。",
+        "eduNote": "孩子成長中的同儕社交與成就感，是千金難買的人生回憶。",
+        "payload": {
+          "cost": 8
+        },
+        "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS22",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "校外教學與畢業紀念冊",
+        "flavor": "三天的校外教學行程加上厚厚的精裝紀念冊，留下青春紀錄。",
+        "eduNote": "學校常態性的大額專案支出，考驗家庭短期週轉金的彈性。",
+        "payload": {
+          "cost": 12
+        },
+        "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS23",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "孩子樂器採購與才藝比賽",
+        "flavor": "換上高階演奏級樂器，並報名全國音樂比賽。",
+        "eduNote": "才藝教育的設備升級費用往往驚人，需要與家庭財務總體目標取得平衡。",
+        "payload": {
+          "cost": 35
+        },
+        "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS24",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "暑期夏令營體驗",
+        "flavor": "雙薪家庭暑假無暇照顧，送孩子參加全美語戶外探索夏令營。",
+        "eduNote": "暑期安親與營隊費用是現代雙薪家長每年固定的現金流重擔。",
+        "payload": {
+          "cost": 25
+        },
+        "optional": false,
+        "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS25",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "大學開學生活準備金",
+        "flavor": "孩子考上外縣市大學，採購筆電、機車與外宿日常用品。",
+        "eduNote": "子女邁入成年自立前夕，是父母家庭教育資金支出的最高峰。",
+        "payload": {
+          "cost": 50
+        },
+        "requiresChildSinceS12": true
       }
     ],
     "LIFE_EVENT": [

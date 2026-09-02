@@ -776,8 +776,13 @@ ui.showMall = function(){
       b.appendChild(el("div","tt",it.title));
       b.appendChild(el("div","fl",it.flavor||""));
       var price=[];
-      if(pl.annualPremium) price.push("年繳 "+M(pl.annualPremium));
-      if(pl.cost) price.push("一次 "+M(pl.cost));
+      var itCost = E.mallCost(S,it,p);
+      if(pl.costSalaryMult){
+        price.push("一次 "+M(itCost)+"（月薪 "+pl.costSalaryMult+" 倍）");
+      } else {
+        if(pl.annualPremium) price.push("年繳 "+M(pl.annualPremium));
+        if(pl.cost) price.push("一次 "+M(pl.cost));
+      }
       if(pl.recurringMonthly) price.push("每月 "+M(pl.recurringMonthly));
       if(!price.length) price.push("免費");
       var boughtN = (p.mallBought && p.mallBought[it.id]) || 0;
@@ -808,7 +813,7 @@ ui.showMall = function(){
       else if(usedUp) why="本局限購一次，已經買過了";
       else if(cdLeftM>0) why="剛買過，再過 "+cdLeftM+" 輪才能重複購買";
       else if(pl.reqChild && !(p.childrenCount>0)) why="還沒有小孩";
-      else if((pl.cost||0)>p.cash) why="現金不足";
+      else if(itCost>p.cash) why="現金不足";
       b.disabled=!!why; b.title=why||(it.eduNote||"");
       b.onclick=function(){
         var after=util.r2(p.cash-(pl.cost||0));
