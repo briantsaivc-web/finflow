@@ -2489,7 +2489,7 @@
     },
     {
       "key": "futMaxLots_A",
-      "value": 5,
+      "value": 10,
       "min": 0,
       "max": 20,
       "step": 1,
@@ -2500,7 +2500,7 @@
     },
     {
       "key": "futMaxLots_B",
-      "value": 3,
+      "value": 6,
       "min": 0,
       "max": 20,
       "step": 1,
@@ -2511,7 +2511,7 @@
     },
     {
       "key": "futMaxLots_C",
-      "value": 1,
+      "value": 3,
       "min": 0,
       "max": 20,
       "step": 1,
@@ -2529,6 +2529,28 @@
       "group": "進階金融",
       "label": "電腦玩家是否碰進階金融",
       "desc": "0＝不碰（平衡指紋乾淨）；S23c 再評估開放",
+      "hot": true
+    },
+    {
+      "key": "futBasisMax",
+      "value": 0.01,
+      "min": 0,
+      "max": 0.05,
+      "step": 0.005,
+      "group": "進階金融",
+      "label": "期貨折溢價上限",
+      "desc": "期貨報價相對現貨的基差，每輪在 ±這個範圍內重抽（0.01＝±1%）",
+      "hot": true
+    },
+    {
+      "key": "futAutoTopUp",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "進階金融",
+      "label": "保證金見底時自動補繳",
+      "desc": "1＝現金補得起就自動補（避免直接強平）；0＝直接強制平倉",
       "hot": true
     }
   ]

@@ -646,6 +646,33 @@ ui.renderFinBoard = function(){
       r.onclick=function(){ ui.showStockPanel(def.symbol); };   // S14a：點該檔直接開單檔面板（交易入口從操作區搬到這裡）
       s2.appendChild(r);
     });
+    /* S23b.1：看板也要有期貨——它有自己的報價（相對現貨有折溢價），
+       不看這一列就不知道自己押的那個價格現在在哪裡。 */
+    if(E.m9On && E.m9On(S)){
+      (ns.content.futuresDefs||[]).forEach(function(fd){
+        var fp=E.futPrice(S,fd), sp0=E.stockPrice(S,fd.underlying), bs=E.futBasis(S,fd);
+        var rf=el("div","fbRow");
+        var nmF=el("span","nm");
+        nmF.appendChild(el("span",null,"期貨"));
+        var tgF=el("span",null,"×"+fd.multiplier);
+        tgF.style.cssText="margin-left:4px;font-size:10px;opacity:.85;color:var(--gold)";
+        nmF.appendChild(tgF); rf.appendChild(nmF);
+        rf.appendChild(el("span","px num",M(fp)));
+        // 這一欄放折溢價（相對現貨），不是漲跌——期貨的重點是基差
+        var bsSpan=el("span","ch "+(bs>=0?"pos":"neg"),(bs>=0?"溢價 ":"折價 ")+util.pct(Math.abs(bs),1));
+        rf.appendChild(bsSpan);
+        var meF=S.players[ui.myId()];
+        var myLots=meF ? E.futLotsHeld(meF) : 0;
+        var sp2=el("span","spark");
+        sp2.style.cssText="font-size:10px;color:var(--tx3);display:flex;align-items:center";
+        sp2.textContent = myLots ? ("持 "+myLots+" 口") : "現貨 "+M(sp0);
+        rf.appendChild(sp2);
+        rf.title="期貨報價 "+M(fp)+"　現貨 "+M(sp0)+"　"+(bs>=0?"溢價":"折價")+" "+util.pct(Math.abs(bs),1)+
+                 "（每輪重抽，最大 ±"+util.pct(E.cfg(S,"futBasisMax")||0.01,0)+"）";
+        rf.onclick=function(){ ui.showStockPanel(); };
+        s2.appendChild(rf);
+      });
+    }
   }
 
   // 系統訊息（事件 log）
@@ -1218,7 +1245,8 @@ ui.renderSheet = function(){
   var aCol=el("div");
   var aHd=el("div"); aHd.style.cssText="display:flex;align-items:baseline;gap:8px";
   aHd.appendChild(el("h4",null,"資產細項")).style.cssText="margin:0 0 3px;font-size:var(--fs-xs);letter-spacing:.1em;color:var(--tx3)";
-  var nonStock=p.assets.filter(function(a){ return a.kind!=="STOCK"; });
+  // S23b.1：期貨另有自己的合計列與「庫存期貨」區塊——不能混進一般資產（它沒有月現金流，也不能用賣出鈕）
+  var nonStock=p.assets.filter(function(a){ return a.kind!=="STOCK" && a.kind!=="FUTURES"; });
   var aCnt=el("span",null,(p.assets.length)+" 筆"); aCnt.style.cssText="margin-left:auto;font-size:11px;color:var(--tx3)";
   aHd.appendChild(aCnt); aCol.appendChild(aHd);
   var at=el("table","dtb ret");
@@ -1266,6 +1294,24 @@ ui.renderSheet = function(){
     }
     tr.appendChild(td4); at.appendChild(tr);
   });
+  // S23b.1：期貨在下方「庫存期貨」逐口操作，這裡補一列合計（它沒有月現金流與報酬率）
+  var futAssets=E.futPositions ? E.futPositions(p) : [];
+  if(futAssets.length){
+    var fmv=0, flotsAll=0;
+    futAssets.forEach(function(a){ fmv+=a.marketValue||0; flotsAll+=a.lots||0; });
+    var ftr=el("tr");
+    var ftd1=el("td"); var fsp=el("span",null,"⚡ 期貨保證金（"+futAssets.length+" 筆／"+flotsAll+" 口）");
+    fsp.style.color="var(--tx2)"; ftd1.appendChild(fsp); ftr.appendChild(ftd1);
+    ftr.appendChild(el("td","num",M(util.r2(fmv))));
+    ["—","—","—"].forEach(function(dash){
+      var td=el("td","num",dash); td.style.color="var(--tx3)"; ftr.appendChild(td); });
+    var ftdO=el("td","num"); ftdO.style.fontSize="11px";
+    ftdO.innerHTML=M(util.r2(futAssets.reduce(function(n,a){ return n+(a.costBasis||0); },0)));
+    ftr.appendChild(ftdO);
+    var ftd4=el("td"); var fgo=el("span",null,"↓"); fgo.title="逐口平倉請見下方「庫存期貨」";
+    fgo.style.cssText="color:var(--tx3);font-size:12px"; ftd4.appendChild(fgo); ftr.appendChild(ftd4);
+    at.appendChild(ftr);
+  }
   // 八期：股票在下方「庫存股票」逐檔操作，這裡補一列合計，避免與「收支與資產明細」不一致
   var stockAssets=p.assets.filter(function(a){ return a.kind==="STOCK"; });
   if(stockAssets.length){
@@ -1432,6 +1478,67 @@ ui.renderSheet = function(){
         });
     });
     stx.appendChild(tb); box.appendChild(stx);
+  }
+
+  /* S23b.1：庫存期貨——期貨不是股票，欄位不一樣（保證金／維持率／逐輪損益），
+     而且平倉是「唯一的出場動作」，按鈕要一眼看得到，不能藏在灰色的次要按鈕裡。 */
+  if(E.m9On && E.m9On(S)){
+    var myFutH=E.futPositions(p);
+    if(myFutH.length){
+      var ftx=el("div","sec");
+      var fhd2=el("div"); fhd2.style.cssText="display:flex;justify-content:space-between;align-items:baseline;gap:8px";
+      fhd2.appendChild(el("h4",null,"庫存期貨"));
+      var totLotsH=myFutH.reduce(function(n,a){ return n+(a.lots||0); },0);
+      var lotsSpan=el("span",null,totLotsH+" / "+E.futMaxLots(S,p)+" 口");
+      lotsSpan.style.cssText="margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--tx3)";
+      fhd2.appendChild(lotsSpan);
+      ftx.appendChild(fhd2);
+      var myTurnH = S.activePlayerIdx===ui.myId();
+      var canCloseH = !p.bankrupt && myTurnH && (S.phase==="ROLL"||S.phase==="READY_END");
+      myFutH.forEach(function(a){
+        var fdH=E.futDef(a.symbol)||{name:a.name,multiplier:1};
+        var stH=E.futStatus(S,a,p);
+        var nowH=E.futPrice(S,fdH), dirH=a.side==="short"?-1:1;
+        var plH=util.r2((nowH-a.entryPrice)*(fdH.multiplier||1)*(a.lots||0)*dirH);
+        var rowH=el("div");
+        rowH.style.cssText="display:flex;align-items:center;gap:10px;padding:8px;margin-top:6px;border-radius:8px;"+
+          "background:"+(stH.call?"rgba(255,90,95,.14)":"var(--bg2)")+
+          ";border:1px solid "+(stH.call?"var(--neg)":"var(--line2)");
+        var infoH=el("div"); infoH.style.flex="1";
+        infoH.innerHTML="<b>"+fdH.name+"　<span class='"+(a.side==="short"?"neg":"pos")+"'>"+
+          (a.side==="short"?"空":"多")+" "+a.lots+" 口</span></b>"+
+          "<div style='font-size:12px;color:var(--tx2);margin-top:2px'>"+
+          "進場 "+M(a.entryPrice)+"　現價 "+M(nowH)+"　"+
+          "<b class='"+(plH>=0?"pos":"neg")+"'>浮動損益 "+(plH>=0?"+":"")+M(plH)+"</b></div>"+
+          "<div style='font-size:12px;color:var(--tx2)'>保證金 "+M(a.marketValue)+
+          "　維持線 "+M(stH.maintNeed)+"　"+
+          (stH.call?"<b class='neg'>⚠ 追繳中</b>":"維持率 "+Math.round(stH.ratio*100)+"%")+"</div>";
+        rowH.appendChild(infoH);
+        // 平倉：主要動作，做成醒目的實心鈕
+        var bH=el("button","opt primary","平倉");
+        bH.style.cssText="min-width:88px;padding:9px 14px;font-weight:700;"+
+          "background:var(--neg);border-color:var(--neg);color:#fff";
+        bH.disabled=!canCloseH;
+        bH.title=canCloseH?("平掉這 "+a.lots+" 口，退回保證金餘額（扣手續費）"):"輪到你的回合才能平倉";
+        if(!canCloseH) bH.style.opacity=".5";
+        bH.onclick=function(){
+          var ov2=el("div","overlay"), bx2=el("div","sheetbox"); bx2.style.maxWidth="400px";
+          bx2.appendChild(el("h2",null,"平倉「"+fdH.name+"」？"));
+          bx2.appendChild(el("div","flavor",
+            (a.side==="short"?"空":"多")+" "+a.lots+" 口　浮動損益 <b class='"+(plH>=0?"pos":"neg")+"'>"+
+            (plH>=0?"+":"")+M(plH)+"</b><br>退回保證金 "+M(a.marketValue)+
+            "，扣手續費 "+M(E.futFee(S,a.lots))+"。"));
+          var oo2=el("div","opts");
+          oo2.appendChild(ui.optBtn("確定平倉",null,function(){ ov2.remove();
+            ui.dispatch({type:"FUT_CLOSE",playerId:ui.myId(),payload:{instanceId:a.instanceId}}); },true));
+          oo2.appendChild(ui.optBtn(T("act.close"),null,function(){ ov2.remove(); }));
+          bx2.appendChild(oo2); ov2.appendChild(bx2); $("overlays").appendChild(ov2);
+        };
+        rowH.appendChild(bH);
+        ftx.appendChild(rowH);
+      });
+      box.appendChild(ftx);
+    }
   }
 
   /* 品格已於七期改為數字，併入上方玩家資訊列（幸福感之後） */
@@ -4156,9 +4263,14 @@ ui.showStockPanel = function(focusSymbol){
         var uPrice=E.stockPrice(S,fd.underlying);
         var cv1=E.futContractValue(S,fd);
         var mPct=E.futMarginPct(S,fd), need1=util.r2(cv1*mPct);
+        var fPx=E.futPrice(S,fd), bs0=E.futBasis(S,fd);
         var kvF=el("div","kv");
-        kvF.appendChild(el("div","k","標的")); kvF.appendChild(el("div","v",E.stockName(S,fd.underlying)+"　"+M(uPrice)+" / 張"));
-        kvF.appendChild(el("div","k","一口合約值")); kvF.appendChild(el("div","v num",M(cv1)+"（×"+fd.multiplier+"）"));
+        kvF.appendChild(el("div","k","標的（現貨）")); kvF.appendChild(el("div","v",E.stockName(S,fd.underlying)+"　"+M(uPrice)+" / 張"));
+        kvF.appendChild(el("div","k","期貨報價"));
+        var pxV=el("div","v num"); pxV.innerHTML=M(fPx)+" <span class='"+(bs0>=0?"pos":"neg")+"' style='font-size:12px'>"+
+          (bs0>=0?"溢價 ":"折價 ")+util.pct(Math.abs(bs0),1)+"</span>";
+        kvF.appendChild(pxV);
+        kvF.appendChild(el("div","k","一口合約值")); kvF.appendChild(el("div","v num",M(cv1)+"（期貨報價 ×"+fd.multiplier+"）"));
         kvF.appendChild(el("div","k","一口保證金")); kvF.appendChild(el("div","v num",M(need1)+"（"+util.pct(mPct,0)+"）"));
         kvF.appendChild(el("div","k","手續費")); kvF.appendChild(el("div","v num",M(E.cfg(S,"futFeePerLot"))+" ／口（開平各收）"));
         fsec.appendChild(kvF);
@@ -4191,7 +4303,8 @@ ui.showStockPanel = function(focusSymbol){
       // 現有部位
       var myFut=E.futPositions(p);
       if(myFut.length){
-        fsec.appendChild(el("div","flavor","你的部位"));
+        var phd=el("div"); phd.style.cssText="margin-top:10px;font-weight:700;color:var(--tx2)";
+        phd.textContent="你的部位"; fsec.appendChild(phd);
         myFut.forEach(function(a2){
           var st=E.futStatus(S,a2,p), fdz=E.futDef(a2.symbol)||{name:a2.name};
           var pr=el("div"); pr.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px;"+
@@ -4201,8 +4314,11 @@ ui.showStockPanel = function(focusSymbol){
             "<div class='sub2' style='font-size:12px;color:var(--tx2)'>保證金 "+M(a2.marketValue)+
             "　維持線 "+M(st.maintNeed)+"　"+(st.call?"<b class='neg'>追繳中</b>":"維持率 "+Math.round(st.ratio*100)+"%")+"</div>";
           pr.appendChild(lft);
-          var bc=el("button","act","平倉");
-          bc.disabled=!canTrade; bc.title=canTrade?"":whyNot;
+          var bc=el("button","opt primary","平倉");
+          bc.style.cssText="min-width:88px;padding:8px 14px;font-weight:700;"+
+            "background:var(--neg);border-color:var(--neg);color:#fff";
+          bc.disabled=!canTrade; bc.title=canTrade?("平掉這 "+a2.lots+" 口"):whyNot;
+          if(!canTrade) bc.style.opacity=".5";
           bc.onclick=function(){ ov.remove();
             ui.dispatch({type:"FUT_CLOSE",playerId:ui.myId(),payload:{instanceId:a2.instanceId}}); };
           pr.appendChild(bc); fsec.appendChild(pr);

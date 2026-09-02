@@ -370,14 +370,14 @@ E.apply = function(state, action, opts){
     if(same){
       // 加碼：保證金與口數累加，開倉價用加權平均（結算看的是 lastPrice，這裡只是顯示用）
       var totLots=same.lots+flots;
-      same.entryPrice=util.r2((same.entryPrice*same.lots + cvOne/(fdef.multiplier||1)*flots)/totLots);
+      same.entryPrice=util.r2((same.entryPrice*same.lots + E.futPrice(S,fdef)*flots)/totLots);
       same.lots=totLots;
       same.marketValue=util.r2(same.marketValue+needMargin);
       same.costBasis=util.r2((same.costBasis||0)+needMargin);
     } else {
       p.assets.push({ instanceId:fid, cardId:null, kind:"FUTURES", name:fdef.name+"（"+(fside==="short"?"空":"多")+"）",
         symbol:fs, side:fside, lots:flots, units:flots,
-        entryPrice:E.stockPrice(S,fdef.underlying), lastPrice:E.stockPrice(S,fdef.underlying),
+        entryPrice:E.futPrice(S,fdef), lastPrice:E.futPrice(S,fdef),
         costBasis:needMargin, marketValue:needMargin, monthlyIncome:0,
         ownCash:needMargin, linkedLiabilityId:null, flags:{futures:true} });
     }
@@ -2624,11 +2624,34 @@ E.advLockReason = function(S, p){
    之後每輪依標的漲跌把損益直接加減在保證金餘額上（逐日結算的遊戲版）。
    做多做空都可以——這是「進階」的意義：方向判斷錯的代價一樣被放大。 */
 E.futDef = function(sym){ return ns.content.futBySymbol ? ns.content.futBySymbol[sym] : null; };
-E.futContractValue = function(S, def){
+/* S23b.1：期貨有自己的報價，不會等於現貨。
+   真實市場的期貨相對現貨有「基差」（折價／溢價）——市場看多就溢價、看空就折價。
+   這裡每輪重抽一次基差（±basisMax，預設 1%），期貨價 ＝ 現貨 × (1＋基差)。
+   結算走期貨價而不是現貨價，所以基差本身也會影響損益——這正是期貨與現貨的差別。 */
+/* 純讀取，【不得】在這裡抽亂數——介面每次重繪都會呼叫它，
+   若在這裡消耗 util.rand(S)，亂數序列就會被「玩家看了幾次畫面」影響，
+   重放就對不起來（實測：重放在第 2 輪就與原局分歧）。抽基差只在 tickFutures 裡做。 */
+E.futBasis = function(S, def){
+  if(!def || !S.futBasis) return 0;
+  var v = S.futBasis[def.symbol];
+  return (v===undefined || !isFinite(v)) ? 0 : v;
+};
+E.rollFutBasis = function(S, def){
+  if(!def) return;
+  S.futBasis = S.futBasis || {};
+  var mx = E.cfg(S,"futBasisMax"); if(mx===undefined) mx = 0.01;
+  S.futBasis[def.symbol] = util.r2((util.rand(S)*2-1) * mx * 1000)/1000;   // 保留到千分位
+};
+E.futPrice = function(S, def){
   if(!def) return 0;
   var u = E.stockPrice(S, def.underlying);
+  if(!(u>0)) return 0;
+  return util.r2(u * (1 + E.futBasis(S,def)));
+};
+E.futContractValue = function(S, def){
+  if(!def) return 0;
   var mult = def.multiplier || 1;
-  return util.r2(u * mult);
+  return util.r2(E.futPrice(S,def) * mult);
 };
 E.futMarginPct = function(S, def){
   var v = E.cfg(S,"futMarginPct");
@@ -2675,11 +2698,13 @@ E.futStatus = function(S, a, p){
    餘額低於維持保證金 → 記在玩家身上，等他自己的回合再跳追繳卡（S15d 的死結教訓）。 */
 E.tickFutures = function(S){
   if(!E.m9On(S)) return;
+  // 先重抽這一輪的基差（折溢價），再用新的期貨價結算
+  (ns.content.futuresDefs||[]).forEach(function(fd){ E.rollFutBasis(S, fd); });
   S.players.forEach(function(p){
     if(p.bankrupt) return;
     E.futPositions(p).slice().forEach(function(a){
       var def = E.futDef(a.symbol); if(!def) return;
-      var now = E.stockPrice(S, def.underlying);
+      var now = E.futPrice(S, def);
       var prev = (a.lastPrice!==undefined && isFinite(a.lastPrice)) ? a.lastPrice : a.entryPrice;
       var dir = a.side==="short" ? -1 : 1;
       var pnl = util.r2((now - prev) * (def.multiplier||1) * (a.lots||0) * dir);
@@ -2688,13 +2713,44 @@ E.tickFutures = function(S){
         a.marketValue = util.r2((a.marketValue||0) + pnl);
         ledger.post(S, p, "期貨逐輪結算："+def.name+"（"+(a.side==="short"?"空":"多")+" "+a.lots+" 口）",
           [{account:"ASSET", delta:pnl, refId:a.instanceId,
-            label:E.stockName(S,def.underlying)+" "+util.money(prev)+" → "+util.money(now)}],
+            label:"期貨報價 "+util.money(prev)+" → "+util.money(now)+
+                  "（現貨 "+util.money(E.stockPrice(S,def.underlying))+"、"+
+                  (E.futBasis(S,def)>=0?"溢價":"折價")+" "+util.pct(Math.abs(E.futBasis(S,def)),1)+"）"}],
           {eduTags:["futures","leverage"], detail:{from:prev, to:now, lots:a.lots, side:a.side, pnl:pnl}});
       }
       var st = E.futStatus(S,a,p);
-      if(a.marketValue <= 0){                       // 保證金燒光 → 強制平倉
-        E.futForceClose(S,p,a);
-        return;
+      /* S23b.1（Brian 定案）：保證金燒光時，只要現金補得起就【自動補倉】，不要直接強平。
+         現實裡券商也是先通知補繳，補得出來就不會斷頭；直接砍倉對玩家太粗暴。
+         補倉順序：先試著補回原始保證金；補不到就補到剛好活著的維持水位；
+         連維持水位都補不出來，才強制平倉。 */
+      if(a.marketValue <= 0 || st.call){
+        var autoOn = E.cfg(S,"futAutoTopUp"); if(autoOn===undefined) autoOn = 1;
+        if(autoOn && a.marketValue <= 0){
+          var wantFull = util.r2(st.contractValue * E.futMarginPct(S,def));
+          var needFull = util.r2(wantFull - a.marketValue);
+          var needLive = util.r2(st.maintNeed - a.marketValue);
+          var add = (p.cash >= needFull) ? needFull : ((p.cash >= needLive) ? needLive : 0);
+          if(add > 0){
+            a.marketValue = util.r2(a.marketValue + add);
+            a.costBasis = util.r2((a.costBasis||0) + add);
+            p.stats.futAutoTopUp = (p.stats.futAutoTopUp||0) + 1;
+            ledger.post(S, p, "自動補繳保證金："+def.name+"（避免被強制平倉）",
+              [{account:"CASH", delta:-add, label:"自動補繳"},
+               {account:"ASSET", delta:add, refId:a.instanceId, label:"保證金餘額"}],
+              {eduTags:["futures","margin-call"]});
+            E.ev("FUT_AUTO_TOPUP",{playerId:p.id, instanceId:a.instanceId, amount:add,
+                                   full:(add===needFull)});
+            E.queueFutNotice(p, { title:"💸 自動補繳保證金："+def.name,
+              text:"保證金已經見底，系統從你的現金自動補了 "+util.money(add)+
+                   (add===needFull?"（補回原始保證金）":"（只補到勉強活著的維持水位）")+
+                   "。部位保住了，但錢是真的出去了——想停損請到股市面板平倉。" });
+            st = E.futStatus(S,a,p);
+          }
+        }
+        if(a.marketValue <= 0){                     // 補不出來 → 只能強制平倉
+          E.futForceClose(S,p,a);
+          return;
+        }
       }
       if(st.call){ p.pendingFutCall = { instanceId:a.instanceId, symbol:a.symbol,
                                         need:util.r2(st.maintNeed - st.margin), ratio:st.ratio }; }
@@ -2703,6 +2759,10 @@ E.tickFutures = function(S){
 };
 // 自己的回合開始才跳追繳卡（決策一定要屬於當前玩家）
 E.tickFutCall = function(S, p){
+  // 先倒出上一輪結算時累積的通知（自動補繳／強制平倉）
+  var nts = p.pendingFutNotices || [];
+  p.pendingFutNotices = [];
+  if(!p.bankrupt) nts.forEach(function(n){ E.pushDecision(S,p,{ kind:"ACK", title:n.title, text:n.text }); });
   var w = p.pendingFutCall; if(!w) return;
   p.pendingFutCall = null;
   if(p.bankrupt) return;
@@ -2744,8 +2804,17 @@ E.futForceClose = function(S, p, a){
     E.addLiability(S,p,"CONSUMER","期貨穿價欠款",short,rate,false,null,true);
     E.ev("FUT_SHORTFALL",{playerId:p.id, amount:short});
   }
-  E.pushDecision(S,p,{ kind:"ACK", title:"💥 期貨強制平倉",
+  E.queueFutNotice(p, { title:"💥 期貨強制平倉",
     text:"保證金燒完了，部位已被強制平倉。"+(short>0?("穿價的 "+util.money(short)+" 轉成信用貸款留在你身上——槓桿賠掉的不只是本金。"):"") });
+};
+
+/* S23b.1：期貨的通知卡不能在回合結束當場推。
+   tickFutures 跑在【回合結束】，此時的「當前玩家」不一定是這個部位的主人；
+   引擎的不變式是「待決策一定屬於當前玩家」，推錯人就整局死當（S15d 踩過一次）。
+   所以先排隊，等輪到他自己（E.beginTurn → E.tickFutCall）再跳。 */
+E.queueFutNotice = function(p, notice){
+  p.pendingFutNotices = p.pendingFutNotices || [];
+  if(p.pendingFutNotices.length < 4) p.pendingFutNotices.push(notice);   // 防呆：不無限累積
 };
 
 /* ---------------------- 玩家間資產轉讓（含 AI 議價） ---------------------- */

@@ -111,7 +111,10 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
 
     step("期貨：逐輪結算——標的漲 5%，多單保證金增加合約值的 5%",()=>{
       const S=fresh(7107), me=S.players[0]; cashTo(S,me,20000); unlock(me);
-      const fd=FD(), u0=E.stockPrice(S,fd.underlying);
+      const fd=FD();
+      S.config.futBasisMax=0;                    // 固定基差＝0，才驗得出純粹的槓桿倍數
+      E.rollFutBasis(S,fd);
+      const u0=E.stockPrice(S,fd.underlying);
       openF(S,"long",1);
       const pos=E.futPositions(me)[0], m0=pos.marketValue, cv=E.futContractValue(S,fd);
       const u1=util.r2(u0*1.05); S.stockPrices[fd.underlying]=u1;
@@ -158,22 +161,23 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       return "OK";
     });
 
-    step("期貨：口數上限依信用評級（A 5／B 3／C 1）",()=>{
-      const S=fresh(7110), me=S.players[0]; cashTo(S,me,50000); unlock(me);
+    step("期貨：口數上限依信用評級（A 10／B 6／C 3）",()=>{
+      const S=fresh(7110), me=S.players[0]; cashTo(S,me,200000); unlock(me);
       me.creditRating="B";
-      A(E.futMaxLots(S,me)===3,"B 級應為 3 口");
-      me.creditRating="A"; A(E.futMaxLots(S,me)===5,"A 級應為 5 口");
-      me.creditRating="C"; A(E.futMaxLots(S,me)===1,"C 級應為 1 口");
-      const r=openF(S,"long",2);
-      A(r.rejected && rejOf(r)==="FUT_LOT_LIMIT","C 級開 2 口應被擋，實得 "+rejOf(r));
-      A(!openF(S,"long",1).rejected,"C 級開 1 口可以");
-      A(openF(S,"long",1).rejected,"已滿 1 口再開應被擋");
+      A(E.futMaxLots(S,me)===6,"B 級應為 6 口，實得 "+E.futMaxLots(S,me));
+      me.creditRating="A"; A(E.futMaxLots(S,me)===10,"A 級應為 10 口");
+      me.creditRating="C"; A(E.futMaxLots(S,me)===3,"C 級應為 3 口");
+      const r=openF(S,"long",4);
+      A(r.rejected && rejOf(r)==="FUT_LOT_LIMIT","C 級開 4 口應被擋，實得 "+rejOf(r));
+      A(!openF(S,"long",3).rejected,"C 級開 3 口可以");
+      A(openF(S,"long",1).rejected,"已滿 3 口再開應被擋");
       return "OK";
     });
 
     step("期貨：追繳——餘額低於維持水位時在自己的回合跳卡",()=>{
       const S=fresh(7111), me=S.players[0]; cashTo(S,me,20000); unlock(me);
-      const fd=FD(), u0=E.stockPrice(S,fd.underlying);
+      const fd=FD(); S.config.futBasisMax=0; E.rollFutBasis(S,fd);
+      const u0=E.stockPrice(S,fd.underlying);
       openF(S,"long",1);
       const pos=E.futPositions(me)[0];
       // 跌到餘額落在維持線與 0 之間（十倍槓桿：跌 7% 大約剩三成保證金）
@@ -196,7 +200,8 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
 
     step("期貨：補繳補到原始保證金；平倉退回餘額扣手續費",()=>{
       const S=fresh(7112), me=S.players[0]; cashTo(S,me,20000); unlock(me);
-      const fd=FD(), u0=E.stockPrice(S,fd.underlying);
+      const fd=FD(); S.config.futBasisMax=0; E.rollFutBasis(S,fd);
+      const u0=E.stockPrice(S,fd.underlying);
       openF(S,"long",1);
       S.stockPrices[fd.underlying]=util.r2(u0*0.93);
       E.tickFutures(S); S.decisionQueue.length=0; E.tickFutCall(S,me); E.syncPhase(S);
@@ -220,7 +225,7 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     });
 
     step("期貨：保證金燒光→強制平倉，穿價轉信貸（債不會憑空消失）",()=>{
-      const S=fresh(7113), me=S.players[0]; cashTo(S,me,20000); unlock(me);
+      const S=fresh(7113,{futAutoTopUp:0}), me=S.players[0]; cashTo(S,me,20000); unlock(me);
       const fd=FD(), u0=E.stockPrice(S,fd.underlying);
       openF(S,"long",2);
       const nL0=me.liabilities.length;
@@ -233,10 +238,145 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       A(/期貨穿價/.test(li.name),"負債名稱應說明來源，實得 "+li.name);
       A(li.principal>0,"欠款應大於 0");
       A(me.stats.futClosed>0,"應計入平倉次數");
+      /* S23b.1：回合結束時【不得】直接推決策卡——引擎的不變式是「待決策一定屬於當前玩家」，
+         而 tickFutures 跑在回合結束，當前玩家不一定是這個部位的主人（S15d 死結）。
+         改成排隊，等他自己的回合由 E.tickFutCall 倒出來。 */
+      A(S.decisionQueue.length===0,"回合結束不得直接推決策卡，實得 "+S.decisionQueue.length+" 張");
+      const q=(me.pendingFutNotices||[]).filter(x=>/強制平倉/.test(x.title||""))[0];
+      A(q,"應排隊一張強制平倉的揭曉卡");
+      A(/信用貸款/.test(q.text||""),"揭曉卡應說明穿價轉信貸");
+      E.tickFutCall(S,me);                                   // 模擬輪到他自己
       const ack=S.decisionQueue.filter(x=>x.kind==="ACK" && /強制平倉/.test(x.title||""))[0];
-      A(ack,"應有強制平倉的揭曉卡");
-      A(/信用貸款/.test(ack.text||""),"揭曉卡應說明穿價轉信貸");
+      A(ack,"輪到他自己時應跳出揭曉卡");
+      A((me.pendingFutNotices||[]).length===0,"倒完之後佇列應清空");
       return "欠款 "+util.money(li.principal);
+    });
+
+    /* ---------------- S23b.1：折溢價、自動補倉、看板與庫存 ---------------- */
+    step("期貨：有自己的報價，相對現貨有 ±1% 折溢價，每輪重抽",()=>{
+      const S=fresh(7120), me=S.players[0]; cashTo(S,me,50000); unlock(me);
+      const fd=FD(), mx=E.cfg(S,"futBasisMax");
+      A(mx===0.01,"預設折溢價上限應為 ±1%，實得 "+mx);
+      const seen={};
+      for(let i=0;i<40;i++){
+        E.rollFutBasis(S,fd);
+        const bs=E.futBasis(S,fd);
+        A(Math.abs(bs)<=mx+1e-9,"基差不得超過 ±"+mx+"，實得 "+bs);
+        seen[bs]=1;
+        A(Math.abs(E.futPrice(S,fd)-util.r2(E.stockPrice(S,fd.underlying)*(1+bs)))<0.01,
+          "期貨價應為 現貨×(1+基差)");
+      }
+      A(Object.keys(seen).length>5,"40 次應抽出多種不同的基差（不是固定值），實得 "+Object.keys(seen).length+" 種");
+      A(Math.abs(E.futContractValue(S,fd)-util.r2(E.futPrice(S,fd)*fd.multiplier))<0.01,
+        "合約值應以期貨報價計，不是現貨");
+      // 同種子重現
+      const S2=fresh(7120); E.rollFutBasis(S2,fd); const b1=E.futBasis(S2,fd);
+      const S3=fresh(7120); E.rollFutBasis(S3,fd);
+      A(E.futBasis(S3,fd)===b1,"同種子應抽出同樣的基差（重放決定論）");
+      // 純讀取不得消耗亂數（否則「看了幾次畫面」會影響牌序）
+      const S4=fresh(7120);
+      const before=S4.rngState;
+      for(let i=0;i<20;i++){ E.futBasis(S4,fd); E.futPrice(S4,fd); E.futContractValue(S4,fd); }
+      A(S4.rngState===before,"讀取期貨報價不得消耗亂數");
+      A(E.futBasis(S4,fd)===0,"還沒結算過的局，基差應為 0（期貨＝現貨）");
+      return "±"+util.pct(mx,0);
+    });
+
+    step("期貨：結算走期貨報價——現貨不動、只有基差變也會有損益",()=>{
+      const S=fresh(7121), me=S.players[0]; cashTo(S,me,50000); unlock(me);
+      const fd=FD();
+      S.futBasis={}; S.futBasis[fd.symbol]=0;                    // 開倉時基差 0
+      openF(S,"long",1);
+      const pos=E.futPositions(me)[0], m0=pos.marketValue;
+      A(Math.abs(pos.entryPrice-E.stockPrice(S,fd.underlying))<0.01,"基差 0 時進場價＝現貨價");
+      S.config.futBasisMax=0;                                     // 讓 tickFutures 抽出來固定是 0
+      const spot=E.stockPrice(S,fd.underlying);
+      S.futBasis[fd.symbol]=0.01;                                 // 手動改成溢價 1%
+      // 直接呼叫結算前先把 rollFutBasis 停掉的效果模擬出來：改用 futPrice 算預期
+      const expect=util.r2((util.r2(spot*1.01)-pos.lastPrice)*fd.multiplier);
+      pos.lastPrice=pos.entryPrice;
+      const nowPx=E.futPrice(S,fd);
+      const pnl=util.r2((nowPx-pos.lastPrice)*fd.multiplier);
+      A(pnl>0,"現貨沒動、只有溢價上升，多單也該有損益，實得 "+pnl);
+      A(Math.abs(pnl-expect)<0.02,"損益應以期貨報價差計算");
+      return "基差本身就會賺賠";
+    });
+
+    step("期貨：保證金見底時先自動補倉，補不出來才強制平倉",()=>{
+      const S=fresh(7122), me=S.players[0]; cashTo(S,me,200000); unlock(me);
+      const fd=FD(); S.config.futBasisMax=0; E.rollFutBasis(S,fd);
+      A(E.cfg(S,"futAutoTopUp")===1,"預設應開啟自動補繳");
+      const u0=E.stockPrice(S,fd.underlying);
+      openF(S,"short",1);
+      const pos=E.futPositions(me)[0];
+      S.stockPrices[fd.underlying]=util.r2(u0*1.25);   // 空單大賠，保證金穿價
+      S.decisionQueue.length=0;
+      const c0=me.cash, nL0=me.liabilities.length;
+      E.tickFutures(S);
+      A(E.futPositions(me).length===1,"現金補得起就不該被強平");
+      A(me.cash<c0,"應從現金補繳，實得花掉 "+util.r2(c0-me.cash));
+      A(me.stats.futAutoTopUp===1,"應記錄自動補繳次數");
+      A(me.liabilities.length===nL0,"自動補繳不該產生負債");
+      A(E.futPositions(me)[0].marketValue>0,"補完之後保證金要大於 0");
+      A(S.decisionQueue.length===0,"回合結束不得直接推決策卡");
+      const q=(me.pendingFutNotices||[]).filter(x=>/自動補繳/.test(x.title||""))[0];
+      A(q,"應排隊一張告知卡");
+      A(/錢是真的出去了/.test(q.text||""),"告知卡要講清楚錢真的花掉了");
+      E.tickFutCall(S,me);
+      const ack=S.decisionQueue.filter(x=>/自動補繳/.test(x.title||""))[0];
+      A(ack,"輪到他自己時應跳出告知卡");
+      // 現金抽乾 → 這次只能強平
+      ns.ledger.post(S,me,"抽乾現金",[{account:"CASH",delta:-me.cash,label:"x"}],{eduTags:["setup"]});
+      S.stockPrices[fd.underlying]=util.r2(u0*1.6);
+      E.tickFutures(S);
+      A(E.futPositions(me).length===0,"補不出來就該強制平倉");
+      A(me.liabilities.length===nL0+1,"穿價仍要轉信貸");
+      return "先補倉再強平";
+    });
+
+    step("不變式：期貨的通知不得推給別人——回合結束只排隊，輪到本人才跳",()=>{
+      /* S15d 的死結教訓：引擎的不變式是「待決策一定屬於當前玩家」。
+         tickFutures 跑在【回合結束】，此時的當前玩家不一定是部位的主人；
+         NPC 不碰 M9，所以 1000 局閘門抓不到這個洞，只能在這裡釘住。 */
+      const S=fresh(7124,{futAutoTopUp:0}), me=S.players[0]; cashTo(S,me,20000); unlock(me);
+      const fd=FD(), u0=E.stockPrice(S,fd.underlying);
+      openF(S,"long",2);
+      S.decisionQueue.length=0;
+      S.currentPlayer=1;                                   // 換成另一個人的回合
+      S.stockPrices[fd.underlying]=util.r2(u0*0.8);
+      E.tickFutures(S);
+      A(S.decisionQueue.length===0,"別人的回合結束時，不得把卡推進決策佇列");
+      A((me.pendingFutNotices||[]).length===1,"應排隊 1 張，實得 "+(me.pendingFutNotices||[]).length);
+      // 佇列有上限，不會無限長
+      for(let i=0;i<20;i++) E.queueFutNotice(me,{title:"x",text:"y"});
+      A(me.pendingFutNotices.length<=4,"佇列應有上限，實得 "+me.pendingFutNotices.length);
+      // 破產的人不該再被通知卡卡住
+      const S2=fresh(7125,{futAutoTopUp:0}), him=S2.players[0];
+      E.queueFutNotice(him,{title:"💥 期貨強制平倉",text:"x"});
+      him.bankrupt=true; S2.decisionQueue.length=0;
+      E.tickFutCall(S2,him);
+      A(S2.decisionQueue.length===0,"已破產的玩家不該再跳期貨通知卡");
+      A((him.pendingFutNotices||[]).length===0,"佇列仍應清空");
+      return "排隊上限 4";
+    });
+
+    step("介面：看板有期貨列（含折溢價）、庫存期貨區塊與醒目的平倉鈕",()=>{
+      const S=fresh(7123), me=S.players[0]; cashTo(S,me,80000); unlock(me);
+      openF(S,"short",2);
+      ui.render();
+      const body=document.body.textContent;
+      A(/溢價|折價/.test(body),"中欄看板應有期貨的折溢價");
+      A(/庫存期貨/.test(body),"應有庫存期貨區塊");
+      A(/浮動損益/.test(body),"庫存期貨應顯示浮動損益");
+      A(/維持線/.test(body),"應顯示維持線");
+      const closeBtns=[...document.querySelectorAll("button")].filter(x=>x.textContent==="平倉");
+      A(closeBtns.length>=1,"應有平倉鈕");
+      const st=closeBtns[0].getAttribute("style")||"";
+      A(/var\(--neg\)/.test(st) && /700/.test(st),"平倉鈕應是醒目的實心警示色，實得 style："+st);
+      A(closeBtns[0].className.indexOf("primary")>=0,"平倉鈕應是主要按鈕樣式");
+      // 資產表：期貨不能出現「賣出」鈕（那條路對期貨是錯的）
+      A(/期貨保證金/.test(body),"資產表應有期貨保證金合計列");
+      return closeBtns.length+" 顆平倉鈕";
     });
 
     step("期貨：M9 沒開或未解鎖時，所有動作都被引擎擋下",()=>{
