@@ -428,6 +428,42 @@
           }
         ],
         "oncePerGame": true
+      },
+      {
+        "id": "MKT_CRYPTO_EXCHANGE_FAIL",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "全球第二大交易所無預警倒閉",
+        "subtitle": "交易所挪用客戶資產填補關聯基金虧損，公告停止提領，資產凍結後宣告破產。",
+        "flavor": "昨天還在贊助球場、代言人滿天飛；今天 App 打得開，錢提不出來（歷史原型：FTX）。",
+        "eduNote": "「Not your keys, not your coins」——放在平台上的幣，帳上是平台的負債，不是你的資產。冷錢包是用一筆小錢買掉這整個尾端風險。",
+        "moduleReq": "M9",
+        "effects": [
+          {
+            "op": "CRYPTO_EXCHANGE_FAIL",
+            "label": "交易所倒閉"
+          }
+        ],
+        "oncePerGame": true
+      },
+      {
+        "id": "MKT_CRYPTO_BAN",
+        "deck": "MACRO_EVENT",
+        "kind": "MACRO_EVENT",
+        "title": "主要國家全面禁止虛擬貨幣交易",
+        "subtitle": "監管機關以洗錢與投資人保護為由，禁止境內交易所營運並封鎖金流。",
+        "flavor": "「去中心化」的資產，價格還是被一紙公告砍半。",
+        "eduNote": "沒有現金流的資產，價格只由供需與情緒決定——而監管可以在一夜之間改變供需。",
+        "moduleReq": "M9",
+        "effects": [
+          {
+            "op": "STOCK_PRICE_SET",
+            "symbol": "CRY_MEME",
+            "mult": 0.5,
+            "label": "監管禁令"
+          }
+        ],
+        "oncePerGame": true
       }
     ]
   }

@@ -3707,6 +3707,26 @@
     "term.MARGIN_CALL.2": "斷頭",
     "term.MARGIN_CALL.3": "融資追繳"
   },
+  "cryptoDefs": [
+    {
+      "symbol": "CRY_MEME",
+      "name": "狗狗星幣",
+      "face": 1,
+      "dividendYieldMonthly": 0,
+      "taxRate": 0,
+      "vol": 0.32,
+      "macroBeta": 0.3,
+      "maxMove": 0.5,
+      "driftBonus": -0.006,
+      "delistable": true,
+      "delistHazardMult": 2,
+      "noMargin": true,
+      "custody": true,
+      "moduleReq": "M9",
+      "profile": "沒有配息、沒有盈餘、沒有資產負債表——價格完全由「還有沒有人願意用更高的價錢接手」決定。月波動 32%，單輪可以動 ±50%，長期漂移是負的。",
+      "macroNote": "跟景氣只有 0.3 倍連動，真正主導它的是幣圈自己的循環（狂熱／盤整／寒冬）"
+    }
+  ],
   "futuresDefs": [
     {
       "symbol": "FUT_TX",
