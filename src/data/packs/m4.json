@@ -359,9 +359,10 @@
         "eduNote": "營收會騙人、獲利會造假，唯有真正的現金流量表騙不了人。",
         "effects": [
           {
-            "op": "STOCK_CRASH",
-            "category": "GROWTH",
-            "factor": 0.6
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_TECH",
+            "mult": 0.6,
+            "label": "假帳風暴"
           }
         ]
       },
@@ -375,9 +376,10 @@
         "eduNote": "資產規模大不代表不會倒，公司治理與內部稽核才是資產的防腐劑。",
         "effects": [
           {
-            "op": "STOCK_CRASH",
-            "category": "VALUE",
-            "factor": 0.5
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_DIV",
+            "mult": 0.5,
+            "label": "掏空弊案"
           }
         ]
       },
@@ -391,8 +393,18 @@
         "eduNote": "用短期高利消費貸去支撐生活或投資，是通往破產最快的一條路。",
         "effects": [
           {
-            "op": "INTEREST_RATE_HIKE",
-            "points": 3
+            "op": "SET_PARAM",
+            "param": "creditSpread",
+            "value": 0.11,
+            "durationTurns": 6,
+            "label": "信用緊縮"
+          },
+          {
+            "op": "SET_PARAM",
+            "param": "marginSpread",
+            "value": 0.06,
+            "durationTurns": 6,
+            "label": "信用緊縮"
           }
         ]
       },
@@ -406,9 +418,10 @@
         "eduNote": "全靠單一事件下注的投機不是投資，一旦失敗流動性直接歸零。",
         "effects": [
           {
-            "op": "STOCK_CRASH",
-            "category": "SPECULATIVE",
-            "factor": 0.4
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_SPEC",
+            "mult": 0.4,
+            "label": "解盲失敗"
           }
         ]
       }

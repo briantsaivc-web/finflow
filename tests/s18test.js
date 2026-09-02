@@ -88,12 +88,16 @@ function cardsAndLabels(){
   const visible=[...document.querySelectorAll('#infoL .ln')].filter(e=>{
     const r=e.getBoundingClientRect(), p=infoL.getBoundingClientRect();
     return r.top>=p.top-1 && r.bottom<=p.bottom+1; }).length;
+  // S22：看得到幾則取決於這一局最後幾則有多少會折行（內容運氣），不是版面。
+  // 改量「單行高度下裝得下幾則」當版面指標；實際看得到的則數照樣印出來看。
+  const lnH=Math.min(...[...document.querySelectorAll('#infoL .ln')].map(e=>e.getBoundingClientRect().height).filter(h=>h>0));
+  const capacity=Math.floor(infoL.getBoundingClientRect().height/lnH);
   const mk05=ns.content.byId["MK05"], mk08=ns.content.byId["MK08"];
   const note=ui.ledgerRow({summary:"人事成本上升 → 事業淨利下降",
     postings:[{account:"INCOME_PASSIVE",delta:-120}]}).note||"";
   return { cardH:Math.round(card.getBoundingClientRect().height),
            pawnsH:Math.round(document.getElementById('pawns').getBoundingClientRect().height),
-           visibleLogLines:visible,
+           visibleLogLines:visible, logCapacity:capacity,
            cardHasCount:/／\s*\d+\s*筆/.test(card.textContent),
            cardHasStatusInline:!!card.querySelector('.nm .st'),
            mk05:mk05.effects[0].label, mk08:mk08.effects[0].label, note };
@@ -127,7 +131,7 @@ function cardsAndLabels(){
   A(s.mutedHasAll, '被靜音的提示沒有分三類列出');
   A(c.cardH<=140, '玩家卡沒壓矮，實得 '+c.cardH+'px（S17 是 173px）');
   A(c.pawnsH<=300, '玩家區沒縮小，實得 '+c.pawnsH+'px（S17 是 361px）');
-  A(c.visibleLogLines>=11, '左欄系統訊息看得到的則數沒有變多，實得 '+c.visibleLogLines+'（S17 是 11）');
+  A(c.logCapacity>=20, '左欄系統訊息的版面容量沒有變多，單行可裝 '+c.logCapacity+' 則（S17 版面約 11 則、S18 後 ≥20）；實際看得到 '+c.visibleLogLines+' 則');
   A(c.cardHasCount, '玩家卡看不到資產筆數（應併在被動收入那一行）');
   A(c.cardHasStatusInline, '狀態沒有併進名字那一列');
   A(/淨利下降/.test(c.mk05), 'MK05 標籤沒改：'+c.mk05);
@@ -138,7 +142,7 @@ function cardsAndLabels(){
     ' 則　擲骰行 '+r.rollLines+' 行（帶決定 '+r.withDecision+' 行）');
   console.log('範例：'+r.sample);
   console.log('彙總分段：'+s.cats.join(' ｜ '));
-  console.log('玩家卡 '+c.cardH+'px　玩家區 '+c.pawnsH+'px　系統訊息看得到 '+c.visibleLogLines+' 則');
+  console.log('玩家卡 '+c.cardH+'px　玩家區 '+c.pawnsH+'px　系統訊息看得到 '+c.visibleLogLines+' 則（單行容量 '+c.logCapacity+' 則）');
   console.log(JSON.stringify({pass,fail}));
   await b.close();
   process.exit(fail?1:0);

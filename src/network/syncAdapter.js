@@ -592,6 +592,7 @@ ui.REJECT_TEXT = {
   NOT_YOUR_DECISION:"這是別人要回答的決定",
   MALL_LIMIT:"這一輪的商城購買次數已經用完",
   MALL_COOLDOWN:"該商城項目仍在冷卻中，暫時無法再次購買",
+  PREREQUISITE_REQUIRED:"這是高階技能，要先學會它的先修技能",
   DEPTH_LOCKED:"本局難度沒有開放這個功能",
   MUST_ROLL:"要先擲骰才能結束回合",
   DELISTED:"這檔已經下市，不能買進",
@@ -606,10 +607,16 @@ function mpSend(action, opts){
   // 本地試跑：被拒就不上傳（log 內永遠只有可重放的動作）
   var trial=E.apply(S, action);
   if(trial.rejected){
+    // S15d：這裡原本只丟一句 toast 就結束，電腦玩家的迴圈（mpAfter）因此永遠不會再被叫起——
+    // 實測回報「看到『這動作不能』就掛了」正是這個。改成把被拒的原因攤開，並提供出路。
     var rj=(trial.events||[]).filter(function(e){return e.type==="ACTION_REJECTED";}).slice(-1)[0];
     var why=(rj&&rj.reason)||"";
     var human=ui.REJECT_TEXT[why];
     ui.toast(human || (T("toast.rejected")+(why?("（"+why+"）"):"")), "warn", 4500, "MINE");
+    /* S19：原本玩家自己按的動作被拒三次就跳「卡住了——這是程式的問題」。
+       實測合資邀約那顆借款鈕重按就會中——那不是卡住，是額度真的不夠。
+       只有電腦代跑的迴圈連續推不動才是真的卡住。
+       S21：電腦代跑在 READY_END 被拒（例如商城冷卻）就直接補 END_TURN，回合不會停在那裡。 */
     if(auto){
       if(S.phase==="READY_END"){
         setTimeout(function(){

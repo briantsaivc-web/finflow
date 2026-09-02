@@ -708,14 +708,10 @@ function soleWinner(ctx, key, p, minV){
 }
 
 badges.rules = {
-  directorHero: function(S,p){
-    return (p.ledger||[]).some(function(e){ return e.summary && e.summary.indexOf("請辭獨立董事") >= 0; });
-  },
-  scamImmune: function(S,p){
-    var hasAudit = E.hasSkill && (E.hasSkill(p, "SKL_BOOK") || E.hasSkill(p, "SKL_CPA_AUDIT"));
-    var hasLaw = E.hasSkill && (E.hasSkill(p, "SKL_LAW") || E.hasSkill(p, "SKL_GOV_LEGAL"));
-    return (hasAudit || hasLaw) && (p.stats.passedOpps || 0) >= 2;
-  },
+  // S22：原版掃分錄摘要找「請辭獨立董事」，但那筆分錄 delta 為 0 根本沒入帳；改讀引擎寫的 stats
+  directorHero: function(S,p){ return (p.stats.directorResigned||0) >= 1; },
+  // 看得懂帳或懂法、且拒絕過至少一張吸金盤（引擎在 skip 時記 scamPassed）
+  scamImmune:   function(S,p){ return (p.stats.scamPassed||0) >= 1 && !(p.stats.scamBought>0); },
   // 學習線
   ready:    function(S,p){ return (p.stats.skillsUsed||0) >= 5; },
   twoTrade: function(S,p){
@@ -1014,19 +1010,14 @@ ui.showReport = function(){
     "finflow-replay.json"); };
   var replaySameSeed = el("button","opt primary","🔄 相同種子再戰一次");
   replaySameSeed.title = "使用完全相同的開局與牌序，考驗不同決策能否逆轉結局！";
+  // S22：原版呼叫不存在的 E.initGame（引擎是 E.newGame），按下去直接拋錯；
+  // 改走 ui.startCore（單機開局的共用核心），玩家名單用 ns.seedPlayers 還原開局設定。多人局不提供。
   replaySameSeed.onclick = function(){
     ov.remove(); ui._reported = false;
-    var origSeed = S.seed;
-    var cfg = JSON.parse(JSON.stringify(S.config));
-    var mods = S.enabledModules.slice();
-    $("app").classList.remove("hide");
-    var S_new = E.initGame(origSeed, cfg, mods);
-    ui.S = S_new;
-    ui.render();
-    ui.tick();
-    ui.toast("已使用相同種子開局，驗證不同策略的因果！", "pos");
+    ui.startCore(S.seed, util.clone(S.config), S.enabledModules.slice(), ns.seedPlayers(S), { noRules:true });
+    ui.toast("已用相同種子重開：牌序與骰子都一樣，換個決策看看結局會不會不同", "pos");
   };
-  opts.appendChild(replaySameSeed);
+  if(!(ui.mp && ui.mp.mode)) opts.appendChild(replaySameSeed);
 
   var again=el("button","opt","再玩一局");
   again.onclick=function(){ ov.remove(); ui._reported=false; ui.S=null; $("app").classList.add("hide"); ui.showSetup(); };
@@ -5864,7 +5855,9 @@ ns.selftest = {
           else if(c.requiresChild===true || ((c.payload||{}).reqChild===true)) already2++;
         });
       });
-      assert(newly===1,"這一版新掛的閘門應恰好 1 張（實測重掃的結果），實得 "+newly);
+      // S12 當時恰好 1 張；S21c／S22 新增的子女卡（LS23 樂器、孩子的補習班繳費單）也走這個閘門，
+      // 所以改驗「至少 1 張、且每一張都真的有小孩才抽得到」。
+      assert(newly>=1,"這一版新掛的閘門至少 1 張，實得 "+newly);
 
       return "本次新掛閘門 "+newly+" 張（LS12）；本來就有 "+already2+" 張；"+
              "由教養軸規則擋下 "+byAxis+" 張；掃描全牌堆零漏網；還原開關只影響新掛的那一張";

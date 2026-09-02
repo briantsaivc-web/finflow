@@ -816,7 +816,7 @@ ui.showMall = function(){
       else if(itCost>p.cash) why="現金不足";
       b.disabled=!!why; b.title=why||(it.eduNote||"");
       b.onclick=function(){
-        var after=util.r2(p.cash-(pl.cost||0));
+        var after=util.r2(p.cash-itCost);
         ui.spendGuard(after, function(){
           ov.remove(); ui.dispatch({type:"MALL_BUY",playerId:ui.myId(),payload:{itemId:it.id}});
         });
@@ -1737,13 +1737,36 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(bar);
   }
 
+  // S22：獨立董事邀請——三家公司可選，數字從引擎的 E.DIRECTOR_COMPANIES 讀，不在介面另寫一份
+  if(d.kind==="APPOINT_DIRECTOR"){
+    var cdA = d.cardId ? ns.content.byId[d.cardId] : null;
+    card.appendChild(cardFace(cdA||{title:"獨立董事邀請"}));
+    if(cdA){ var ebA=eduBox(cdA); if(ebA) card.appendChild(ebA); }
+    var canAudit = E.directorAuditSkill(p), canShield = E.directorLegalShield(p);
+    card.appendChild(el("div","flavor", canAudit
+      ? "你看得懂帳：弊案爆發前一輪會收到審計警訊，可以及時請辭。"
+      : "你沒有審計能力：帳有問題你不會提前知道，只能賭公司乾淨。"
+      + (canShield ? " 不過你有合規治理專業，真出事可免除連帶賠償（仍要停走應訴）。" : "")));
+    var oA=el("div","opts");
+    ["A","B","C"].forEach(function(k){
+      var co=E.DIRECTOR_COMPANIES[k];
+      var sub="每輪車馬費 +"+M(co.income)+"、任期 "+co.term+" 輪｜風險："+co.risk
+        +(co.fineAmount?"｜弊案賠償 "+M(co.fineAmount)+(co.hasInsurance?"（D&O 險承擔八成）":"（無責任險）"):"｜有 D&O 險")
+        +"\n"+co.note;
+      oA.appendChild(optBtn(k+"．"+co.title, sub, function(){ decide("appoint",{company:k}); }, k==="A"));
+    });
+    oA.appendChild(optBtn("婉拒邀請","車馬費誘人，但連帶責任不是每個人都扛得起",function(){ decide("pass"); }));
+    card.appendChild(oA); c.appendChild(card); return;
+  }
+
   // 獨立董事審計預警與請辭抉擇
   if(d.kind==="RESIGN_DIRECTORSHIP"){
     card.appendChild(el("h3",null,d.title||"⚠️ 審計警訊：假帳弊案即將爆發！"));
     card.appendChild(el("div","flavor",d.text||"查核本季財務報告發現異常關係人鉅額借貸且憑證不全，公司即將爆發弊案！"));
+    var dsR=p.directorship||{}, fineR=dsR.hasInsurance?util.r2((dsR.fineAmount||0)*0.2):(dsR.fineAmount||0);
     var oR=el("div","opts");
     oR.appendChild(optBtn("💡 立即請辭獨立董事","及時停損，免除後續民事連帶賠償與官司",function(){ decide("resign"); },true));
-    oR.appendChild(optBtn("⚠️ 抱持僥倖，繼續留任","繼續領取本期車馬費，但下輪 100% 承受弊案賠償與停走",function(){ decide("stay"); },false));
+    oR.appendChild(optBtn("⚠️ 抱持僥倖，繼續留任","僥倖留任，下輪弊案爆發：賠 "+M(fineR)+"、停走 "+(dsR.hasInsurance?1:2)+" 輪",function(){ decide("stay"); },false));
     card.appendChild(oR); c.appendChild(card); return;
   }
 
@@ -2241,7 +2264,11 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(kvL);
     var oL=el("div","opts");
     var busyL = !!p.learning, richL = p.cash>=priceL, coolL = S.turnNumber < (p.skillCooldownUntil||0);
+    var preL = cd.requiresSkill && !E.hasSkill(p, cd.requiresSkill) ? (ns.content.byId[cd.requiresSkill]||{}).title||cd.requiresSkill : "";
+    if(cd.requiresSkill){ kvL.appendChild(el("div","k","先修技能"));
+      kvL.appendChild(el("div","v"+(preL?" neg":" pos"),((ns.content.byId[cd.requiresSkill]||{}).title||cd.requiresSkill)+(preL?"（尚未學會）":"（已具備）"))); }
     var whyL = busyL ? "你正在學「"+((ns.content.byId[p.learning.skillId]||{}).title||"別的")+"」，同時只能學一項"
+             : preL ? "這是高階技能，要先學會「"+preL+"」"
              : coolL ? "剛學完，還在休息中"
              : (!richL ? "現金不足" : "");
     if(whyL){
@@ -2450,7 +2477,8 @@ ui.decisionCard = function(S,p,d){
   }
 
   // ACK 類（市場卡、人生事件、聖地、失業結果）
-  card.appendChild(cardFace(cd||{title:"事件"}));
+  // S22：引擎自己生的結算卡（弊案爆發、吸金盤歸零、任期屆滿）帶 title/text，優先於原卡面
+  card.appendChild(cardFace(d.title ? {title:d.title, flavor:d.text||""} : (cd||{title:"事件"})));
   if(cd){ var eb5=eduBox(cd); if(eb5) card.appendChild(eb5); }
   // V11.1：醫療／意外事件的理賠明細——原價、折抵、理賠、實際支付、省下多少
   if(d.claim && d.claim.gross>0) card.appendChild(ui.claimBox(S,d.claim));
@@ -2515,8 +2543,12 @@ ui.showSkillMenu = function(p){
         h.textContent=sc.hint; b.appendChild(h); }
       if(sc.recurringMonthly){ var rr=el("div","fl"); rr.style.cssText="font-size:12px;color:var(--neg)";
         rr.textContent="學習期間每月 −"+M(sc.recurringMonthly); b.appendChild(rr); }
-      b.disabled=!afford;
-      if(!afford) b.title="現金不足";
+      // S22：階梯技能——先修沒學會就不能報名，但要讓玩家看得到路徑
+      var preOk = !sc.requiresSkill || E.hasSkill(p, sc.requiresSkill);
+      if(sc.requiresSkill){ var pr=el("div","fl"); pr.style.cssText="font-size:12px;color:"+(preOk?"var(--pos)":"var(--gold)");
+        pr.textContent="先修："+((ns.content.byId[sc.requiresSkill]||{}).title||sc.requiresSkill)+(preOk?"（已具備）":"（尚未學會）"); b.appendChild(pr); }
+      b.disabled=!afford || !preOk;
+      if(!preOk) b.title="要先學會先修技能"; else if(!afford) b.title="現金不足";
       b.onclick=function(){ ov.remove(); ui.dispatch({type:"START_SKILL",playerId:ui.myId(),payload:{skillId:sc.id}}); };
       grid.appendChild(b);
     });

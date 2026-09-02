@@ -112,31 +112,6 @@
           "volatileProfit": true
         },
         "tierS15c": true
-      },
-      {
-        "id": "OPP_INDEPENDENT_DIRECTOR",
-        "deck": "OPPORTUNITY_SPECIAL",
-        "kind": "SPECIAL",
-        "title": "知名企業獨立董事邀請",
-        "subtitle": "獵頭推薦高階董監席次，享每月車馬費與社會聲望，但須承擔重大連帶法定義務。",
-        "flavor": "董事會審計委員會的席次虛位以待，車馬費優厚，但也是地雷公司的祭品首選。",
-        "eduNote": "獨立董事不是單純的車馬費；若缺乏審計查核能力，一旦假帳弊案爆發將面臨上億連帶民事賠償。",
-        "group": "獨立董監",
-        "stage": "INNER",
-        "requiresAnySkill": [
-          "SKL_BOOK",
-          "SKL_CPA_AUDIT",
-          "SKL_LAW",
-          "SKL_GOV_LEGAL"
-        ],
-        "payload": {
-          "decisionKind": "APPOINT_DIRECTOR",
-          "companyOptions": [
-            "A",
-            "B",
-            "C"
-          ]
-        }
       }
     ]
   }

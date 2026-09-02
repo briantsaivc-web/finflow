@@ -1581,12 +1581,20 @@ E.cardUsable = function(S,p,c){
   }
   // M8 S3：已經會的技能就不必再送一次（否則玩家白付教材費卻什麼也沒得到）
   if(c.requiresNotSkill && E.hasSkill(p, c.requiresNotSkill)) return false;
+  // S22：階梯技能——先修沒學會，高階卡抽到也學不了，直接跳過（進棄牌堆，之後仍會回來）
+  if(c.kind==="SKILL" && c.requiresSkill && !E.hasSkill(p, c.requiresSkill)) return false;
+  // S22：獨立董事邀請等「要有資格才會找上門」的卡：列出的技能至少會一項
+  if(c.requiresAnySkill && !c.requiresAnySkill.some(function(sid){ return E.hasSkill(p, sid); })) return false;
+  if(c.kind==="SPECIAL" && c.payload && c.payload.decisionKind==="APPOINT_DIRECTOR"
+     && (p.directorship || p.playerStage!=="INNER")) return false;   // 同時只能兼一席；外圈不接
   if(c.kind==="TAPESTRY" && c.virtueAxis==="PARENTING" && p.childrenCount<=0) return false;
   if(c.kind==="LIFE_EVENT" && c.effects && c.effects.some(function(e){return e.op==="ADD_CHILD";})
      && p.childrenCount>=S.config.childExpenseCap) return false;
   if(c.kind==="STARTUP" && S.enabledModules.indexOf("M3")<0) return false;
   // S7b：已下市的股票不會再有人賣給你
   if(c.kind==="STOCK" && S.delisted && S.delisted[(c.payload||{}).symbol]) return false;
+  // S22：吸金盤每張一局只找上門一次——被騙過（或拒絕過）的同一個局，不會再遇到同一個介紹人
+  if(c.payload && c.payload.isScam && p.scamSeen && p.scamSeen[c.id]) return false;
   return true;
 };
 
@@ -1595,6 +1603,7 @@ E.presentCard = function(S,p,card){
   E.ev("CARD_DRAWN",{card:card.id});
   switch(card.kind){
     case "REALESTATE": case "STOCK": case "BUSINESS": case "STARTUP":
+      if(card.payload && card.payload.isScam){ p.scamSeen=p.scamSeen||{}; p.scamSeen[card.id]=1; }   // S22
       E.pushDecision(S,p,{ kind:"BUY", cardId:card.id }); break;
     case "LIFESTYLE":
       if(card.payload.optional){ p.stats.optionalSeen++;
@@ -1628,6 +1637,11 @@ E.presentCard = function(S,p,card){
     case "CHOICE":
       if(card.oncePerLife) p.professionEventDone[card.id]=true;   // C1：讓 CHOICE 的 oncePerLife 真正生效
       E.pushDecision(S,p,{ kind:"CHOICE", cardId:card.id });
+      break;
+    case "SPECIAL":                                   // S22：payload.decisionKind 指定要開哪種決策
+      if(card.payload && card.payload.decisionKind)
+        E.pushDecision(S,p,{ kind:card.payload.decisionKind, cardId:card.id });
+      else E.pushDecision(S,p,{ kind:"ACK", cardId:card.id });
       break;
     case "SKILL":                                     // M8 S1：抽到技能卡 → 要不要學
       E.pushDecision(S,p,{ kind:"LEARN_SKILL", cardId:card.id });
@@ -1728,40 +1742,35 @@ E.resolveTrial = function(S,p,card){
 /* ============================== 決策解析 ================================= */
 E.resolveDecision = function(S,p,d,optionId,params){
   switch(d.kind){
+    /* S22：獨立董事——審計預警後的請辭抉擇。
+       S21 原版把「請辭」記成一筆 delta 0 的分錄；ledger.post 會把 0 金額的分錄整筆丟掉，
+       徽章又是靠掃分錄摘要判定，等於永遠拿不到。改成寫 stats 旗標。 */
     case "RESIGN_DIRECTORSHIP": {
-      if (optionId === "resign" && p.directorship) {
+      if(optionId==="resign" && p.directorship){
         p.directorship.resigned = true;
-        E.ev("DIRECTOR_RESIGNED", { playerId: p.id, company: p.directorship.title });
-        ledger.post(S, p, "請辭獨立董事：" + p.directorship.title,
-          [{ account: "CASH", delta: 0, label: "及時辭任避險" }], { eduTags: ["directorship", "risk-control"] });
-      } else if (p.directorship) {
-        E.ev("DIRECTOR_STAYED", { playerId: p.id, company: p.directorship.title });
+        p.stats.directorResigned = (p.stats.directorResigned||0) + 1;
+        E.ev("DIRECTOR_RESIGNED", { playerId:p.id, company:p.directorship.title });
+      } else if(p.directorship){
+        E.ev("DIRECTOR_STAYED", { playerId:p.id, company:p.directorship.title });
       }
       break;
     }
     case "APPOINT_DIRECTOR": {
-      if (optionId === "appoint") {
-        var comp = (params && params.company) || d.companyType || "B";
-        var compDefs = {
-          A: { title: "大型績優權值股", income: 8000, hasInsurance: true, crashTurn: S.turnNumber + 999, fineAmount: 40000 },
-          B: { title: "成長型科技新創板", income: 15000, hasInsurance: true, crashTurn: S.turnNumber + util.randInt(S, 3, 5), fineAmount: 120000 },
-          C: { title: "爭議家族小型股", income: 25000, hasInsurance: false, crashTurn: S.turnNumber + util.randInt(S, 2, 4), fineAmount: 200000 }
-        };
-        var sel = compDefs[comp] || compDefs.B;
+      if(optionId==="appoint"){
+        var comp = (params && params.company) || "A";
+        var sel = E.DIRECTOR_COMPANIES[comp] || E.DIRECTOR_COMPANIES.A;
+        var crashAt = sel.crashMin ? S.turnNumber + util.randInt(S, sel.crashMin, sel.crashMax) : null;
         p.directorship = {
-          companyType: comp,
-          title: sel.title,
-          monthlyIncome: sel.income,
-          hasInsurance: sel.hasInsurance,
-          crashTurn: sel.crashTurn,
-          fineAmount: sel.fineAmount,
-          termTurnsLeft: 6,
-          warned: false,
-          resigned: false
+          companyType: comp, title: sel.title, monthlyIncome: sel.income,
+          hasInsurance: sel.hasInsurance, crashTurn: crashAt, fineAmount: sel.fineAmount,
+          termTurnsLeft: sel.term, warned: false, resigned: false
         };
-        E.ev("DIRECTOR_APPOINTED", { playerId: p.id, company: sel.title, income: sel.income });
-        ledger.post(S, p, "就任獨立董事：" + sel.title,
-          [{ account: "CASH", delta: sel.income, label: "就任當期車馬費" }], { eduTags: ["directorship", "passive-income"] });
+        p.stats.directorAppointed = (p.stats.directorAppointed||0) + 1;
+        E.ev("DIRECTOR_APPOINTED", { playerId:p.id, company:sel.title, income:sel.income });
+        ledger.post(S, p, "就任獨立董事："+sel.title,
+          [{ account:"CASH", delta:sel.income, label:"就任當期車馬費" }], { eduTags:["directorship","passive-income"] });
+      } else {
+        p.stats.directorDeclined = (p.stats.directorDeclined||0) + 1;
       }
       break;
     }
@@ -1801,6 +1810,7 @@ E.resolveDecision = function(S,p,d,optionId,params){
     case "LEARN_SKILL": {
       var lc = ns.content.byId[d.cardId];
       if(optionId==="learn" && lc && !p.learning
+         && !(lc.requiresSkill && !E.hasSkill(p, lc.requiresSkill))   // S22：階梯技能先修
          && !(p.skills[lc.id] && !p.skills[lc.id].decayed)
          && S.turnNumber >= (p.skillCooldownUntil||0)
          && p.cash >= E.skillPrice(S,lc,true)){
@@ -1989,7 +1999,9 @@ E.resolveDecision = function(S,p,d,optionId,params){
 
     case "BUY": {
       var card=ns.content.byId[d.cardId];
-      if(optionId==="skip"){ p.stats.passedOpps++; break; }
+      if(optionId==="skip"){ p.stats.passedOpps++;
+        if(card && card.payload && card.payload.isScam) p.stats.scamPassed=(p.stats.scamPassed||0)+1;   // S22：徽章「鋼鐵避險王」
+        break; }
       E.buyAsset(S,p,card,optionId,params);
       break; }
 
@@ -2128,6 +2140,13 @@ E.buyAsset = function(S,p,card,optionId,params){
       postB.push({account:"EXPENSE",delta:cLoanO.monthlyPayment,refId:cid,label:name+" 貸款月付"});
     }
     ledger.post(S,p,(loanB>0?"貸款買下事業：":"買下事業：")+name,postB,{eduTags:loanB>0?["business","leverage","passive-income"]:["business","passive-income"]});
+    // S22：偽裝成事業的吸金盤——先照常配息，到期資金鏈斷裂整筆歸零（見 E.tickScamInvestments）
+    if(pl.isScam){
+      p.scamInvestments = p.scamInvestments||[];
+      p.scamInvestments.push({ instanceId:id, cardId:card.id, title:name,
+        crashTurn: S.turnNumber + (pl.scamDelayTurns||3) });
+      p.stats.scamBought = (p.stats.scamBought||0) + 1;
+    }
 
   } else if(card.kind==="STARTUP"){
     var invAmt = util.r2(pl.investAmount||0);                 // 缺欄位防禦（鐵律一）
@@ -2532,8 +2551,10 @@ E.npcAcceptReferral = function(S, tgt, card, fee){
 // 原本只算 payload.cost，導致產險顯示「免費」，而且 mallAffordable 也跟著繞過檢查。
 E.mallCost = function(S, it, p){
   var pl=(it&&it.payload)||{};
-  var base = (pl.costSalaryMult && p && p.derived)
-    ? util.r2((p.derived.salaryIncome || 65) * pl.costSalaryMult)
+  // S21c：依月薪計價（安太座）。S22：沒有薪水（自由圈／失業）就回退到固定 cost——
+  // 原版回退用 65，比全部職業的月薪都高，等於沒薪水的人反而付最貴。
+  var base = (pl.costSalaryMult && p && p.derived && p.derived.salaryIncome > 0)
+    ? util.r2(p.derived.salaryIncome * pl.costSalaryMult)
     : (pl.cost || 0);
   return util.r2(base + (pl.annualPremium||0));
 };
@@ -3178,9 +3199,13 @@ E.beginTurn = function(S){
     if((S.decisionQueue||[]).some(function(d){ return d.kind==="BANKRUPTCY"; })){ E.syncPhase(S); return; }
   }
   E.tickRenewals(S,p);               // 產險自動續約、健檢／健身年約到期詢問
-  E.tickDelistWarn(S,p);
-  E.tickDirectorship(S,p);           // 獨立董事車馬費、審計警訊與弊案結算
-  E.tickScamInvestments(S,p);        // 偽裝高息投資延遲引爆處理             // S7b：下市警示在自己的回合才跳卡
+  E.tickDelistWarn(S,p);             // S7b：下市警示在自己的回合才跳卡
+  E.tickDirectorship(S,p);           // S21/S22：獨立董事車馬費、審計警訊與弊案結算
+  E.tickScamInvestments(S,p);        // S21/S22：偽裝高息投資到期引爆
+  // S22：上面兩個結算可能把人打到現金負——電腦玩家走 npcRescue 失敗就地破產、真人則排入破產決策。
+  // 與 S14b 發薪那段同一個洞：破產已成定局卻停在 ROLL，誰都推不動。這裡照同一套收尾。
+  if(p.bankrupt){ S.turnResolved=true; return E.endTurn(S); }
+  if((S.decisionQueue||[]).some(function(d){ return d.kind==="BANKRUPTCY"; })){ E.syncPhase(S); return; }
   E.ev("TURN_START",{playerId:p.id, turn:S.turnNumber});
 };
 
@@ -3241,6 +3266,12 @@ E.onRoundEnd = function(S){
       if(pl2){ var a=pl2.assets.filter(function(x){return x.instanceId===e.assetId;})[0];
         if(a){ a.monthlyIncome=util.r2(a.monthlyIncome+e.amount);
           ledger.post(S,pl2,"事件結束："+e.label,[{account:"INCOME_PASSIVE",delta:e.amount,refId:a.instanceId,label:e.label}],{eduTags:["event-end"]}); } } }
+    if(e.kind==="DELAYED_FX"){ var plX=S.players[e.playerId];      // S22：定時炸彈到期
+      if(plX && !plX.bankrupt){
+        E.applyEffects(S,plX,e.effects,e.label);
+        E.ev("DELAYED_EFFECT_FIRED",{playerId:plX.id, label:e.label});
+        if(plX.cash<0) E.enterBankruptcy(S,plX);
+      } }
     if(e.kind==="DIV_BONUS") delete S.dividendBonus[e.symbol];
     if(e.kind==="SPACE_MULT") delete S.spaceMult[e.spaceType];
     if(e.kind==="PARAM"){ E.ev("EVENT_EXPIRED",{label:e.label, param:e.param}); }
@@ -3493,85 +3524,117 @@ E.finishByRanking = function(S, reason){
   E.ev("GAME_OVER",{reason:reason||"MAX_TURNS", playerId:S.winner});
 };
 
-/* ==================== 獨立董監事與偽裝投資機制 ==================== */
+/* ==================== S21/S22：獨立董監事與偽裝投資機制 ====================
+   單位提醒：全遊戲金額以「千元」計（月薪 30–42）。S21 原版把車馬費寫成 8000–25000、
+   賠償 40000–200000，是把千元當成元；S22 全部換回遊戲量級。
+   公司表放在引擎，介面與 NPC 都從這裡讀，數字只維護一份。 */
+E.DIRECTOR_COMPANIES = {
+  A: { title:"大型績優權值股", income:8,  term:6, hasInsurance:true,  crashMin:0, crashMax:0, fineAmount:0,
+       risk:"低", note:"治理健全、有 D&O 責任險；車馬費最少，但任期六輪可以安穩領完。" },
+  B: { title:"成長型科技新創板", income:15, term:6, hasInsurance:true,  crashMin:3, crashMax:8, fineAmount:120,
+       risk:"中", note:"有 D&O 責任險（承擔八成）；成長故事漂亮，但帳有沒有做過，任期內未必看得出來。" },
+  C: { title:"爭議家族小型股", income:25, term:6, hasInsurance:false, crashMin:2, crashMax:5, fineAmount:200,
+       risk:"高", note:"沒有責任險；車馬費最高，關係人交易也最多——弊案幾乎是時間問題。" }
+};
+// 能在爆雷前看出假帳的技能（S21 用 SKL_BOOK／SKL_CPA_AUDIT；法律線只擋賠償，看不出帳）
+E.directorAuditSkill = function(p){ return E.hasSkill(p,"SKL_CPA_AUDIT") || E.hasSkill(p,"SKL_BOOK"); };
+E.directorLegalShield = function(p){ return E.hasSkill(p,"SKL_GOV_LEGAL"); };
+
 E.tickDirectorship = function(S, p){
   if(!p.directorship || p.bankrupt) return;
   var d = p.directorship;
+  var crashSoon = d.crashTurn!==null && d.crashTurn!==undefined && !d.resigned;
 
-  // 1) 未請辭每輪發放車馬費
-  if(!d.resigned){
-    d.termTurnsLeft = (d.termTurnsLeft || 6) - 1;
-    ledger.post(S, p, "獨立董事車馬費：" + d.title,
-      [{ account: "CASH", delta: d.monthlyIncome, label: "車馬費收入" }], { eduTags: ["directorship", "cashflow"] });
+  // 1) 弊案引爆（先於車馬費：爆雷那一輪沒有錢領）
+  if(crashSoon && S.turnNumber >= d.crashTurn && d.termTurnsLeft > 0){
+    var fine = d.fineAmount||0;
+    var shield = E.directorLegalShield(p);
+    var own = shield ? 0 : (d.hasInsurance ? util.r2(fine*0.2) : fine);
+    var why = shield ? "（合規治理專業：舉證已盡善良管理人注意義務，免除連帶賠償）"
+            : d.hasInsurance ? "（D&O 責任險承擔八成）" : "（無責任險，全額自負）";
+    var imp = E.captureImpact(S,p,function(){
+      if(own>0) ledger.post(S,p,"獨立董事連帶賠償："+d.title+why,
+        [{ account:"CASH", delta:-own, label:"弊案連帶民事賠償" }], { eduTags:["directorship","liability"] });
+    });
+    var skip = shield ? 1 : (d.hasInsurance ? 1 : 2);
+    p.skippedTurns = (p.skippedTurns||0) + skip; p.skipReason = "應訴假帳掏空訴訟";
+    p.stats.skillJoy = (p.stats.skillJoy||0) - (own>0 ? (d.hasInsurance ? 2 : 5) : 1);
+    p.stats.directorCrashed = (p.stats.directorCrashed||0) + 1;
+    E.ev("DIRECTOR_CRASH", { playerId:p.id, company:d.title, fine:own, insured:d.hasInsurance, shield:shield, skip:skip });
+    E.pushDecision(S,p,{ kind:"ACK", title:"💥 弊案爆發："+d.title,
+      text:"檢調搜索公司，董事會全員列為被告。"+why+" 你將停走 "+skip+" 輪應訴。", impact:imp });
+    p.directorship = null;
+    if(p.cash<0) E.enterBankruptcy(S,p);
+    return;
   }
 
-  // 2) 爆雷前 1 輪審計預警（具備財會審計技能者可識破）
-  if(!d.resigned && S.turnNumber === d.crashTurn - 1 && !d.warned){
-    var hasAudit = E.hasSkill && (E.hasSkill(p, "SKL_BOOK") || E.hasSkill(p, "SKL_CPA_AUDIT"));
-    if(hasAudit){
-      d.warned = true;
-      S.decisionQueue.push({
-        decisionId: util.uid(S, "D"),
-        kind: "RESIGN_DIRECTORSHIP",
-        playerId: p.id,
-        title: "⚠️ 審計警訊：假帳弊案即將爆發！",
-        company: d.title,
-        text: "你在查核本季財務報告時，發現異常關係人鉅額借貸且憑證不全，" + d.title + " 即將爆發弊案！你是否要立即跳船請辭？",
-        options: [
-          { optionId: "resign", label: "💡 立即請辭獨立董事（及時停損，免除民事連帶賠償）" },
-          { optionId: "stay", label: "⚠️ 抱持僥倖，繼續留任領取本期車馬費" }
-        ]
-      });
-      E.ev("DIRECTOR_AUDIT_WARNING", { playerId: p.id, company: d.title });
-    }
-  }
-
-  // 3) 弊案引爆結算輪次
-  if(S.turnNumber >= d.crashTurn){
-    if(d.resigned){
-      E.ev("DIRECTOR_CRASH_AVOIDED", { playerId: p.id, company: d.title });
-      p.directorship = null;
-    } else {
-      var fine = d.fineAmount || 150000;
-      var actualFine = d.hasInsurance ? util.r2(fine * 0.2) : fine;
-      ledger.post(S, p, "獨立董事連帶賠償：" + d.title + (d.hasInsurance ? "（D&O 責任險承擔 80%）" : "（無責任險，全額自負）"),
-        [{ account: "CASH", delta: -actualFine, label: "弊案連帶民事賠償" }], { eduTags: ["directorship", "liability"] });
-      if(E.addJoy) E.addJoy(p, d.hasInsurance ? -2 : -5);
-      p.skippedTurns = (p.skippedTurns || 0) + (d.hasInsurance ? 1 : 2);
-      p.skipReason = "應訴假帳掏空訴訟";
-      E.ev("DIRECTOR_CRASH", { playerId: p.id, company: d.title, fine: actualFine, insured: d.hasInsurance });
+  // 2) 已請辭：等到原本會爆的那一輪，揭曉「你躲過了」
+  if(d.resigned){
+    if(d.crashTurn===null || S.turnNumber >= d.crashTurn){
+      E.ev("DIRECTOR_CRASH_AVOIDED", { playerId:p.id, company:d.title });
+      E.pushDecision(S,p,{ kind:"ACK", title:"🚢 你跳船了："+d.title+" 弊案爆發",
+        text:"前董事會成員全數遭起訴，只有及時辭任、留下查核紀錄的你全身而退。" });
       p.directorship = null;
     }
     return;
   }
 
-  // 4) 任期滿順利卸任
-  if(!d.resigned && d.termTurnsLeft <= 0){
-    if(E.addJoy) E.addJoy(p, 2);
-    p.virtue = (p.virtue || 0) + 1;
-    ledger.post(S, p, "獨立董事任期圓滿卸任",
-      [{ account: "CASH", delta: 0, label: "聲譽積累" }], { eduTags: ["directorship"] });
-    E.ev("DIRECTOR_TERM_COMPLETE", { playerId: p.id, company: d.title });
+  // 3) 車馬費（每輪一次）
+  d.termTurnsLeft -= 1;
+  ledger.post(S,p,"獨立董事車馬費："+d.title,
+    [{ account:"CASH", delta:d.monthlyIncome, label:"車馬費收入" }], { eduTags:["directorship","cashflow"] });
+
+  // 4) 爆雷前一輪的審計預警——只有看得懂帳的人收得到
+  if(crashSoon && S.turnNumber === d.crashTurn-1 && !d.warned && d.termTurnsLeft > 0){
+    if(E.directorAuditSkill(p)){
+      d.warned = true;
+      E.pushDecision(S,p,{ kind:"RESIGN_DIRECTORSHIP", company:d.title,
+        title:"⚠️ 審計警訊："+d.title+" 的帳不對",
+        text:"你在查核本季財務報告時，發現異常關係人鉅額借貸且憑證不全——假帳弊案就在眼前。是否立即請辭？" });
+      E.ev("DIRECTOR_AUDIT_WARNING", { playerId:p.id, company:d.title });
+    }
+  }
+
+  // 5) 任期屆滿順利卸任
+  if(d.termTurnsLeft <= 0){
+    var mx = S.config.virtueMaxLevel||3;
+    p.virtues = p.virtues||{};
+    if((p.virtues.PRUDENCE||0) < mx){ p.virtues.PRUDENCE=(p.virtues.PRUDENCE||0)+1;
+      E.ev("VIRTUE_UP",{playerId:p.id, axis:"PRUDENCE", level:p.virtues.PRUDENCE}); }
+    p.stats.skillJoy = (p.stats.skillJoy||0) + 2;
+    p.stats.directorCompleted = (p.stats.directorCompleted||0) + 1;
+    E.ev("DIRECTOR_TERM_COMPLETE", { playerId:p.id, company:d.title });
+    E.pushDecision(S,p,{ kind:"ACK", title:"🎓 獨立董事任期圓滿："+d.title,
+      text:"六輪任期平安落幕，聲譽與人脈都留下了（謹慎修養 +1、幸福感 +2）。" });
     p.directorship = null;
   }
 };
 
+/* 偽裝成事業的吸金盤：買進時已照一般事業入帳（配息走 INCOME_PASSIVE），
+   到期那一輪在自己的回合開始整筆歸零——用 sellAsset(mult 0) 走正規出售路徑，
+   資產分錄與 marketValue 才對得起來（鐵律三），連帶的信貸也照規矩留下。 */
 E.tickScamInvestments = function(S, p){
   if(!p.scamInvestments || !p.scamInvestments.length || p.bankrupt) return;
-  p.scamInvestments = p.scamInvestments.filter(function(inv){
-    if(S.turnNumber < inv.crashTurn){
-      if(inv.monthlyDividend > 0){
-        ledger.post(S, p, "高息專案固定分紅：" + inv.title,
-          [{ account: "CASH", delta: inv.monthlyDividend, label: "分紅入帳" }], { eduTags: ["scam-dividend"] });
-      }
-      return true;
-    }
-    ledger.post(S, p, "專案資金鏈斷裂爆雷：" + inv.title + "（負責人潛逃）",
-      [{ account: "CASH", delta: -Math.min(p.cash, 10000), label: "追討訴訟費" }], { eduTags: ["scam-crash"] });
-    if(E.addJoy) E.addJoy(p, -3);
-    E.ev("SCAM_INVESTMENT_CRASH", { playerId: p.id, title: inv.title });
-    return false;
+  var keep=[];
+  p.scamInvestments.forEach(function(inv){
+    if(S.turnNumber < inv.crashTurn){ keep.push(inv); return; }
+    var a = p.assets.filter(function(x){ return x.instanceId===inv.instanceId; })[0];
+    if(!a) return;                                    // 已經自己賣掉了——逃過一劫
+    var card = ns.content.byId[inv.cardId], pl = (card&&card.payload)||{};
+    var fee = Math.min(p.cash, pl.scamLegalFee!==undefined ? pl.scamLegalFee : 5);
+    var imp = E.captureImpact(S,p,function(){
+      E.sellAsset(S,p,a,0,{ summary:"資金鏈斷裂："+inv.title+" 歸零（負責人潛逃）",
+        evName:"SCAM_INVESTMENT_CRASH", eduTags:["scam","exit"] });
+      if(fee>0) ledger.post(S,p,"追討訴訟費："+inv.title,
+        [{ account:"CASH", delta:-fee, label:"集體訴訟與律師費" }], { eduTags:["scam"] });
+    });
+    p.stats.skillJoy = (p.stats.skillJoy||0) - 3;
+    p.stats.scamCrashed = (p.stats.scamCrashed||0) + 1;
+    E.pushDecision(S,p,{ kind:"ACK", cardId:inv.cardId,
+      title:"💥 爆雷："+inv.title, text:"檢調查出是後金補前金的資金盤，負責人已出境。你的本金整筆歸零。", impact:imp });
+    if(p.cash<0) E.enterBankruptcy(S,p);
   });
+  p.scamInvestments = keep;
 };
 
 })(ns);

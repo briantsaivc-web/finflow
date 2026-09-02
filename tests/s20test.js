@@ -14,7 +14,7 @@
 const { chromium } = require('playwright');
 (async()=>{
   const __path=require('path');
-  const TARGET=__path.resolve(process.argv[2] || __path.join(__dirname,'S13_index.html'));
+  const TARGET=__path.resolve(process.argv[2] || __path.join(__dirname,'..','index.html'));
   const VW=parseInt(process.argv[3]||'1440',10), VH=parseInt(process.argv[4]||'900',10);
   const VP={width:VW,height:VH};
   console.log('視窗 '+VW+'x'+VH);

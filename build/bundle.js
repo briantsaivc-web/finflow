@@ -62,6 +62,21 @@ function build() {
   fs.writeFileSync(path.join(ROOT, 'index.html'), output, 'utf-8');
 
   console.log('[FinFlow Bundle] Build successful! Written to index.html and dist/index.html');
+
+  // S22：卡片工坊也從同一份 src/data 打包——原本 card_editor.html 內嵌一份卡包快照，
+  // 改了 src/data 之後兩邊會漂移（S21c 之後 base/m4/special 就已經不一致）。
+  const editorTpl = fs.readFileSync(path.join(SRC, 'editor/cardEditor.html'), 'utf-8');
+  const packsObj = {};
+  for (const pack of PACKS_ORDER) {
+    if (pack.id === 'config-default') continue;
+    const key = path.basename(pack.file, '.json');
+    packsObj[key] = JSON.parse(fs.readFileSync(path.join(SRC, 'data', pack.file), 'utf-8'));
+  }
+  const marker = 'let PACKS = /* PACKS_PLACEHOLDER */ {};';
+  if (editorTpl.indexOf(marker) < 0) throw new Error('cardEditor.html 缺少 PACKS_PLACEHOLDER');
+  const editorOut = editorTpl.replace(marker, 'let PACKS = ' + JSON.stringify(packsObj) + ';');
+  fs.writeFileSync(path.join(ROOT, 'card_editor.html'), editorOut, 'utf-8');
+  console.log('[FinFlow Bundle] card_editor.html rebuilt from src/data (' + Object.keys(packsObj).length + ' packs)');
 }
 
 build();

@@ -2,7 +2,7 @@
 
 台灣在地化的財商桌遊（數位版）。單一 HTML 檔、零相依套件、可離線遊玩，專為 iPad Safari 與 PC 瀏覽器設計，全程繁體中文。
 
-**目前版本：v2.25.1-S20b**　·　線上試玩：https://finflow-brian.netlify.app
+**目前版本：v2.27.0-S22**　·　線上試玩：https://finflow-brian.netlify.app
 
 ## 怎麼玩
 
@@ -47,20 +47,20 @@
 - **GitHub Pages**：Settings → Pages → Source 選 `main` 分支、資料夾選 `/ (root)` → Save，幾分鐘後 `https://<帳號>.github.io/finflow/` 就是遊戲頁
 - **隨身碟／AirDrop**：直接把 `index.html` 傳到目標裝置，用瀏覽器開啟
 
-## 專案結構 (v2.25.1-gemini 重構版)
+## 專案結構（S21 起拆成源碼層＋打包）
 
 ```
-index.html        遊戲本體（由 build/bundle.js 編譯產出，交付與發布即此一檔）
-card_editor.html  視覺化卡片工坊（即時預覽、ROI 自動計算、Schema 與冷卻審計、JSON 匯入匯出）
+index.html        遊戲本體（由 build/bundle.js 打包產出，交付與發布即此一檔；**不要直接改它**，改 src/ 再打包）
+card_editor.html  視覺化卡片工坊（同樣由 build/bundle.js 從 src/data 打包，內嵌的卡包不會與遊戲漂移）
 src/              源碼層（資料、邏輯、連線、介面分離）
   ├── data/       【資料層】11 個獨立卡包 JSON (base, mall, skill...) 與平衡參數
   ├── engine/     【邏輯層】純函數狀態機 (applyAction)、複式記帳 (ledger)、AI 決策與平衡模擬
   ├── network/    【連線層】多人 Lockstep 同步與 Firebase RTDB 適配器
   ├── ui/         【介面層】DOM 渲染、CSS 樣式表、S20 互動教學
   └── editor/     【編輯器】卡片工坊原始檔
-build/bundle.js   單檔打包工具（一鍵將 src/ 打包回 index.html）
+build/bundle.js   打包工具：`npm run build` 把 src/ 打成 index.html 與 card_editor.html
 manual/           快速上手指南與完整規則手冊（HTML 原始檔＋PDF）
-docs/             歷次變更說明（一期 → S20b）＋ Firebase 設定指南
+docs/             歷次變更說明（一期 → S22）＋ Firebase 設定指南
 tests/            自動化測試（見下方）
 ```
 
@@ -94,6 +94,7 @@ node tests/s17test.js       # 主畫面版面：6 種解析度 × 18 項 = 108 �
 node tests/s18test.js       # 通知分類與版面密度：實跑 30 輪量 20 項
 node tests/s19test.js       # 借款、商城、非回合守門：16 項
 node tests/s20test.js       # 互動教學：20 個熱點全走一次＋遮罩／靜止性 32 項
+node tests/s22test.js       # S21/S22 機制接線：獨立董事、吸金盤、案例事件、定時炸彈、階梯技能、再戰 15 項
 node tests/mptest.js        # 多人連線 7 項
 node tests/mp2.js           # 真的開三個分頁跑一局多人 9 項
 ```
@@ -103,7 +104,7 @@ node tests/mp2.js           # 真的開三個分頁跑一局多人 9 項
 或者用 npm scripts 一次跑完：
 
 ```bash
-npm test                    # extract → gate → 自我測試 → 版面 → 通知分類
+npm test                    # build → extract → gate → 自我測試 → 版面 → 通知分類 → S22
 ```
 
 ## 設計鐵律（改程式前必讀）
@@ -117,12 +118,14 @@ npm test                    # extract → gate → 自我測試 → 版面 → �
 
 ## 版本沿革
 
-`docs/` 內共 48 份變更說明，從一期到 S20b。近期幾批：
+`docs/` 內共 49 份變更說明，從一期到 S22。近期幾批：
 
 | 版本 | 主題 |
 |---|---|
-| v2.26.2-S21c | 安太座動態月薪計價、小孩牙齒矯正與生活教育卡、遊艇會籍與 Costco 黑鑽會員 |
-| v2.26.0-S21 | 獨立董事審計預警與跳船請辭、階梯技能樹、台灣真實金融 10 大案例、青少年迷因與品格抉擇、詐騙漸進警報 |
+| v2.27.0-S22 | 收編 Gemini 重構版：S21 機制全部接線（獨立董事、吸金盤爆雷、案例事件真的改價、定時炸彈）、金額量級修正、NPC 乾跑拿掉（模擬器回到 30 ms/局）、卡片工坊改由打包產生 |
+| v2.26.2-S21c | 安太座動態月薪計價、小孩牙齒矯正與生活教育卡、遊艇會籍與 Costco 黑鑽會員（Gemini） |
+| v2.26.1-S21b | 差一點就成功復盤卡、相同種子再戰、危機徽章（Gemini） |
+| v2.26.0-S21 | 源碼拆層＋打包、獨立董事、階梯技能樹、台灣金融案例、青少年抉擇卡、詐騙警報（Gemini；機制在 S22 才真正接上引擎） |
 | v2.25.1-S20b | 教學三項回饋：只翻灰非焦點區、示範盤面靜止不再自動擲骰、自由點可原地展開說明 |
 | v2.25.0-S20 | 互動教學：在一局示範上疊編號熱點，點哪裡說明哪裡 |
 | v2.24.0-S19 | 三人連線實測：借款面板座位、合資借款鈕、拉桿拉不滿、商城非回合與每輪上限 |

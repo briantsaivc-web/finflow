@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.25.1-S20b", date:"2026-08-30" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.27.0-S22", date:"2026-09-02" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -355,6 +355,13 @@ E.buildDecks = function(S){
     if(nSkill > 0){
       var poolSk = (C.cards.SKILL||[]).filter(ok);
       S.skillSample = util.shuffle(S, poolSk).slice(0, nSkill).map(function(c){ return c.id; });
+      // S22：階梯技能——抽到高階卡就把它的先修一起帶進本局，否則那張高階永遠學不到。
+      // 只補進（不替換），排序固定，不多消耗亂數。
+      S.skillSample.slice().forEach(function(sid){
+        var sc = ns.content.byId[sid];
+        if(sc && sc.requiresSkill && S.skillSample.indexOf(sc.requiresSkill)<0 && ns.content.byId[sc.requiresSkill])
+          S.skillSample.push(sc.requiresSkill);
+      });
       var nGate = E.cfg(S,"skillGatePerGame"); if(nGate===undefined) nGate = 8;
       // 公平性:只抽「對應技能本局有進場」的情境——玩家至少要有機會準備，
       // 錯失才是他的選擇，而不是牌堆沒給他機會。
@@ -723,6 +730,13 @@ E.applyEffects = function(S, p, effects, label, opts){
         }); break;
       case "GRANT_DECISION":
         E.pushDecision(S, p, { kind:ef.decisionKind, params:ef.params||{} }); break;
+      // S22：延後引爆的效果——現在拿到好處、N 輪後帳單才來（人頭帳戶、借名貸款這類「定時炸彈」）。
+      // 到期在 onRoundEnd 對該玩家套用 effects（一般 op 都可用），並記一個事件讓介面播報。
+      case "DELAYED_EFFECTS":
+        targets.forEach(function(t){
+          S.activeGlobalEvents.push({ seq:++S.eventSeq, kind:"DELAYED_FX", playerId:t.id,
+            effects:ef.effects||[], label:ef.label||label, until:S.turnNumber+(ef.turns||2), priority:0, param:null });
+        }); break;
 
       /* ---------- M8 S3 ---------- */
       case "GRANT_SKILL":   // 別人給你的機會（公司內訓、家傳手藝）——不必自己出時間

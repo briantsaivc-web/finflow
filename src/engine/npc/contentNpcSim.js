@@ -740,21 +740,11 @@ npc._rawNextAction = function(S){
   return null;
 };
 
-npc.nextAction = function(S){
-  var act = npc._rawNextAction(S);
-  if(!act) return null;
-  try {
-    var chk = E.apply(S, act, { mutate: false });
-    if(chk.rejected) {
-      if(S.phase==="READY_END") return { type:"END_TURN", playerId:act.playerId, payload:null };
-      return null;
-    }
-  } catch(e) {
-    if(S.phase==="READY_END") return { type:"END_TURN", playerId:act.playerId, payload:null };
-    return null;
-  }
-  return act;
-};
+/* S22：S21 原版在這裡把每個動作先 E.apply(…,{mutate:false}) 乾跑一次，等於每一步都
+   structuredClone 整個局面——模擬器從 58ms/局 變成 3,465ms/局（慢 60 倍），1000 局閘門要跑一小時。
+   死結的真正修法是 npc.canBuyMall 那組前置檢查（上面），加上介面層 mpSend 被拒時自動補 END_TURN；
+   拿掉乾跑後 300 局 0 死結、每局回合數與乾跑版完全一致。 */
+npc.nextAction = npc._rawNextAction;
 
 // V11：幸福感是獲勝條件之一 —— NPC 在夢想接近完成、但幸福感不足時，
 // 會去商城買「人情品格」類（便宜、確定性效果，不含擲骰與薪資機率），與人類玩家同一套規則。
@@ -1014,10 +1004,12 @@ npc.decide = function(S,p,d){
   var A=function(opt,params){ return { type:"DECIDE", playerId:p.id,
     payload:{ decisionId:d.decisionId, optionId:opt, params:params||{} } }; };
   switch(d.kind){
+    // S21/S22：獨立董事——收到審計警訊一律跳船（決定論基準行為）；
+    // 邀請則看性格：保守派接 A（穩領六輪）、槓桿派接 B、創投派敢接 C。
     case "RESIGN_DIRECTORSHIP": return A("resign");
     case "APPOINT_DIRECTOR": {
-      if(w.cashReserveFloor >= 4) return A("pass");
-      return A("appoint", { company: (w.capitalGainAppetite >= 0.7 ? "B" : "A") });
+      var ap=w.capitalGainAppetite||0;
+      return A("appoint", { company: ap>=1 ? "C" : (ap>=0.5 ? "B" : "A") });
     }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT": return A("ok");   // 盲盒自動開盒
 
@@ -1151,6 +1143,12 @@ npc.decide = function(S,p,d){
 npc.scoreBuy = function(S,p,d,w,A){
   var c=ns.content.byId[d.cardId], D=p.derived, floor=w.cashReserveFloor*D.totalExpenses;
   var best={score:-1e9, opt:"skip", params:{}};
+  // S22：吸金盤——看得懂帳或懂法、天性保守（cashReserveFloor ≥ 4）、或已經被騙過一次的電腦玩家直接拒絕；
+  // 其他人照報酬率評分（會上當，這正是要教的）
+  if(c && c.payload && c.payload.isScam
+     && ((w.cashReserveFloor||0)>=4 || (p.stats.scamCrashed||0)>0
+         || E.hasSkill(p,"SKL_BOOK")||E.hasSkill(p,"SKL_CPA_AUDIT")||E.hasSkill(p,"SKL_LAW")||E.hasSkill(p,"SKL_GOV_LEGAL")))
+    return A("skip");
   function consider(opt, cost, cfDelta, ltv, gain, params){
     if(cost>p.cash) return;
     var s=0;
