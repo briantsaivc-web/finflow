@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.29.0-S23b", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.29.1-S23b.1", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
