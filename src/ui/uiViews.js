@@ -479,6 +479,12 @@ ui.showPayslip = function(d){
     if(d.vol) r("　"+T(d.volLabel)+" "+util.pct(d.vol,0),"（基準 "+M(d.baseSalary)+"）");
   }
   r(ui.term("PASSIVE_INCOME"),"+"+M(d.passive),"pos");
+  // S23a.1：被動收入拆成租金／事業／股息／數位長尾——看得出這個月的錢是誰在賺
+  (d.passiveRows||[]).forEach(function(x){
+    kv.appendChild(el("div","k","　"+x.icon+" "+x.label+(x.count>1?("　"+x.count+" 筆"):"")));
+    var vv=el("div","v num sub2"); vv.textContent=(x.amount>=0?"+":"")+M(x.amount);
+    vv.style.cssText="color:var(--tx2);font-size:12px"; kv.appendChild(vv);
+  });
   r(T("sheet.expense"),"−"+M(d.expense),"neg");
   box.appendChild(kv);
   var tot=el("div","row total"); tot.appendChild(el("span","lbl",T("pay.result")));

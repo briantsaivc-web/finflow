@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.28.0-S23a", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.29.0-S23b", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -901,6 +901,44 @@ E.stockFloorMult = function(S, def){
 };
 E.clampPrice = function(S, def, v){
   return util.r2(Math.min(def.face*S.config.stockCapMult, Math.max(def.face*E.stockFloorMult(S,def), v)));
+};
+
+/* ============== S23a.1：被動收入是哪些東西堆出來的 ==============
+   「被動收入 1,479,030」看得到總數卻看不出組成——是租金、事業分紅、股息，
+   還是數位長尾？分不出來就沒辦法判斷「我的現金流體質是不是太偏一邊」。
+   分類直接走 p.assets 的 kind（帳本記的是總額，分類要從資產這邊來），
+   合計對不上時把差額掛在「其他」，確保每一列加起來就是 derived.passiveIncome。 */
+E.PASSIVE_KINDS = [
+  { key:"REALESTATE", label:"租金",     icon:"🏠" },
+  { key:"BUSINESS",   label:"事業分紅", icon:"🏪" },
+  { key:"STOCK",      label:"股息",     icon:"📈" },
+  { key:"DIGITAL",    label:"數位長尾", icon:"💻" },
+  { key:"P2P_LOAN",   label:"P2P 利息", icon:"🤝" },
+  { key:"STARTUP",    label:"新創",     icon:"🚀" }
+];
+E.passiveBreakdown = function(S, p){
+  var by={}, total=0;
+  (p.assets||[]).forEach(function(a){
+    var inc = a.monthlyIncome||0;
+    if(!inc) return;
+    var k = a.kind || "OTHER";
+    by[k] = util.r2((by[k]||0) + inc);
+    total = util.r2(total + inc);
+  });
+  var rows = E.PASSIVE_KINDS.filter(function(x){ return by[x.key]; })
+    .map(function(x){ return { key:x.key, label:x.label, icon:x.icon, amount:by[x.key],
+                               count:(p.assets||[]).filter(function(a){ return a.kind===x.key && a.monthlyIncome; }).length }; });
+  // 已知 kind 以外的（含未來新增的資產類型）：合併成一列，不讓它憑空消失
+  var known={}; E.PASSIVE_KINDS.forEach(function(x){ known[x.key]=1; });
+  var otherAmt=0, otherN=0;
+  Object.keys(by).forEach(function(k){ if(!known[k]){ otherAmt=util.r2(otherAmt+by[k]); otherN++; } });
+  if(otherAmt) rows.push({ key:"OTHER", label:"其他", icon:"•", amount:otherAmt, count:otherN });
+  // 帳本總額與資產明細的差額（例如事件直接加減 INCOME_PASSIVE 而沒掛在某筆資產上）
+  var booked = (p.derived && p.derived.passiveIncome) || 0;
+  var resid = util.r2(booked - total);
+  if(Math.abs(resid) >= 0.01) rows.push({ key:"ADJ", label:"其他調整", icon:"·", amount:resid, count:0 });
+  rows.sort(function(a,b){ return b.amount-a.amount; });
+  return { rows:rows, total:booked };
 };
 
 /* 股價變動後，重估所有玩家的股票資產（產生分錄） */

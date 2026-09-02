@@ -2290,13 +2290,13 @@
     },
     {
       "key": "stockYieldCapMonthly",
-      "value": 0.015,
+      "value": 0.018,
       "min": 0,
       "max": 0.05,
       "step": 0.001,
       "group": "股市",
       "label": "殖利率上限（月）",
-      "desc": "每張股息不得超過現價乘以這個比例。0.015＝年化 18%；0＝不設上限",
+      "desc": "每張股息不得超過現價乘以這個比例。0.018＝年化 21.6%；0＝不設上限",
       "hot": true
     },
     {
@@ -2420,6 +2420,116 @@
       "label": "危險區每多撐一輪的加成",
       "desc": "撐越久越危險",
       "hot": false
+    },
+    {
+      "key": "advancedMarketsEnabled",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "進階金融",
+      "label": "M9 進階金融總開關",
+      "desc": "0＝即使勾選 M9 也不開放期貨與虛擬貨幣",
+      "hot": true
+    },
+    {
+      "key": "advUnlockHoldTurns",
+      "value": 12,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "group": "進階金融",
+      "label": "解鎖：累計持股輪數",
+      "desc": "任一檔股票累計持有滿這麼多輪就解鎖（或改學〈衍生性商品與槓桿〉）",
+      "hot": true
+    },
+    {
+      "key": "futMarginPct",
+      "value": 0.1,
+      "min": 0.02,
+      "max": 0.5,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "期貨原始保證金比例",
+      "desc": "一口要付合約值的幾成",
+      "hot": true
+    },
+    {
+      "key": "futMaintPct",
+      "value": 0.05,
+      "min": 0.01,
+      "max": 0.4,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "期貨維持保證金比例",
+      "desc": "保證金餘額低於合約值的這個比例就追繳",
+      "hot": true
+    },
+    {
+      "key": "futMaintPctSkilled",
+      "value": 0.04,
+      "min": 0.01,
+      "max": 0.4,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "期貨維持保證金（有衍生性商品技能）",
+      "desc": "學過的人追繳線較寬",
+      "hot": true
+    },
+    {
+      "key": "futFeePerLot",
+      "value": 0.3,
+      "min": 0,
+      "max": 5,
+      "step": 0.1,
+      "group": "進階金融",
+      "label": "期貨手續費（每口定額）",
+      "desc": "開倉與平倉各收一次",
+      "hot": true
+    },
+    {
+      "key": "futMaxLots_A",
+      "value": 5,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "group": "進階金融",
+      "label": "期貨口數上限：信用 A",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "futMaxLots_B",
+      "value": 3,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "group": "進階金融",
+      "label": "期貨口數上限：信用 B",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "futMaxLots_C",
+      "value": 1,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "group": "進階金融",
+      "label": "期貨口數上限：信用 C",
+      "desc": "",
+      "hot": true
+    },
+    {
+      "key": "npcUsesM9",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "進階金融",
+      "label": "電腦玩家是否碰進階金融",
+      "desc": "0＝不碰（平衡指紋乾淨）；S23c 再評估開放",
+      "hot": true
     }
   ]
 }

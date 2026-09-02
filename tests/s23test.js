@@ -26,7 +26,9 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
           TECH=ns.content.stockBySymbol.STK_TECH, ETF=ns.content.stockBySymbol.STK_ETF;
 
     step("版本與內容包",()=>{
-      A(ns.BUILD.ver==="v2.28.0-S23a","版本應為 v2.28.0-S23a，實得 "+ns.BUILD.ver);
+      // 不把版本釘死在某一期（S23a 學到的教訓）：只驗格式與「不早於 S23」
+      A(/^v\d+\.\d+\.\d+-S\d+/.test(ns.BUILD.ver),"版本字串格式不對，實得 "+ns.BUILD.ver);
+      A(parseInt(ns.BUILD.ver.split("-S")[1],10)>=23,"版本不應早於 S23，實得 "+ns.BUILD.ver);
       A(!ns.content.errors.length,"內容包載入錯誤："+ns.content.errors.join("；"));
       return ns.BUILD.ver;
     });
@@ -39,15 +41,18 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       A(Math.abs(E.stockDivPerUnit(S,DIV)-base)<1e-9,"面額價應等於基準股息 "+base+"，實得 "+E.stockDivPerUnit(S,DIV));
       S.stockPrices.STK_DIV=util.r2(DIV.face*0.3);          // 跌七成，仍在上限之上
       A(Math.abs(E.stockDivPerUnit(S,DIV)-base)<1e-9,"價格 30% 時上限還咬不到");
-      S.stockPrices.STK_DIV=7;                              // 跌到地板：上限開始生效
+      // 跌到地板：上限開始生效（地板價刻意設在上限剛好咬住的位置）
       const cap=E.cfg(S,"stockYieldCapMonthly");
-      A(Math.abs(E.stockDivPerUnit(S,DIV)-7*cap)<1e-9,"應被壓到 現價×"+cap+"＝"+(7*cap)+"，實得 "+E.stockDivPerUnit(S,DIV));
-      A(Math.abs(E.stockDivPerUnit(S,DIV)/7*12-0.18)<1e-9,"年化應剛好 18%");
+      const floorP0=util.r2(DIV.face*E.stockFloorMult(S,DIV));
+      A(floorP0*cap < base,"前提：地板價要低於上限開始生效的價格（"+floorP0+"×"+cap+" 應 < "+base+"）");
+      S.stockPrices.STK_DIV=floorP0;
+      A(Math.abs(E.stockDivPerUnit(S,DIV)-floorP0*cap)<1e-9,"應被壓到 現價×"+cap+"＝"+(floorP0*cap)+"，實得 "+E.stockDivPerUnit(S,DIV));
+      A(Math.abs(E.stockDivPerUnit(S,DIV)/floorP0*12-cap*12)<1e-9,"年化應剛好等於上限×12＝"+util.pct(cap*12,1));
       S.macro.stage="DEPRESSION";
-      A(Math.abs(E.stockDivPerUnit(S,DIV)-7*cap*0.5)<1e-9,"蕭條應再 ×0.5");
+      A(Math.abs(E.stockDivPerUnit(S,DIV)-floorP0*cap*0.5)<1e-9,"蕭條應再 ×0.5");
       S.macro.stage="BOOM"; S.stockPrices.STK_DIV=DIV.face;
       A(Math.abs(E.stockDivPerUnit(S,DIV)-base*1.1)<1e-9,"過熱應 ×1.1");
-      return "18% 封頂";
+      return util.pct(cap*12,1)+" 封頂";
     });
 
     step("股息：開關關掉＝S22 行為（面額固定，價格再低也不砍）",()=>{
@@ -97,24 +102,83 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       A(rowD,"應有股息再投入分錄");
       A(/本期股息/.test(rowD.summary) && /→ 買/.test(rowD.summary),"摘要應寫明本期股息與買了幾張，實得："+rowD.summary);
       A(rowD.detail && rowD.detail.dividend>0,"detail 應帶本期股息");
+      // S23a.1：摘要要帶「累積 XX 張」
+      A(/累積 \d+ 張/.test(rowD.summary),"摘要應寫累積張數，實得："+rowD.summary);
+      A(rowD.detail.held>0 && rowD.detail.held===util.sum(me.assets.filter(a=>a.kind==="STOCK"&&a.symbol==="STK_DIV"&&!(a.flags&&a.flags.margin)),a=>a.units),
+        "累積張數應等於現股總張數，實得 "+rowD.detail.held);
       return rowD.summary;
     });
 
-    step("股息：地板 25%＋上限 1.5%＝年化封頂 18%（S22 舊制實測 48%）",()=>{
+    step("股息：地板 22%＋殖利率上限＝年化封頂 21.6%（S22 舊制實測 48%）",()=>{
       const S=fresh(9405); S.macro.stage="RECOVERY";
-      A(E.stockFloorMult(S,DIV)===0.25,"高股息股地板應為 0.25，實得 "+E.stockFloorMult(S,DIV));
+      A(E.stockFloorMult(S,DIV)===0.22,"高股息股地板應為 0.22，實得 "+E.stockFloorMult(S,DIV));
       A(E.stockFloorMult(S,SPEC)===S.config.stockFloorMult,"其餘個股沿用全域地板");
       const floorP=E.clampPrice(S,DIV,0.01);
-      A(Math.abs(floorP-DIV.face*0.25)<0.01,"clampPrice 應吃個股地板");
+      A(Math.abs(floorP-DIV.face*0.22)<0.01,"clampPrice 應吃個股地板");
       S.stockPrices.STK_DIV=floorP;
       const ann=E.stockDivPerUnit(S,DIV)/floorP*12;
-      A(ann<=0.1801,"地板價的年化不得超過 18%，實得 "+util.pct(ann,1));
+      const capA=E.cfg(S,"stockYieldCapMonthly");
+      A(ann<=capA*12+0.0001,"地板價的年化不得超過上限 "+util.pct(capA*12,1)+"，實得 "+util.pct(ann,1));
       // S22 舊制在同一個價位是多少（對照用）
       const S2=fresh(9406,{stockDivRestock:0,stockPerSymbolFloor:0});
       const oldFloor=E.clampPrice(S2,DIV,0.01);
       const oldAnn=E.stockDivPerUnit(S2,DIV)/oldFloor*12;
       A(oldAnn>0.4,"S22 舊制在地板應超過 40%（證明這個洞真的存在），實得 "+util.pct(oldAnn,1));
       return "新 "+util.pct(ann,1)+"／舊 "+util.pct(oldAnn,1);
+    });
+
+    /* ---------------- 被動收入分類（S23a.1） ---------------- */
+    step("被動收入分類：租金／事業／股息分得開，合計等於帳本",()=>{
+      const S=fresh(9421), me=S.players[0]; cashTo(S,me,80000);
+      S.macro.stage="RECOVERY";
+      // 三種來源各給一筆
+      const re=(ns.content.cards.OPPORTUNITY_SMALL||[]).filter(c=>c.kind==="REALESTATE")[0];
+      const bz=(ns.content.cards.OPPORTUNITY_SMALL||[]).filter(c=>c.kind==="BUSINESS" && !(c.payload||{}).isScam)[0];
+      E.buyAsset(S,me,re,"cash",{}); E.buyAsset(S,me,bz,"cash",{});
+      E.autoBuyUnits(S,me,"STK_DIV",20000,"建倉");
+      ns.ledger.recompute(me);
+      const bd=E.passiveBreakdown(S,me);
+      const keys=bd.rows.map(x=>x.key);
+      A(keys.indexOf("REALESTATE")>=0,"應有租金那一列");
+      A(keys.indexOf("BUSINESS")>=0,"應有事業分紅那一列");
+      A(keys.indexOf("STOCK")>=0,"應有股息那一列");
+      const sum=util.r2(bd.rows.reduce((a,x)=>a+x.amount,0));
+      A(Math.abs(sum-me.derived.passiveIncome)<0.01,
+        "分類合計必須等於帳本的被動收入："+sum+" vs "+me.derived.passiveIncome);
+      A(bd.total===me.derived.passiveIncome,"total 應直接取帳本值");
+      A(bd.rows.every((x,i,arr)=>i===0||arr[i-1].amount>=x.amount),"應由大到小排序");
+      // 結算分錄要帶明細
+      const n0=me.ledger.length; E.payday(S,me);
+      const pay=me.ledger.slice(n0).filter(e=>e.kind==="PAYDAY")[0];
+      A(pay && pay.detail && pay.detail.passiveRows && pay.detail.passiveRows.length>=3,
+        "結算分錄的 detail 應帶 passiveRows");
+      const note=ui.ledgerRow(pay).note||"";
+      A(/被動收入/.test(note) && /租金/.test(note) && /股息/.test(note),
+        "每輪紀錄的備註應攤開組成，實得："+note);
+      return bd.rows.map(x=>x.label+" "+util.money(x.amount)).join("／");
+    });
+
+    step("被動收入分類：帳本有、資產沒有的差額會掛在「其他調整」",()=>{
+      const S=fresh(9422), me=S.players[0];
+      ns.ledger.post(S,me,"測試：無資產的被動收入",
+        [{account:"INCOME_PASSIVE",delta:12.5,label:"某種權利金"}],{eduTags:["test"]});
+      const bd=E.passiveBreakdown(S,me);
+      const adj=bd.rows.filter(x=>x.key==="ADJ")[0];
+      A(adj && Math.abs(adj.amount-12.5)<0.01,"差額應掛在其他調整，實得 "+JSON.stringify(bd.rows));
+      A(Math.abs(bd.rows.reduce((a,x)=>a+x.amount,0)-me.derived.passiveIncome)<0.01,"合計仍須等於帳本");
+      return "OK";
+    });
+
+    step("被動收入面板：點得開、列出每筆資產、算出離自由還差多少",()=>{
+      const S=fresh(9423), me=S.players[0]; cashTo(S,me,80000);
+      const re=(ns.content.cards.OPPORTUNITY_SMALL||[]).filter(c=>c.kind==="REALESTATE")[0];
+      E.buyAsset(S,me,re,"cash",{}); ns.ledger.recompute(me);
+      close(); ui.showPassiveBreakdown(me);
+      const t=document.querySelector("#overlays .sheetbox").textContent;
+      A(/被動收入的組成/.test(t),"應開出面板");
+      A(/租金/.test(t),"應列出租金");
+      A(/離財務自由還差|已經蓋過每月總支出/.test(t),"應算出離自由的差距");
+      close(); return "OK";
     });
 
     /* ---------------- 案例事件一局一次 ---------------- */

@@ -9,8 +9,9 @@ ns.loadContent = function(readJson){
   ["m1","m2","m3","m4","m6","outer","v10","mall","skill","special"].forEach(function(m){ var j=readJson("content-mod-"+m); if(j) packs.push(j); });
   var C = { cards:{}, professions:base.professions, boardLayout:base.boardLayout,
             boardLayoutOuter:base.boardLayoutOuter, stockDefs:base.stockDefs,
+            futuresDefs:base.futuresDefs||[],                      // S23b：M9 期貨合約定義
             personalities:base.personalities, strings:base.strings, byId:{},
-            professionById:{}, stockBySymbol:{}, personalityById:{}, errors:[] };
+            professionById:{}, stockBySymbol:{}, futBySymbol:{}, personalityById:{}, errors:[] };
   packs.forEach(function(pk){ Object.keys(pk.cards||{}).forEach(function(deck){
     C.cards[deck] = (C.cards[deck]||[]).concat(pk.cards[deck]); }); });
   Object.keys(C.cards).forEach(function(d){ C.cards[d].forEach(function(c){
@@ -19,6 +20,7 @@ ns.loadContent = function(readJson){
   (base.cards.DREAM||[]).forEach(function(d){ C.byId[d.id]=d; });
   C.professions.forEach(function(p){ C.professionById[p.id]=p; C.byId[p.id]=p; });
   C.stockDefs.forEach(function(s){ C.stockBySymbol[s.symbol]=s; });
+  C.futuresDefs.forEach(function(f){ C.futBySymbol[f.symbol]=f; C.byId[f.symbol]=f; });
   C.personalities.forEach(function(x){ C.personalityById[x.id]=x; });
   C.dreams = base.cards.DREAM||[];
   var req = { professions:["id","name","salary","baseExpenses","startingCash"] };
@@ -44,7 +46,7 @@ ns.buildConfig = function(reg){
 };
 
 /* =============================== 模組系統 =============================== */
-var M = ns.modules = { registry:{}, order:["M1","M2","M3","M4","M6","M8"] };
+var M = ns.modules = { registry:{}, order:["M1","M2","M3","M4","M6","M8","M9"] };
 M.active = function(S){ return M.order.filter(function(m){ return S.enabledModules.indexOf(m)>=0 && M.registry[m]; })
                         .map(function(m){ return M.registry[m]; }); };
 function fanout(name){ return function(S,a,b,c){
@@ -689,6 +691,16 @@ M.registry.M8 = {
   }
 };
 
+/* --------- M9 進階金融（S23b：期貨；S23c 再加虛擬貨幣） ---------
+   獨立成模組而不是掛在 M1 底下，是因為後面還要放匯率、債券這些同一層的東西；
+   而且教學局與新手／標準難度要能整包關掉，鐵律 4 的基線比對才守得住。      */
+M.registry.M9 = {
+  onRoundEnd:function(S){
+    E.tickHoldTurns(S);        // 解鎖進度：任一檔股票累計持有幾輪
+    E.tickFutures(S);          // 期貨逐輪結算（在 M1 更新完股價之後——M9 排在 order 最後）
+  }
+};
+
 /* ================================ NPC =================================== */
 var npc = ns.npc = {};
 
@@ -1073,6 +1085,9 @@ npc.decide = function(S,p,d){
        固定模式（必倒）一律停損；機率模式看風險等級：中以上一律賣，
        低風險只有保守派會賣（其餘性格願意賭它撐過去）。這不是最佳解，
        而是讓真人有得比較的一條基準線。 */
+    /* S23b：電腦玩家不主動碰進階金融（Brian 定案：先不碰，指紋最乾淨）。
+       但萬一有部位（例如未來開放後的存檔），追繳一律當場平倉——不賭。 */
+    case "FUT_MARGIN_CALL": return A("close");
     case "DELIST_WARN": {
       var lvlW = d.level;
       if(!lvlW) return A("sell");

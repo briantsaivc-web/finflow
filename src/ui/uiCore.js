@@ -89,9 +89,11 @@ ui.toast = function(msg, cls, ms, topic){
 ui.toastSys = function(msg, cls, ms){ return ui.toast(msg, cls, ms, "SYS"); };
 
 /* M12：難度預設表（單機／多人共用同一份，決定論要求） */
+/* S23b：M9 進階金融只在進階以上開——新手與標準難度整包關掉，
+   教學局也不開，鐵律 4 的基線比對才守得住。 */
 ns.PRESETS = { NOVICE:{d:1,v:1,a:1,m:[]}, STANDARD:{d:2,v:2,a:2,m:["M1","M2","M4","M6","M8"]},
-  ADVANCED:{d:3,v:3,a:2,m:["M1","M2","M3","M4","M6","M8"]}, HARDCORE:{d:3,v:3,a:3,m:["M1","M2","M3","M4","M6","M8"]},
-  SANDBOX:{d:2,v:2,a:2,m:["M1","M2","M3","M4","M6","M8"]} };
+  ADVANCED:{d:3,v:3,a:2,m:["M1","M2","M3","M4","M6","M8","M9"]}, HARDCORE:{d:3,v:3,a:3,m:["M1","M2","M3","M4","M6","M8","M9"]},
+  SANDBOX:{d:2,v:2,a:2,m:["M1","M2","M3","M4","M6","M8","M9"]} };
 ns.PRESET_NAMES = { NOVICE:"新手", STANDARD:"標準", ADVANCED:"進階", HARDCORE:"硬核", SANDBOX:"沙盒" };
 
 /* ===================== M12：本機玩家（多人時為自己的座位） ===================== */
@@ -496,10 +498,18 @@ ui.renderPlayerCards = function(){
     kv("淨現金流", (ncf>=0?"+":"")+M(ncf), ncf>=0?"pos":"neg");
     // 被動收入與資產筆數併成一行：兩個都是「資產這邊的體質」，分兩行只是佔高度
     var nAsset=(p.assets?p.assets.length:0);
-    kvw.appendChild(el("div","k","被動收入"));
+    var pk=el("div","k","被動收入");
     var pv=el("div","v"+((d.passiveIncome||0)>0?" pos":""));
     pv.innerHTML=M(d.passiveIncome||0)+" <span class='sub2'>／"+nAsset+" 筆</span>";
-    kvw.appendChild(pv);
+    // S23a.1：滑過去（或點下去）看得到是哪些東西堆出來的
+    if(E.passiveBreakdown && (d.passiveIncome||0)>0){
+      var bd=E.passiveBreakdown(S,p);
+      var tip=bd.rows.map(function(x){ return x.icon+" "+x.label+"　"+M(x.amount)+(x.count>1?("（"+x.count+" 筆）"):""); }).join("\n");
+      pk.title=pv.title="被動收入組成：\n"+tip;
+      pk.style.cursor=pv.style.cursor="help";
+      if(p.id===ui.myId()){ pk.onclick=pv.onclick=function(){ ui.showPassiveBreakdown(p); }; pk.style.cursor=pv.style.cursor="pointer"; }
+    }
+    kvw.appendChild(pk); kvw.appendChild(pv);
     c.appendChild(kvw);
     // 幸福感、夢想、每輪紀錄併一列
     var du=el("div","pdual");
@@ -1759,6 +1769,35 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(oA); c.appendChild(card); return;
   }
 
+  // S23b：期貨追繳——補到原始保證金、當場平倉，或賭下一輪
+  if(d.kind==="FUT_MARGIN_CALL"){
+    var aC=E.futPositions(p).filter(function(x){ return x.instanceId===d.instanceId; })[0];
+    var fdC=E.futDef(d.symbol)||{name:"期貨"};
+    card.appendChild(el("h3",null,"⚠️ 保證金追繳："+fdC.name));
+    card.appendChild(el("div","flavor",
+      "保證金餘額已經低於維持水位。<b class='gold'>補到原始保證金、當場平倉，或賭下一輪——"+
+      "但餘額燒完會被強制平倉，超額虧損轉成信用貸款留在你身上。</b>"));
+    var kvC=el("div","kv");
+    kvC.appendChild(el("div","k","目前保證金")); kvC.appendChild(el("div","v num",M(d.margin)));
+    kvC.appendChild(el("div","k","維持水位")); kvC.appendChild(el("div","v num neg",M(d.maintNeed)));
+    kvC.appendChild(el("div","k","維持率")); kvC.appendChild(el("div","v num neg",Math.round((d.ratio||0)*100)+"%"));
+    if(aC){
+      var wantC=util.r2(E.futContractValue(S,fdC)*(aC.lots||0)*E.futMarginPct(S,fdC));
+      var addC=util.r2(Math.max(0, wantC-(aC.marketValue||0)));
+      kvC.appendChild(el("div","k","補到原始保證金要")); kvC.appendChild(el("div","v num",M(addC)));
+      card.appendChild(kvC);
+      var oC2=el("div","opts");
+      var canPay=p.cash>=addC;
+      oC2.appendChild(optBtn("補繳 "+M(addC), canPay?"部位保留，繼續押這個方向":"現金不足——按下去會直接平倉",
+        function(){ decide("topup"); }, canPay));
+      oC2.appendChild(optBtn("當場平倉","認賠出場，保證金餘額退回（扣手續費）",function(){ decide("close"); }));
+      oC2.appendChild(optBtn("賭下一輪","不補也不平；餘額燒完就強制平倉",function(){ decide("hold"); }));
+      card.appendChild(oC2);
+    } else { card.appendChild(kvC); }
+    card.appendChild(el("div","edu","槓桿的真正風險不是「賠錢」，是「還沒等到你看對，錢就先燒完了」。"));
+    c.appendChild(card); return;
+  }
+
   // 獨立董事審計預警與請辭抉擇
   if(d.kind==="RESIGN_DIRECTORSHIP"){
     card.appendChild(el("h3",null,d.title||"⚠️ 審計警訊：假帳弊案即將爆發！"));
@@ -2534,6 +2573,53 @@ ui.decisionCard = function(S,p,d){
   card.appendChild(o9); c.appendChild(card);
 };
 
+/* S23a.1：被動收入明細面板——點右欄的「被動收入」就會開。
+   一列一個來源，附每筆資產的名稱與金額，讓玩家看得出「我的現金流靠誰撐著」。 */
+ui.showPassiveBreakdown = function(p){
+  var S=ui.S; if(!S||!p) return;
+  var bd=E.passiveBreakdown(S,p);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="520px";
+  box.appendChild(el("h2",null,"💰 被動收入的組成"));
+  box.appendChild(el("div","flavor","每個月不用上班就會進來的錢。被動收入蓋過每月總支出，就達成財務自由。"));
+  var tot=el("div","row total"); tot.appendChild(el("span","lbl","每月被動收入合計"));
+  tot.appendChild(el("span","val num pos",M(bd.total))); box.appendChild(tot);
+  if(!bd.rows.length){
+    box.appendChild(el("div","edu","目前還沒有任何被動收入——買下第一筆會生錢的資產，這裡就會開始長出來。"));
+  } else {
+    bd.rows.forEach(function(x){
+      var sec=el("div","sec"); sec.style.cssText="margin-top:8px";
+      var hd=el("div"); hd.style.cssText="display:flex;justify-content:space-between;align-items:baseline;gap:8px";
+      hd.appendChild(el("b",null,x.icon+" "+x.label+(x.count?("　"+x.count+" 筆"):"")));
+      var pctTxt = bd.total>0 ? util.pct(x.amount/bd.total,0) : "—";
+      var amt=el("span","num "+(x.amount>=0?"pos":"neg"));
+      amt.innerHTML=(x.amount>=0?"+":"")+M(x.amount)+" <span class='sub2' style='color:var(--tx3)'>"+pctTxt+"</span>";
+      hd.appendChild(amt); sec.appendChild(hd);
+      // 佔比長條
+      if(bd.total>0 && x.amount>0){
+        var bar=el("div"); bar.style.cssText="height:5px;border-radius:3px;background:var(--line2);margin:4px 0 2px";
+        var fill=el("div"); fill.style.cssText="height:100%;border-radius:3px;background:var(--pos);width:"+
+          Math.max(2,Math.round(x.amount/bd.total*100))+"%"; bar.appendChild(fill); sec.appendChild(bar);
+      }
+      var lots=(p.assets||[]).filter(function(a){ return a.kind===x.key && a.monthlyIncome; })
+        .sort(function(a,b){ return (b.monthlyIncome||0)-(a.monthlyIncome||0); });
+      lots.forEach(function(a){
+        var ln=el("div"); ln.style.cssText="display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);padding:1px 0";
+        ln.appendChild(el("span",null,"　"+a.name+(a.units>1?("　"+a.units+" 張"):"")));
+        ln.appendChild(el("span","num",M(a.monthlyIncome))); sec.appendChild(ln);
+      });
+      box.appendChild(sec);
+    });
+  }
+  var exp=p.derived.totalExpenses||0;
+  var gap=util.r2(exp-bd.total);
+  box.appendChild(el("div","edu", gap>0
+    ? "離財務自由還差 "+M(gap)+"／月（每月總支出 "+M(exp)+"）。"
+    : "被動收入已經蓋過每月總支出 "+M(exp)+"——你已經達成財務自由。"));
+  var o=el("div","opts"); o.style.marginTop="10px";
+  o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
 // V11.1：幸福感／品格／夢想的積累明細——點右欄的幸福感或獲勝條件就會開
 // M8 S1：主動進修選單（只列本局抽樣到的技能）
 ui.showSkillMenu = function(p){
@@ -2637,6 +2723,14 @@ ui.ledgerRow = function(e){
       fees.push(q.label+" "+M(Math.abs(q.delta)));
   });
   if(fees.length) r.note="含 "+fees.join("、");
+  /* S23a.1：結算那一列只寫「本月被動現金流」，看不出是租金、事業還是股息。
+     把 detail 帶進來的分類攤在備註上——這是玩家判斷「現金流體質偏不偏」的唯一線索。 */
+  if(e.kind==="PAYDAY" && e.detail && e.detail.passiveRows && e.detail.passiveRows.length){
+    var pr=e.detail.passiveRows.map(function(x){
+      return x.icon+" "+x.label+" "+M(x.amount)+(x.count>1?("×"+x.count):""); });
+    r.note=(r.note?r.note+"　·　":"")+"被動收入 "+M(e.detail.passive||0)+"＝"+pr.join("　");
+  }
+  if(e.detail && e.detail.held) r.note=(r.note?r.note+"　·　":"")+"累積持有 "+e.detail.held+" 張";
   // 資產處分：把「現金 − 資產」的差額講明白（差額＝費稅，不是算錯）
   if(r.asset<0 && r.cash>0){
     var gap=util.r2(r.cash+r.asset);
@@ -4036,6 +4130,87 @@ ui.showStockPanel = function(focusSymbol){
   box.appendChild(el("div","sub", canTrade
     ? "全部標的列在同一頁，直接往下捲就好——不用一檔一檔點進去。"
     : "👁 "+whyNot+"；定期定額與股息再投入是設定，現在就可以改。"));
+
+  /* S23b：期貨區塊——M9 開了才出現；沒解鎖就整區反灰並說明還差什麼。
+     刻意放在個股清單「上方」：它是這一頁最危險的東西，不該藏在最下面。 */
+  if(E.m9On && E.m9On(S) && (ns.content.futuresDefs||[]).length){
+    var lockWhy = E.advLockReason(S,p);
+    var fsec=el("div","sec"); fsec.style.cssText="padding:12px 4px;border:1px solid var(--line2);border-radius:8px;margin-bottom:10px";
+    var fhd=el("div"); fhd.style.cssText="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap";
+    fhd.appendChild(el("b",null,(lockWhy?"🔒 ":"⚡ ")+"期貨（進階金融）"));
+    if(lockWhy){
+      var lk=el("span","fl"); lk.style.cssText="font-size:12px;color:var(--gold)";
+      lk.textContent=lockWhy; fhd.appendChild(lk);
+    } else {
+      var ml=el("span","fl"); ml.style.cssText="font-size:12px;color:var(--tx3)";
+      ml.textContent="口數上限 "+E.futMaxLots(S,p)+"（信用 "+(p.creditRating||"B")+"）　已開 "+E.futLotsHeld(p)+" 口";
+      fhd.appendChild(ml);
+    }
+    fsec.appendChild(fhd);
+    if(lockWhy){
+      fsec.style.opacity=".55";
+      fsec.appendChild(el("div","edu","期貨用一成保證金押十倍的合約——賺賠都放大十倍。"+
+        "要先有足夠的持股經驗（累計 "+E.advUnlockNeed(S)+" 輪），或學會〈衍生性商品與槓桿〉，才開放下場。"));
+    } else {
+      (ns.content.futuresDefs||[]).forEach(function(fd){
+        var uPrice=E.stockPrice(S,fd.underlying);
+        var cv1=E.futContractValue(S,fd);
+        var mPct=E.futMarginPct(S,fd), need1=util.r2(cv1*mPct);
+        var kvF=el("div","kv");
+        kvF.appendChild(el("div","k","標的")); kvF.appendChild(el("div","v",E.stockName(S,fd.underlying)+"　"+M(uPrice)+" / 張"));
+        kvF.appendChild(el("div","k","一口合約值")); kvF.appendChild(el("div","v num",M(cv1)+"（×"+fd.multiplier+"）"));
+        kvF.appendChild(el("div","k","一口保證金")); kvF.appendChild(el("div","v num",M(need1)+"（"+util.pct(mPct,0)+"）"));
+        kvF.appendChild(el("div","k","手續費")); kvF.appendChild(el("div","v num",M(E.cfg(S,"futFeePerLot"))+" ／口（開平各收）"));
+        fsec.appendChild(kvF);
+        // 口數選擇
+        var stF={lots:1};
+        var rowF=el("div"); rowF.style.cssText="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap";
+        var lbF=el("span","fl"); lbF.style.cssText="font-size:12px;color:var(--tx2)";
+        var rngF=el("input"); rngF.type="range"; rngF.min=1; rngF.step=1;
+        rngF.max=Math.max(1, E.futMaxLots(S,p)-E.futLotsHeld(p)); rngF.value=1;
+        rngF.style.cssText="flex:1;min-width:120px";
+        var bLong=el("button","act"), bShort=el("button","act");
+        function refreshF(){
+          stF.lots=+rngF.value;
+          var mm=util.r2(need1*stF.lots), ff=E.futFee(S,stF.lots);
+          lbF.textContent=stF.lots+" 口　保證金 "+M(mm)+" ＋手續費 "+M(ff)+"　合約值 "+M(util.r2(cv1*stF.lots));
+          var ok=canTrade && p.cash>=util.r2(mm+ff) && (E.futLotsHeld(p)+stF.lots<=E.futMaxLots(S,p));
+          bLong.disabled=!ok; bShort.disabled=!ok;
+          bLong.title=bShort.title = ok ? "" : (canTrade ? "現金不足或超過口數上限" : whyNot);
+        }
+        bLong.textContent="📈 作多"; bShort.textContent="📉 放空";
+        bLong.onclick=function(){ ov.remove();
+          ui.dispatch({type:"FUT_OPEN",playerId:ui.myId(),payload:{symbol:fd.symbol,side:"long",lots:stF.lots}}); };
+        bShort.onclick=function(){ ov.remove();
+          ui.dispatch({type:"FUT_OPEN",playerId:ui.myId(),payload:{symbol:fd.symbol,side:"short",lots:stF.lots}}); };
+        rngF.oninput=refreshF; refreshF();
+        rowF.appendChild(rngF); rowF.appendChild(bLong); rowF.appendChild(bShort);
+        fsec.appendChild(lbF); fsec.appendChild(rowF);
+        if(fd.profile){ var pf=el("div","edu"); pf.textContent=fd.profile; fsec.appendChild(pf); }
+      });
+      // 現有部位
+      var myFut=E.futPositions(p);
+      if(myFut.length){
+        fsec.appendChild(el("div","flavor","你的部位"));
+        myFut.forEach(function(a2){
+          var st=E.futStatus(S,a2,p), fdz=E.futDef(a2.symbol)||{name:a2.name};
+          var pr=el("div"); pr.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px;"+
+            "padding:6px 8px;border-radius:6px;margin-top:4px;background:"+(st.call?"rgba(255,90,95,.12)":"var(--bg2)");
+          var lft=el("div");
+          lft.innerHTML="<b>"+fdz.name+"（"+(a2.side==="short"?"空":"多")+" "+a2.lots+" 口）</b>"+
+            "<div class='sub2' style='font-size:12px;color:var(--tx2)'>保證金 "+M(a2.marketValue)+
+            "　維持線 "+M(st.maintNeed)+"　"+(st.call?"<b class='neg'>追繳中</b>":"維持率 "+Math.round(st.ratio*100)+"%")+"</div>";
+          pr.appendChild(lft);
+          var bc=el("button","act","平倉");
+          bc.disabled=!canTrade; bc.title=canTrade?"":whyNot;
+          bc.onclick=function(){ ov.remove();
+            ui.dispatch({type:"FUT_CLOSE",playerId:ui.myId(),payload:{instanceId:a2.instanceId}}); };
+          pr.appendChild(bc); fsec.appendChild(pr);
+        });
+      }
+    }
+    box.appendChild(fsec);
+  }
 
   var list=el("div");
   ns.content.stockDefs.forEach(function(def){
