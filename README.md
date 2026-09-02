@@ -76,6 +76,7 @@ npx playwright install chromium
 ### 引擎層（Node，不開瀏覽器）
 
 ```bash
+node tests/contentcheck.js  # 內容包靜態檢查：id 唯一、op 引擎認得、欄位名、金額量級、程式寫死的 id（npm run build 會先跑它）
 python3 tests/extract.py    # 從 index.html 抽出引擎層（前三個 script 區塊）
 node tests/gate.js          # 1000 局壓力：NaN／Infinity／死結／分錄不平 都必須是 0
 node tests/simtest.js       # 500 局平衡指紋，輸出自由圈規格 v0.2 的六項指標
@@ -106,6 +107,10 @@ node tests/mp2.js           # 真的開三個分頁跑一局多人 9 項
 ```bash
 npm test                    # build → extract → gate → 自我測試 → 版面 → 通知分類 → S22
 ```
+
+## 改內容（卡片／職業／商城／技能）怎麼做
+
+照 `docs/內容修改SOP.md` 走：只改 `src/`、金額千元、`node tests/contentcheck.js` → `npm run build` → `gate` → `runtests` → 版本號＋變更說明 → push。所有卡片欄位的盤點見 `docs/FinFlow_內容盤點_v2.27.0-S22.xlsx`。
 
 ## 設計鐵律（改程式前必讀）
 
