@@ -10,6 +10,10 @@ ns.loadContent = function(readJson){
   var C = { cards:{}, professions:base.professions, boardLayout:base.boardLayout,
             boardLayoutOuter:base.boardLayoutOuter, stockDefs:base.stockDefs,
             futuresDefs:base.futuresDefs||[],                      // S23b：M9 期貨合約定義
+            /* S23c：迷因幣。刻意【不】併進 stockDefs——那份陣列被開盤價、M1 逐輪報價、
+               下市判定等一大堆迴圈直接走訪，多一檔就多消耗亂數，「開關全關要能重現基線」
+               （鐵律 4）當場就斷。改成獨立陣列，只有 M9 開啟時才由 E.cryptoDefs 併進來。 */
+            cryptoDefs:base.cryptoDefs||[],
             personalities:base.personalities, strings:base.strings, byId:{},
             professionById:{}, stockBySymbol:{}, futBySymbol:{}, personalityById:{}, errors:[] };
   packs.forEach(function(pk){ Object.keys(pk.cards||{}).forEach(function(deck){
@@ -21,6 +25,8 @@ ns.loadContent = function(readJson){
   C.professions.forEach(function(p){ C.professionById[p.id]=p; C.byId[p.id]=p; });
   C.stockDefs.forEach(function(s){ C.stockBySymbol[s.symbol]=s; });
   C.futuresDefs.forEach(function(f){ C.futBySymbol[f.symbol]=f; C.byId[f.symbol]=f; });
+  /* 索引可以全域建（查得到不代表玩得到）——能不能交易由 E.stockTradable 一個入口把關。 */
+  C.cryptoDefs.forEach(function(c){ C.stockBySymbol[c.symbol]=c; C.byId[c.symbol]=c; });
   C.personalities.forEach(function(x){ C.personalityById[x.id]=x; });
   C.dreams = base.cards.DREAM||[];
   var req = { professions:["id","name","salary","baseExpenses","startingCash"] };
@@ -695,9 +701,31 @@ M.registry.M8 = {
    獨立成模組而不是掛在 M1 底下，是因為後面還要放匯率、債券這些同一層的東西；
    而且教學局與新手／標準難度要能整包關掉，鐵律 4 的基線比對才守得住。      */
 M.registry.M9 = {
+  /* S23c：迷因幣的開盤價、名稱、歷史與幣圈起始狀態都在這裡建。
+     刻意不放進 E.newGame 的開盤價迴圈——那個迴圈每檔消耗一次亂數，
+     多一檔就會把所有非 M9 局的亂數序列整個推移（鐵律 4 當場斷）。 */
+  onGameSetup:function(S){
+    var defs = E.cryptoDefs(S); if(!defs.length) return;
+    S.cryptoCycle = "RANGE";                       // 每局都從盤整開始（不抽，省一次亂數）
+    var spread = E.cfg(S,"stockOpenSpread"); if(!isFinite(spread)||spread<0) spread=0;
+    defs.forEach(function(d){
+      var px = d.face;
+      if(spread>0) px = E.clampPrice(S, d, d.face*(1 + (util.rand(S)*2-1)*spread));
+      S.stockPrices[d.symbol] = px;
+      S.stockHistory[d.symbol] = [px];
+      S.stockNames[d.symbol] = d.name;             // 幣不換名：名字本身就是它的迷因
+    });
+  },
   onRoundEnd:function(S){
     E.tickHoldTurns(S);        // 解鎖進度：任一檔股票累計持有幾輪
     E.tickFutures(S);          // 期貨逐輪結算（在 M1 更新完股價之後——M9 排在 order 最後）
+    // S23c：幣圈循環 → 幣價 → 重評價 → 歸零判定，順序與 M1 對股票做的完全一致
+    E.tickCryptoCycle(S);
+    E.tickCryptoPrice(S);
+    if(E.cryptoDefs(S).length){
+      E.revalueStocks(S);
+      E.tickDelist(S, E.cryptoDefs(S));
+    }
   }
 };
 

@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.29.1-S23b.1", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.30.0-S23c", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -713,6 +713,11 @@ E.applyEffects = function(S, p, effects, label, opts){
           S.stockPrices[ef.symbol] = E.clampPrice(S, def, S.stockPrices[ef.symbol]*ef.mult);
           E.revalueStocks(S);
         } break;
+      /* S23c：交易所倒閉——放在交易所的幣歸零，冷錢包免疫。
+         分錄與通知排隊全在 E.cryptoExchangeFail 裡；沒開迷因幣的局是 no-op。
+         注意 STOCK_PRICE_SET 對 CRY_MEME 也照樣有效（監管禁令 ×0.5 走那條）。 */
+      case "CRYPTO_EXCHANGE_FAIL":
+        E.cryptoExchangeFail(S, ef.label||label); break;
       case "DIVIDEND_BONUS":
         S.dividendBonus[ef.symbol] = ef.mult;
         S.activeGlobalEvents.push({ seq:++S.eventSeq, kind:"DIV_BONUS", symbol:ef.symbol,

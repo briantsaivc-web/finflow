@@ -429,12 +429,21 @@ E.apply = function(state, action, opts){
     // S16：已下市＝壁紙，不能再交易。原本沒有這道檢查，加上 `||def.face` 的退路，
     // 玩家可以用面額買進一檔已經歸零的股票，而且帳上還記成有價值的資產。
     if(E.isDelisted(S,def) && side==="buy") return reject("DELISTED");
+    /* S23c：進階標的（迷因幣）的解鎖閘門。賣出一律放行——已經買到手的東西
+       不能因為關掉開關就變成賣不掉的壁紙（那會讓帳掛在身上永遠出不來）。 */
+    if(side==="buy"){
+      var tr = E.stockTradable(S, p, def);
+      if(tr) return reject(tr);
+    }
     var price=E.stockPrice(S,def);
     if(side==="buy" && !(price>0)) return reject("NO_PRICE");
     // 六期：現股與融資分倉
     var ex=p.assets.filter(function(x){return x.kind==="STOCK"&&x.symbol===sym&&!(x.flags&&x.flags.margin);})[0];
     if(side==="buy"){
       var margin = action.payload.margin && E.canUseAdvanced(S) && S.enabledModules.indexOf("M1")>=0;
+      // S23c：迷因幣不能融資。沒有券商會拿一個沒有盈餘、單輪能動 ±50% 的東西當擔保品；
+      // 遊戲設計上也不該讓「歸零機率兩倍」的標的再疊一層槓桿。
+      if(margin && def.noMargin) return reject("NO_MARGIN_ASSET");
       // S15b：紀律閘門擋在引擎層（UI 灰化只是提示，不能當把關）
       if(margin){
         var mb = E.marginBlockReason(S, p);
@@ -2462,12 +2471,14 @@ E.delistRisk = function(S, def){
   return price <= util.r2(def.face*ratio);
 };
 
-E.tickDelist = function(S){
+/* S23c：defs 可指定要判定哪一批（迷因幣的報價在 M9 才更新，所以它的歸零判定也要
+   跟在 M9 後面跑，不能跟股票一起在 M1 判）。不傳＝維持原行為，只判 stockDefs。 */
+E.tickDelist = function(S, defs){
   if(!E.delistOn(S)) return;
   S.delistWatch = S.delistWatch||{}; S.delisted = S.delisted||{};
   var warnT = E.cfg(S,"delistWarnTurns"); if(warnT===undefined) warnT=2;
   var hazMode = E.delistHazardMode(S);
-  ns.content.stockDefs.forEach(function(def){
+  (defs || ns.content.stockDefs).forEach(function(def){
     var sym=def.symbol;
     if(S.delisted[sym]) return;
     var w = S.delistWatch[sym];
@@ -2817,6 +2828,129 @@ E.queueFutNotice = function(p, notice){
   if(p.pendingFutNotices.length < 4) p.pendingFutNotices.push(notice);   // 防呆：不無限累積
 };
 
+/* ======================= S23c：M9 迷因幣（狗狗星幣） =======================
+   與期貨最大的不同：迷因幣走的是【現行的股票機制】——同一套買賣、同一套四層股價
+   模型、同一套下市（歸零）機率制。所以這裡沒有第二套交易程式碼，只有三件它自己的事：
+   ①幣圈循環（獨立於景氣的三態機）②託管風險（交易所倒閉 vs 冷錢包）③不能融資。
+
+   為什麼不把它塞進 stockDefs：那份陣列被開盤價迴圈、M1 逐輪報價、下市判定直接走訪，
+   多一檔就多消耗亂數，鐵律 4（開關全關要能逐位元重現基線）當場就斷。 */
+E.cryptoOn = function(S){
+  if(!E.m9On(S)) return false;
+  var v = E.cfg(S,"cryptoOn");
+  return v===undefined ? true : !!v;
+};
+// 本局實際存在的幣種；M9 沒開就是空陣列（所有迴圈自然跳過，不碰亂數）
+E.cryptoDefs = function(S){
+  return E.cryptoOn(S) ? (ns.content.cryptoDefs||[]) : [];
+};
+E.isCrypto = function(def){ return !!(def && def.custody); };
+E.cryptoDef = function(sym){
+  return (ns.content.cryptoDefs||[]).filter(function(d){ return d.symbol===sym; })[0] || null;
+};
+/* 能不能交易這個標的——一個入口。介面反灰只是提示，把關在引擎。
+   回傳 null＝可以；否則回傳拒絕碼。 */
+E.stockTradable = function(S, p, def){
+  if(!def) return "NO_SYMBOL";
+  if(!def.moduleReq) return null;                        // 一般股票：一律可交易
+  if(def.moduleReq==="M9"){
+    if(!E.m9On(S)) return "NO_M9";
+    if(E.isCrypto(def) && !E.cryptoOn(S)) return "NO_CRYPTO";
+    if(!E.advancedUnlocked(S,p)) return "ADV_LOCKED";     // 與期貨同一道解鎖閘門
+    return null;
+  }
+  return S.enabledModules.indexOf(def.moduleReq)>=0 ? null : "NO_MODULE";
+};
+
+/* ---- 幣圈循環：獨立於景氣的三態機 ---- */
+E.CRYPTO_STAGES = ["MANIA","RANGE","WINTER"];
+E.CRYPTO_STAGE_TEXT = { MANIA:"狂熱", RANGE:"盤整", WINTER:"寒冬" };
+E.CRYPTO_STAGE_ICON = { MANIA:"🚀", RANGE:"😐", WINTER:"🧊" };
+E.cryptoStage = function(S){ return S.cryptoCycle || "RANGE"; };
+E.cryptoDrift = function(S){
+  var v = E.cfg(S,"cryptoDrift_"+E.cryptoStage(S));
+  return isFinite(v) ? v : 0;
+};
+/* 每輪擲一次是否換狀態；要換的時候在另外兩態之間再擲一次。
+   刻意與景氣完全脫鉤——這正是這一節要教的事：幣圈的多空與實體經濟沒有必然關係。 */
+E.tickCryptoCycle = function(S){
+  if(!E.cryptoOn(S)) return;
+  var pr = E.cfg(S,"cryptoCycleSwitchProb"); if(!isFinite(pr)) pr = 0.15;
+  if(util.rand(S) >= pr) return;
+  var cur = E.cryptoStage(S);
+  var others = E.CRYPTO_STAGES.filter(function(x){ return x!==cur; });
+  var nx = others[Math.min(others.length-1, Math.floor(util.rand(S)*others.length))];
+  if(nx===cur) return;
+  S.cryptoCycle = nx;
+  E.ev("CRYPTO_CYCLE_CHANGED",{ from:cur, to:nx,
+    fromText:E.CRYPTO_STAGE_TEXT[cur], toText:E.CRYPTO_STAGE_TEXT[nx] });
+};
+/* 逐輪報價：與 M1 完全同一套四層模型，只是多疊一層幣圈漂移。
+   刻意複製而不是把 M1 那段抽成共用函式——M1 那段是鐵律 4 的比對基準，一個字都不能動。 */
+E.tickCryptoPrice = function(S){
+  var defs = E.cryptoDefs(S); if(!defs.length) return;
+  var mult = S.config.stockVolatilityMult*(S.config.volatilityLevel===1?0:1);
+  var drift = S.config["drift_"+S.macro.stage];
+  var cyc = E.cryptoDrift(S);
+  defs.forEach(function(def){
+    if(S.delisted && S.delisted[def.symbol]) return;      // 已歸零：不再報價、不再消耗亂數
+    var pr = S.stockPrices[def.symbol];
+    if(!isFinite(pr)) return;
+    var chg = drift*E.stockMacroBeta(S,def) + (def.driftBonus||0) + cyc
+            + E.stockVol(S,def)*mult*util.gauss(S);
+    chg = E.capMove(S,def,chg);
+    S.stockPrices[def.symbol] = E.clampPrice(S,def,pr*(1+chg));
+    if(!S.stockHistory) S.stockHistory={};
+    var h = (S.stockHistory[def.symbol] || (S.stockHistory[def.symbol]=[def.face]));
+    h.push(S.stockPrices[def.symbol]); if(h.length>12) h.shift();
+  });
+};
+
+/* ---- 託管：交易所 vs 冷錢包 ---- */
+E.cryptoCustody = function(S, p){ return (p && p.flags && p.flags.cryptoCold) ? "cold" : "exchange"; };
+E.cryptoCustodyText = function(S, p){
+  return E.cryptoCustody(S,p)==="cold" ? "冷錢包（自己保管）" : "交易所（平台保管）";
+};
+E.cryptoHoldings = function(p, sym){
+  return (p.assets||[]).filter(function(a){ return a.kind==="STOCK" && a.symbol===sym; });
+};
+/* 交易所倒閉：放在交易所的幣直接歸零，冷錢包免疫。
+   直接把資產打成 0 並記一筆分錄——帳一定要平，不能只改 marketValue。 */
+E.cryptoExchangeFail = function(S, label){
+  var defs = E.cryptoDefs(S); if(!defs.length) return 0;
+  var hit = 0;
+  defs.forEach(function(def){
+    S.players.forEach(function(p){
+      if(p.bankrupt) return;
+      if(E.cryptoCustody(S,p)==="cold") return;           // 冷錢包免疫——這就是那筆錢在買的東西
+      var lost = 0;
+      E.cryptoHoldings(p, def.symbol).forEach(function(a){
+        var mv = util.r2(a.marketValue||0);
+        if(mv<=0) return;
+        lost = util.r2(lost + mv);
+        ledger.post(S, p, "交易所倒閉："+E.stockName(S,def.symbol)+" 資產歸零",
+          [{account:"ASSET", delta:-mv, refId:a.instanceId, label:def.name+" 歸零"}],
+          {eduTags:["crypto","custody","loss"], detail:{symbol:def.symbol, units:a.units, lost:mv}});
+        a.marketValue = 0; a.units = 0;
+        a.flags = a.flags||{}; a.flags.wiped = true;
+      });
+      p.assets = p.assets.filter(function(a){ return !(a.flags && a.flags.wiped); });
+      if(lost>0){
+        hit++;
+        p.stats.cryptoWiped = util.r2((p.stats.cryptoWiped||0) + lost);
+        E.ev("CRYPTO_EXCHANGE_LOSS",{ playerId:p.id, symbol:def.symbol, amount:lost, label:label||"" });
+        /* 與期貨同一條紀律：這裡跑在事件結算，當前玩家不一定是他 →【排隊】不推卡 */
+        E.queueFutNotice(p, { title:"🏦 交易所倒閉：幣不見了",
+          text:"你放在交易所的 "+E.stockName(S,def.symbol)+" 價值 "+util.money(lost)+" 全數歸零。"+
+               "「Not your keys, not your coins」——放在平台上的幣，帳上是平台的負債，不是你的資產。"+
+               "人生商城的〈硬體冷錢包〉可以免疫這件事。" });
+        if(p.cash<0) E.enterBankruptcy(S,p);
+      }
+    });
+  });
+  return hit;
+};
+
 /* ---------------------- 玩家間資產轉讓（含 AI 議價） ---------------------- */
 // M8 S3：談判與溝通——買方在成交當下爭到折讓；賣方同額減收，帳上金額守恆。
 // 刻意不動 npcAuctionBid 的出價金額（那裡消耗 randAux），以免改變得標者與重放結果。
@@ -3109,6 +3243,12 @@ E.mallApply = function(S, p, it){
     p.flags[pl.flag+"Item"]     = it.id;       // 到期時要問「要不要續約這一項」
     p.flags[pl.flag+"Asked"]    = 0;
     p.flags[pl.flag+"FeeEnded"] = 0;           // 這一期的月費還在扣
+  }
+  // S23c：永久旗標（不會到期、不用續約）——目前用在硬體冷錢包
+  if(pl.permaFlag && !p.flags[pl.permaFlag]){
+    p.flags[pl.permaFlag] = true;
+    if(pl.permaNote) notes.push(pl.permaNote);
+    E.ev("PERMA_FLAG_SET",{playerId:p.id, flag:pl.permaFlag, itemId:it.id, title:it.title});
   }
   // 人脈：海外留學／EMBA 解鎖特殊機會牌堆
   if(pl.network && !p.flags.network){

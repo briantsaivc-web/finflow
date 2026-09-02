@@ -200,6 +200,15 @@ ui.handleEvents = function(evs){
         break;
       case "DELIST_CLEARED":
         ui.announce("✅ 警示解除："+e.name+"　撐過來了"); break;
+      /* S23c：幣圈循環與景氣是兩回事——刻意獨立播報，讓玩家看得出「股市在漲、幣在寒冬」
+         是常態，而不是哪裡出錯了。 */
+      case "CRYPTO_CYCLE_CHANGED":
+        ui.announce((ns.engine.CRYPTO_STAGE_ICON[e.to]||"")+" 幣圈進入「"+e.toText+"」（原本是"+e.fromText+"）");
+        break;
+      case "CRYPTO_EXCHANGE_LOSS":
+        if(e.playerId===ui.myId())
+          ui.toast("🏦 交易所倒閉：你放在平台上的幣歸零了","bad",7000);
+        break;
       case "DELISTED": {
         // S12：實測回饋「遇到下市看板要寫出來」。原本只有一行小字，
         // 跟一般公告混在一起很容易滑過去。改成大公告，並寫明誰被套住、總共賠多少。

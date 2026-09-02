@@ -631,6 +631,30 @@
         ],
         "oncePerGame": false,
         "moduleReq": null
+      },
+      {
+        "id": "ML_COLD_WALLET",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "理財工具",
+        "title": "硬體冷錢包",
+        "icon": "🔐",
+        "flavor": "一支不連網的隨身碟，把私鑰帶回自己身上。缺點是弄丟就真的沒了。",
+        "eduNote": "資產放在誰那裡，決定了對方倒閉時你是債權人還是持有人。冷錢包買的不是報酬，是把「交易所倒閉」這個尾端風險整個移除。",
+        "payload": {
+          "cost": 5,
+          "recurringMonthly": 0,
+          "joy": 0,
+          "permaFlag": "cryptoCold",
+          "permaNote": "往後的虛擬貨幣改為自己保管，交易所倒閉不受影響",
+          "note": "永久生效：交易所倒閉事件不再影響你的幣"
+        },
+        "tags": [
+          "finance",
+          "crypto"
+        ],
+        "oncePerGame": true,
+        "moduleReq": "M9"
       }
     ]
   }

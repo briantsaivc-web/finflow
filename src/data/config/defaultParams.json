@@ -2552,6 +2552,61 @@
       "label": "保證金見底時自動補繳",
       "desc": "1＝現金補得起就自動補（避免直接強平）；0＝直接強制平倉",
       "hot": true
+    },
+    {
+      "key": "cryptoOn",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "進階金融",
+      "label": "迷因幣（M9）",
+      "desc": "0＝這一局不提供虛擬貨幣（M9 只剩期貨）",
+      "hot": false
+    },
+    {
+      "key": "cryptoCycleSwitchProb",
+      "value": 0.15,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.05,
+      "group": "進階金融",
+      "label": "幣圈循環轉換機率",
+      "desc": "每輪有多少機率換一個幣圈狀態（狂熱／盤整／寒冬）",
+      "hot": true
+    },
+    {
+      "key": "cryptoDrift_MANIA",
+      "value": 0.08,
+      "min": -0.3,
+      "max": 0.3,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "幣圈漂移：狂熱",
+      "desc": "狂熱期每輪疊加在四層股價模型上的漂移",
+      "hot": true
+    },
+    {
+      "key": "cryptoDrift_RANGE",
+      "value": 0,
+      "min": -0.3,
+      "max": 0.3,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "幣圈漂移：盤整",
+      "desc": "盤整期每輪疊加的漂移",
+      "hot": true
+    },
+    {
+      "key": "cryptoDrift_WINTER",
+      "value": -0.1,
+      "min": -0.3,
+      "max": 0.3,
+      "step": 0.01,
+      "group": "進階金融",
+      "label": "幣圈漂移：寒冬",
+      "desc": "寒冬期每輪疊加的漂移",
+      "hot": true
     }
   ]
 }

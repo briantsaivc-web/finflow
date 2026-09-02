@@ -3,6 +3,12 @@
 var util=ns.util, ledger=ns.ledger, E=ns.engine;
 var ui = ns.ui = { S:null, busy:false, sel:{} };
 var $ = function(id){ return document.getElementById(id); };
+/* S23c：本局畫面上要列出來的標的＝四檔股票 ＋（M9 開了才有的）迷因幣。
+   一個入口，三處清單（看板股市列、右欄庫存、股市面板）都走它，
+   免得某一處漏掉幣、玩家買得到卻在庫存看不到。 */
+ui.listedDefs = function(S){
+  return ns.content.stockDefs.concat(E.cryptoDefs ? E.cryptoDefs(S) : []);
+};
 // 只允許這組「純排版」標籤（可帶 class），其餘一律當純文字。
 // 交替分支的首字元互斥（[^<] vs <），不會回溯爆炸。
 var SAFE_MARKUP=/^(?:[^<]|<\/?(?:b|i|u|br|em|small|strong|span)(?:\s+class=(?:'[\w\- ]*'|"[\w\- ]*"))?\s*\/?>)*$/;
@@ -623,7 +629,7 @@ ui.renderFinBoard = function(){
   // 股市資訊
   if(S.enabledModules.indexOf("M1")>=0){
     var s2=sec("股市資訊","stocks");
-    ns.content.stockDefs.forEach(function(def){
+    ui.listedDefs(S).forEach(function(def){
       var price=E.stockPrice(S,def);
       var hist=(S.stockHistory&&S.stockHistory[def.symbol])||[def.face];
       var scB=E.stockChange(S,def), chg=scB.chg, chgP=scB.pct;
@@ -632,8 +638,8 @@ ui.renderFinBoard = function(){
       // 名稱會被截成 4 個字，分類（成長／高股息／ETF／投機）就看不見了——
       // 玩家因此分不清哪一檔本來就該大起大落。補一個短標籤。
       var shortNm=E.stockName(S,def.symbol).replace(/（.*）| ETF/,"").slice(0,4);
-      var TAGS={STK_TECH:"成長",STK_DIV:"配息",STK_ETF:"ETF",STK_SPEC:"投機"};
-      var TAGC={STK_TECH:"var(--gold)",STK_DIV:"var(--pos)",STK_ETF:"var(--tx2)",STK_SPEC:"var(--neg)"};
+      var TAGS={STK_TECH:"成長",STK_DIV:"配息",STK_ETF:"ETF",STK_SPEC:"投機",CRY_MEME:"幣"};
+      var TAGC={STK_TECH:"var(--gold)",STK_DIV:"var(--pos)",STK_ETF:"var(--tx2)",STK_SPEC:"var(--neg)",CRY_MEME:"var(--life)"};
       var nmW=el("span","nm");
       nmW.appendChild(el("span",null,shortNm));
       var tg=el("span",null,TAGS[def.symbol]||"");
@@ -1405,7 +1411,7 @@ ui.renderSheet = function(){
     ["股票","現價","成本","張","損益","損益%","", "維持率"].forEach(function(hh){ hdr.appendChild(el("th",null,hh)); });
     tb.appendChild(hdr);
     var qtyMap={};   // DOM 存區域 map（§1.9-1）
-    ns.content.stockDefs.forEach(function(def){
+    ui.listedDefs(S).forEach(function(def){
       var price=E.stockPrice(S,def);
       var cashPos=p.assets.filter(function(a){return a.kind==="STOCK"&&a.symbol===def.symbol&&!(a.flags&&a.flags.margin);})[0];
       // 現股列
@@ -4329,14 +4335,18 @@ ui.showStockPanel = function(focusSymbol){
   }
 
   var list=el("div");
-  ns.content.stockDefs.forEach(function(def){
+  ui.listedDefs(S).forEach(function(def){
     var symbol=def.symbol;
     var delisted = !!(S.delisted && S.delisted[symbol]);
     var price=E.stockPrice(S,def);
     var sc=E.stockChange(S,def), chg=sc.chg, chgP=sc.pct;
     var cashPos=p.assets.filter(function(a2){return a2.kind==="STOCK"&&a2.symbol===symbol&&!(a2.flags&&a2.flags.margin);})[0];
     var mLots=p.assets.filter(function(a2){return a2.kind==="STOCK"&&a2.symbol===symbol&&a2.flags&&a2.flags.margin;});
-    var canMargin = E.canUseAdvanced(S) && !delisted;
+    /* S23c：迷因幣是進階標的——沒解鎖就整區反灰（把關仍在引擎的 E.stockTradable）。
+       也不能融資：沒有券商會拿一個單輪能動 ±50%、又沒有盈餘的東西當擔保品。 */
+    var isCry = E.isCrypto && E.isCrypto(def);
+    var lockCode = E.stockTradable ? E.stockTradable(S,p,def) : null;
+    var canMargin = E.canUseAdvanced(S) && !delisted && !def.noMargin;
     // S15b：可買張數要把手續費算進去，否則按下去才發現錢不夠
     var feeR0 = E.cfg(S,"stockFeeRate")||0;
     var maxCash = price>0 ? Math.floor(p.cash/(price*(1+feeR0))) : 0;
@@ -4351,7 +4361,7 @@ ui.showStockPanel = function(focusSymbol){
     /* 標題列 */
     var th=el("div"); th.style.cssText="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap";
     th.appendChild(el("b",null,E.stockName(S,symbol))).style.fontSize="15.5px";
-    var TAGS={STK_TECH:"成長",STK_DIV:"配息",STK_ETF:"ETF",STK_SPEC:"投機"};
+    var TAGS={STK_TECH:"成長",STK_DIV:"配息",STK_ETF:"ETF",STK_SPEC:"投機",CRY_MEME:"虛擬貨幣"};
     if(TAGS[symbol]){ var tg=el("span",null,TAGS[symbol]);
       tg.style.cssText="font-size:11px;color:var(--tx3);border:1px solid var(--line2);border-radius:5px;padding:0 6px";
       th.appendChild(tg); }
@@ -4368,6 +4378,33 @@ ui.showStockPanel = function(focusSymbol){
       (cashPos?("　·　現股 "+cashPos.units+" 張・成本 "+M(unitCost)+"／張・未實現 "+
         ((cashPos.marketValue-cashPos.costBasis)>=0?"+":"")+M(util.r2(cashPos.marketValue-cashPos.costBasis))):"　·　未持有")))
       .style.cssText="font-size:12px;color:var(--tx2);margin-top:2px";
+
+    /* S23c：幣圈循環燈號＋託管狀態＋解鎖狀態。三件事都是它獨有的風險，
+       所以放在說明之前——玩家在看 K 線之前就該看到它們。 */
+    if(isCry){
+      var stg = E.cryptoStage(S);
+      var cy = el("div");
+      cy.style.cssText="margin-top:6px;font-size:12px;color:var(--tx2);display:flex;gap:10px;flex-wrap:wrap";
+      var cyB = el("span",null,(E.CRYPTO_STAGE_ICON[stg]||"")+" 幣圈"+(E.CRYPTO_STAGE_TEXT[stg]||stg)+
+        "（漂移 "+(E.cryptoDrift(S)>=0?"+":"")+util.pct(E.cryptoDrift(S),1)+"／輪）");
+      cyB.style.cssText="border:1px solid var(--line2);border-radius:5px;padding:1px 7px";
+      cy.appendChild(cyB);
+      var cold = E.cryptoCustody(S,p)==="cold";
+      var cuB = el("span",null,(cold?"🔐 ":"🏦 ")+"託管："+E.cryptoCustodyText(S,p)+
+        (cold?"":"（交易所倒閉會歸零）"));
+      cuB.style.cssText="border:1px solid var(--line2);border-radius:5px;padding:1px 7px;color:"+
+        (cold?"var(--pos)":"var(--neg)");
+      cy.appendChild(cuB);
+      sec.appendChild(cy);
+      if(lockCode){
+        var lk=el("div",null,"🔒 "+(lockCode==="ADV_LOCKED"
+          ? (E.advLockReason(S,p)||"進階金融還沒解鎖")
+          : (ui.REJECT_TEXT&&ui.REJECT_TEXT[lockCode])||"目前不能交易"));
+        lk.style.cssText="margin-top:5px;font-size:12px;color:var(--gold)";
+        sec.appendChild(lk);
+        sec.style.opacity=".55";                    // 反灰只是提示，真正的把關在引擎
+      }
+    }
 
     /* S15：個股說明——玩家看到「星火小型股（投機）」六個字，不知道它為什麼會那樣動。
        大方向（對景氣多敏感）＋小波動（股性）各講一句。 */
@@ -4407,9 +4444,10 @@ ui.showStockPanel = function(focusSymbol){
       sec.appendChild(cst);
     }
 
-    var bCash=el("button","act buyCash","現股買進");
-    bCash.disabled = !canTrade || delisted || maxCash<1;
-    bCash.title = delisted ? "已下市，不能再買" : (!canTrade ? whyNot : (maxCash<1?"現金不足一張":""));
+    var bCash=el("button","act buyCash",isCry?"買進":"現股買進");
+    bCash.disabled = !canTrade || delisted || maxCash<1 || !!lockCode;
+    bCash.title = lockCode ? ((ui.REJECT_TEXT&&ui.REJECT_TEXT[lockCode])||"目前不能買進")
+                : delisted ? "已下市，不能再買" : (!canTrade ? whyNot : (maxCash<1?"現金不足一張":""));
     bCash.onclick=function(){
       var u=Math.min(getU(), maxCash);
       if(u<1){ ui.toast("現金不足","warn"); return; }
