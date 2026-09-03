@@ -2554,6 +2554,28 @@
       "hot": true
     },
     {
+      "key": "dreamRoutePool",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "夢想",
+      "label": "每局從里程碑池抽路線",
+      "desc": "1＝開局從每個夢想的 20 條里程碑抽 5 條當本局路線；0＝固定用前 5 條（S23 以前的行為，且不取用亂數）",
+      "hot": false
+    },
+    {
+      "key": "dreamRoutePinFinale",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "夢想",
+      "label": "最後一點釘住池子的收尾",
+      "desc": "1＝本局路線的最後一條固定用池子的最後一條（那多半就是「完成」的節點）；0＝完全隨機抽",
+      "hot": false
+    },
+    {
       "key": "dreamImageBase",
       "value": "assets/dreams/",
       "group": "夢想",

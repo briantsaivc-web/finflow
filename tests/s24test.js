@@ -34,29 +34,39 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       try{ return fn(dr); } finally { dr.milestones=keep; }
     };
 
-    step("相容：現行資料是 8 個夢想 × 恰好 5 條里程碑",()=>{
+    step("內容：8 個夢想 × 各 20 條里程碑，每條都有標題與圖",()=>{
       const ds=ns.content.dreams;
       A(ds.length===8,"應有 8 個夢想，實得 "+ds.length);
-      ds.forEach(d=>A((d.milestones||[]).length>=5, d.name+" 的里程碑不足 5 條"));
-      return "8 個夢想";
+      let n=0, withImg=0;
+      ds.forEach(d=>{
+        A((d.milestones||[]).length===20, d.name+" 應有 20 條里程碑，實得 "+(d.milestones||[]).length);
+        d.milestones.forEach(m=>{ n++; if(E.msImg(m)) withImg++; });
+      });
+      A(n===160,"總共應有 160 條，實得 "+n);
+      A(withImg===160,"160 條都應配圖，實得 "+withImg);
+      return "160 條／160 張圖";
     });
 
     step("⚠️ 相容鐵律：池子剛好 dreamCost 條時，原序照用且【不取用亂數】",()=>{
       /* 這條斷了的話，所有既有局的牌序都會偏掉，「開關全關要能重現基線」當場就斷。
          200 局 MD5 的比對在 CI 之外跑，這裡把因果直接釘在單元層。 */
       const S=fresh(2402);
-      const rng0=S.rngState;
-      E.rollDreamRoutes(S);
-      A(S.rngState===rng0,"池子不夠抽時不得消耗亂數，實得 rngState 改變");
-      ns.content.dreams.forEach(d=>{
-        const r=S.dreamRoutes[d.id];
-        A(r && r.length===Math.min(5,d.milestones.length),d.name+" 路線長度不對");
-        A(r.join()===r.map((_,i)=>i).join(),d.name+" 應原序照用，實得 "+r.join());
-      });
-      // 第 n 點 → 第 n 條，與 V11 完全一樣
-      const me=S.players[0], dr=ns.content.byId[me.dreamCardId];
-      for(let i=1;i<=5;i++)
-        A(E.dreamMilestone(S,me,i)===E.msText(dr.milestones[i-1]),"第 "+i+" 點應仍對應第 "+i+" 條");
+      const keep={};
+      ns.content.dreams.forEach(d=>{ keep[d.id]=d.milestones; d.milestones=d.milestones.slice(0,5); });
+      try{
+        const rng0=S.rngState;
+        E.rollDreamRoutes(S);
+        A(S.rngState===rng0,"池子不夠抽時不得消耗亂數，實得 rngState 改變");
+        ns.content.dreams.forEach(d=>{
+          const r=S.dreamRoutes[d.id];
+          A(r && r.length===5,d.name+" 路線長度不對");
+          A(r.join()===r.map((_,i)=>i).join(),d.name+" 應原序照用，實得 "+r.join());
+        });
+        // 第 n 點 → 第 n 條，與 V11 完全一樣
+        const me=S.players[0], dr=ns.content.byId[me.dreamCardId];
+        for(let i=1;i<=5;i++)
+          A(E.dreamMilestone(S,me,i)===E.msText(dr.milestones[i-1]),"第 "+i+" 點應仍對應第 "+i+" 條");
+      } finally { ns.content.dreams.forEach(d=>{ d.milestones=keep[d.id]; }); }
       return "零亂數消耗";
     });
 
@@ -83,6 +93,25 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       A(Object.keys(seen).length>=8,"20 個種子應抽出多種路線（才不會每局都一樣），實得 "+Object.keys(seen).length+" 種");
       A(routes(2411)===routes(2411),"同種子必須完全重現（重放決定論）");
       return Object.keys(seen).length+" 種路線／20 個種子";
+    });
+
+    step("最後一點釘住池子的收尾（集滿那一刻要是「完成」的節點）",()=>{
+      for(let seed=2440;seed<2460;seed++){
+        const S=fresh(seed);
+        ns.content.dreams.forEach(d=>{
+          const r=S.dreamRoutes[d.id];
+          A(r[r.length-1]===d.milestones.length-1,
+            d.name+" 的最後一點應釘在池子最後一條，實得 "+r.join());
+        });
+      }
+      // 關掉開關就完全隨機（沙盒可調）
+      let pinned=0;
+      for(let seed=2460;seed<2500;seed++){
+        const S=fresh(seed,{dreamRoutePinFinale:0});
+        if(S.dreamRoutes.DREAM_PEAKS.slice(-1)[0]===19) pinned++;
+      }
+      A(pinned<40,"關掉開關後不該每次都釘在最後一條，實得 "+pinned+"/40");
+      return "20 個種子都釘住";
     });
 
     step("里程碑吃兩種格式：純字串（舊）與 {t,img}（新）",()=>{
@@ -115,7 +144,7 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step("圖片路徑：走 dreamImageBase，且擋得掉跳出目錄",()=>{
       const S=fresh(2406);
       A(ui.assetBase()==="assets/dreams/","預設資料夾，實得 "+ui.assetBase());
-      A(ui.dreamImgSrc("A_01.webp")==="assets/dreams/A_01.webp","應接上資料夾");
+      A(ui.dreamImgSrc("dream_peaks/01.webp")==="assets/dreams/dream_peaks/01.webp","應接上資料夾（圖是分子資料夾放的）");
       A(ui.dreamImgSrc("../../etc/passwd")===null,"不得接受跳出目錄");
       A(ui.dreamImgSrc("a\\b.webp")===null,"不得接受反斜線");
       A(ui.dreamImgSrc("https://x.test/a.webp")==="https://x.test/a.webp","整串網址原樣放行");
@@ -144,10 +173,10 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       ui.broadcast("測試標題","測試副標","good",99999);
       A(host.querySelectorAll("img").length===0,"沒帶圖時不該有 <img>（維持原樣）");
       A(/測試標題/.test(host.textContent),"文字照常");
-      ui.broadcast("配圖標題","配圖副標","good",99999,"_PLACEHOLDER.webp");
+      ui.broadcast("配圖標題","配圖副標","good",99999,"dream_peaks/01.webp");
       const img=host.querySelector("img");
       A(img,"帶圖時應有 <img>");
-      A(/assets\/dreams\/_PLACEHOLDER\.webp$/.test(img.getAttribute("src")),"src 應指向資料夾，實得 "+img.getAttribute("src"));
+      A(/assets\/dreams\/dream_peaks\/01\.webp$/.test(img.getAttribute("src")),"src 應指向資料夾，實得 "+img.getAttribute("src"));
       A(img.previousSibling===null,"圖應排在標題【上方】");
       A(/配圖標題/.test(host.textContent),"文字仍要在（圖是加分，不是取代）");
       host.innerHTML="";
@@ -177,10 +206,10 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
         (d.milestones||[]).forEach((m,i)=>{
           const t=E.msText(m), g=E.msImg(m);
           if(!t || t.length<4) bad.push(d.id+"["+i+"] 文字太短或空白");
-          if(g!==null && !/^[A-Za-z0-9_.-]+\.(webp|jpg|jpeg|png)$/.test(g))
+          if(g!==null && !/^[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.(webp|jpg|jpeg|png)$/.test(g))
             bad.push(d.id+"["+i+"] 圖檔名格式不對："+g);
         });
-        if((d.milestones||[]).length < 5) bad.push(d.id+" 里程碑不足 5 條");
+        if((d.milestones||[]).length !== 20) bad.push(d.id+" 里程碑不是 20 條");
       });
       A(!bad.length,bad.join("；"));
       return "全部合格";

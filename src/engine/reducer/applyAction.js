@@ -3490,17 +3490,31 @@ E.msImg  = function(m){ return (m && typeof m==="object") ? (m.img||null) : null
 E.rollDreamRoutes = function(S){
   var need = S.config.dreamCost || 5;
   S.dreamRoutes = {};
+  /* 開關（鐵律 2）：關掉＝取池子的前 need 條、完全不取用亂數，行為與 S23 之前一字不差。
+     必須有這個開關——池子從 5 條變 20 條之後，抽選會消耗亂數，
+     「開關全關要能逐位元重現基線」的比對就得靠它才做得下去。 */
+  var poolOn = E.cfg(S,"dreamRoutePool");
+  if(poolOn===undefined) poolOn = 1;
   (ns.content.dreams||[]).forEach(function(dr){
     var pool = dr.milestones||[];
-    if(pool.length <= need){
-      // 池子不夠或剛好 → 原序照用，且【不取用亂數】（相容鐵律）
-      S.dreamRoutes[dr.id] = pool.map(function(_,i){ return i; });
+    if(!poolOn || pool.length <= need){
+      // 開關關掉、或池子不夠抽 → 取前 need 條原序照用，且【不取用亂數】（相容鐵律）
+      S.dreamRoutes[dr.id] = pool.slice(0, need).map(function(_,i){ return i; });
       return;
     }
+    /* 最後一條釘住＝本局的收尾。池子的第 20 條多半就是那個「完成」的節點
+       （干卓萬山收官、登陸南極半島、學校營運到收支平衡、基金會不靠創辦人也能運作），
+       不釘的話「集滿 5 點」那一刻可能講的是中途某一段，情緒收不起來。 */
+    var pinFinale = E.cfg(S,"dreamRoutePinFinale");
+    if(pinFinale===undefined) pinFinale = 1;
+    var last = pool.length-1;
     var idx = pool.map(function(_,i){ return i; });
-    S.dreamRoutes[dr.id] = util.shuffle(S, idx).slice(0, need).sort(function(a,b){ return a-b; });
-    /* 抽完再依原順序排：里程碑本身是有敘事順序的（第一顆星 → 圓滿二十顆），
+    var picked = pinFinale && need>=2
+      ? util.shuffle(S, idx.slice(0,last)).slice(0, need-1).concat([last])
+      : util.shuffle(S, idx).slice(0, need);
+    /* 抽完再依原順序排：里程碑本身有敘事順序（第一顆星 → 圓滿二十顆），
        打亂順序會讓「第 5 點」講出比「第 1 點」更早的事。抽的是【哪五條】，不是順序。 */
+    S.dreamRoutes[dr.id] = picked.sort(function(a,b){ return a-b; });
   });
 };
 // 本局這個夢想的第 n 條里程碑（原始物件，可能是字串或 {t,img}）

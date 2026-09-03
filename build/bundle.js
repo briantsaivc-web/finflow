@@ -70,9 +70,12 @@ function build() {
     const assetsSrc = path.join(ROOT, 'assets');
     if (fs.existsSync(assetsSrc)) {
       fs.cpSync(assetsSrc, path.join(outDist, 'assets'), { recursive: true });
+      // 圖是分資料夾放的（assets/dreams/dream_peaks/01.webp），要遞迴數
+      const countImg = (dir) => fs.readdirSync(dir, { withFileTypes: true })
+        .reduce((n, e) => n + (e.isDirectory() ? countImg(path.join(dir, e.name))
+                                               : (/\.(webp|png|jpe?g)$/i.test(e.name) ? 1 : 0)), 0);
       const dreamDir = path.join(assetsSrc, 'dreams');
-      const nImg = fs.existsSync(dreamDir)
-        ? fs.readdirSync(dreamDir).filter(f => /\.(webp|png|jpe?g)$/i.test(f)).length : 0;
+      const nImg = fs.existsSync(dreamDir) ? countImg(dreamDir) : 0;
       console.log(`[FinFlow Bundle] assets/ copied to dist/ (${nImg} dream images)`);
     }
   } catch (e) {

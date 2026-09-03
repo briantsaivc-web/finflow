@@ -13,7 +13,13 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
 
 function play(MAXT){
   const ui=ns.ui, E=ns.engine;
-  ui.startCore(7711, ns.buildConfig(ns.configRegistry), ["M1","M2","M3","M4","M6","M8"],
+  /* S24：這一支量的是「玩家實際看到什麼」（彙總有沒有開、toast 跳幾則、版面高度），
+     跟夢想里程碑抽選一點關係都沒有。但抽選會消耗亂數 → 種子 7711 的牌序整個位移 →
+     這一局的一號玩家第 4 輪就破產，後面自然沒有他的回合可以彙總，測試會為了
+     完全無關的理由紅掉。所以這裡把 dreamRoutePool 釘成 0（＝S23 以前的固定路線），
+     讓它繼續量它本來要量的東西；抽選機制由 s24test 專責驗。 */
+  const cfg18 = ns.buildConfig(ns.configRegistry); cfg18.dreamRoutePool = 0;
+  ui.startCore(7711, cfg18, ["M1","M2","M3","M4","M6","M8"],
     ["我","穩健阿姨","槓桿哥","風投弟"].map((n,i)=>({name:n,isNPC:i>0,
       personality:["","NPC_SAFE","NPC_LEVER","NPC_VC"][i],
       professionId:ns.content.professions[i*4].id, dreamCardId:ns.content.dreams[i].id})),{noRules:true});
