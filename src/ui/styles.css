@@ -35,7 +35,13 @@
   --line:#24344A; --line2:#2E4462;
   --tx:#E8EEF5; --tx2:#9DB0C7; --tx3:#6B7F98;
   --pos:#35C4A8; --neg:#F0803C; --gold:#F2C14E; --gold-d:#8A6B1F;
-  --opp:#3E7DD6; --life:#B45FD0; --mkt:#2E9E86; --evt:#D68C3E; --pay:#F2C14E; --lay:#C2493D;
+  /* S24 UI配色優化：牛馬圈五格型改用可分辨的分類色（原色僅作備援，未刪除變數名以免動到既有引用）
+     機會=opp 生活=life 市場=mkt 人生=evt 失業=lay；pay(發薪/現金流)僅 fixedPayday=0 舊制會用到，不改 */
+  --opp:#A78BFA; --life:#5B9BD8; --mkt:#4ABBA0; --evt:#D98A4C; --pay:#F2C14E; --lay:#E0708A;
+  /* S24 UI配色優化：財報語意色（僅限損益表／資產負債表／資產與負債細項，見下方 [data-tut="fin"]／[data-tut="detail"] 範圍限定）
+     與股市漲跌色（僅限主畫面股市清單 ▲▼，見 .chg 範圍限定）——刻意不動全域 --pos/--neg，避免波及商城／期貨追繳／技能門檻等其他情境 */
+  --fin-gold:#F0C24B; --tw-red:#FF4D4D; --stock-down:#2FBE72;
+  --gold-frame:#F0C24B; --gold-glow:rgba(240,194,75,.5);
   --r:10px; --r2:16px;
   --zoom:1;            /* 與下方 body{zoom} 同步：覆蓋層用它把 vh/vw 換算回實際視窗 */
   --fs-body:15.5px; --fs-sm:14px; --fs-xs:13px;
@@ -57,6 +63,14 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .pos{color:var(--pos)} .neg{color:var(--neg)} .gold{color:var(--gold)}
+/* S24 UI配色優化：財報數字範圍限定——只在「損益表／資產負債表」(data-tut="fin") 與
+   「資產細項／負債細項」(data-tut="detail") 這兩個主畫面固定可見的容器內，把 .pos/.neg 覆寫成金/紅；
+   容器外（商城、期貨追繳、技能門檻、成就徽章…）的 .pos/.neg 完全不動，維持原本色盲友善的藍綠/橘紅 */
+[data-tut="fin"] .pos,[data-tut="detail"] .pos{color:var(--fin-gold)}
+[data-tut="fin"] .neg,[data-tut="detail"] .neg{color:var(--tw-red)}
+/* 主畫面股市清單 ▲▼漲跌——套台灣慣例紅漲綠跌；.chg 只加在真正的漲跌欄位，
+   同一清單裡期貨的「溢價／折價」欄（.ch，無 .chg）不是漲跌方向，刻意不套用 */
+.chg.pos{color:var(--tw-red)} .chg.neg{color:var(--stock-down)}
 .hide{display:none !important}
 
 /* ---------- 轉向遮罩 ---------- */
