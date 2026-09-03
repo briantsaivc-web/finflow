@@ -280,45 +280,67 @@ ui.renderBoard = function(){
   var og=ui.ringGeom(BLO?BLO.length:0, OUT, null, true);
   var out="";
 
-  out+='<defs><linearGradient id="dreamBg" x1="0" y1="0" x2="0" y2="1">'+
-       '<stop offset="0" stop-color="#2A1F45" stop-opacity="0.55"/>'+
-       '<stop offset="1" stop-color="#123047" stop-opacity="0.55"/></linearGradient></defs>';
-  out+='<line x1="30" y1="292" x2="490" y2="292" stroke="#2E4462" stroke-width="1" stroke-dasharray="6 6"/>';
+  /* S24 UI配色優化：夢想圈底色改成「暗底＋濃金放射暈染」（v6b 定案：比 v6a 再濃一階），
+     取代原本的靛藍線性漸層；牛馬圈／夢想圈所有格子統一鍍金框＋光暈（goldGlow 濾鏡），
+     不再各自用分類色當邊框。詳見工程書 v2.0 校正版。 */
+  out+='<defs>'+
+       '<radialGradient id="dreamBg" cx="50%" cy="-15%" r="95%">'+
+         '<stop offset="0%" stop-color="#F0C24B" stop-opacity="0.72"/>'+
+         '<stop offset="42%" stop-color="#3D2A0C" stop-opacity="0.78"/>'+
+         '<stop offset="100%" stop-color="#0E0904" stop-opacity="0.96"/>'+
+       '</radialGradient>'+
+       '<filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">'+
+         '<feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="blur"/>'+
+         '<feFlood flood-color="#F0C24B" flood-opacity="0.55" result="color"/>'+
+         '<feComposite in="color" in2="blur" operator="in" result="glow"/>'+
+         '<feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+       '</filter>'+
+       '<filter id="goldGlowStrong" x="-60%" y="-60%" width="220%" height="220%">'+
+         '<feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="blur"/>'+
+         '<feFlood flood-color="#F0C24B" flood-opacity="0.8" result="color"/>'+
+         '<feComposite in="color" in2="blur" operator="in" result="glow"/>'+
+         '<feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+       '</filter>'+
+       '</defs>';
+  out+='<line x1="30" y1="292" x2="490" y2="292" stroke="#F0C24B" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="7 5"/>';
   out+='<rect x="12" y="288" width="496" height="112" rx="16" fill="url(#dreamBg)" '+
-       'stroke="#5A4A86" stroke-opacity="0.7" stroke-width="1.5"/>';
+       'stroke="#F0C24B" stroke-opacity="0.85" stroke-width="1.8"/>';
 
-  function cellRect(g, i, extraCls, fill, stroke, sw, label, labCol){
+  function cellRect(g, i, extraCls, fill, fillOp, strokeOp, sw, label, labCol, glowId){
     var p=g.at(i);
-    return '<g class="sp-cell'+(extraCls||"")+'">'+
+    return '<g class="sp-cell'+(extraCls||"")+'" filter="url(#'+glowId+')">'+
       '<rect x="'+p.x.toFixed(1)+'" y="'+p.y.toFixed(1)+'" width="'+g.cw.toFixed(1)+'" height="'+g.ch.toFixed(1)+'" rx="9" '+
-      'fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>'+
+      'fill="'+fill+'" fill-opacity="'+fillOp+'" stroke="#F0C24B" stroke-opacity="'+strokeOp+'" stroke-width="'+sw+'"/>'+
       '<text class="sp-label" x="'+p.cx.toFixed(1)+'" y="'+(p.cy+5).toFixed(1)+'" text-anchor="middle" fill="'+labCol+'">'+label+'</text></g>';
   }
 
-  /* 內圈 */
+  /* 內圈：五種分類色（發薪格為 fixedPayday=0 舊制備援，不在本次配色範圍內，沿用原色） */
   BL.forEach(function(sp,i){
     var c=CELL_COLOR[sp.type];
     var here=S.players.some(function(pl){ return !pl.bankrupt && pl.playerStage==="INNER" && pl.position===i; });
-    out+=cellRect(ig, i, here?" here":"", c, c, here?2.2:1.1, CELL_LABEL[sp.type], c)
-         .replace('fill="'+c+'"','fill="'+c+'" fill-opacity="'+(sp.type==="PAYDAY"?0.30:0.16)+'"')
-         .replace('stroke="'+c+'"','stroke="'+c+'" stroke-opacity="'+(here?0.95:0.6)+'"');
+    out+=cellRect(ig, i, here?" here":"", c, (sp.type==="PAYDAY"?0.30:0.16), (here?0.95:0.6),
+                  here?2.2:1.1, CELL_LABEL[sp.type], "#fff", "goldGlow");
   });
 
-  /* 夢想圈 */
+  /* 夢想圈：五種真實格型（風雲/饗食/山海/旅行/傳承）＋鍍金光暈加強版；
+     OPAYDAY（現金流）僅 fixedPayday=0 舊制會出現，不在本次配色範圍內，沿用原色 */
   if(BLO){
     var anyOuter=S.players.some(function(pl){return pl.playerStage==="OUTER";});
-    var OUTER_COLOR={TASTE:"#FF7A9E",SUMMIT:"#4CC9F0",VOYAGE:"#B07CF7",LEGACY:"#F9C74F",
-                     OPAYDAY:"#3DDC97",OEVENT:"#FF9E4F"};
-    out+='<text x="'+(VW/2)+'" y="303" text-anchor="middle" fill="#C9B6FF" font-size="12.5" letter-spacing="6" font-weight="700">夢 想 圈</text>';
+    var OUTER_COLOR={TASTE:"#D9622F",SUMMIT:"#2F9E82",VOYAGE:"#3488D9",LEGACY:"#8C3B4A",
+                     OPAYDAY:"#3DDC97",OEVENT:"#6E56C8"};
+    var OUTER_TEXT={LEGACY:"#FBEFD6"};   // 傳承格文字改暖米白，其餘白字
+    out+='<text x="'+(VW/2)+'" y="303" text-anchor="middle" fill="#F0C24B" font-size="12.5" letter-spacing="6" font-weight="700">夢 想 圈</text>';
     BLO.forEach(function(sp,i){
       var hereO=S.players.some(function(pl){ return !pl.bankrupt && pl.playerStage==="OUTER" && pl.outerPos===i; });
       var lab = sp.type==="SITE"?CELL_LABEL[sp.category]:CELL_LABEL[sp.type];
-      var c = sp.type==="SITE" ? (OUTER_COLOR[sp.category]||"#F9C74F") : (OUTER_COLOR[sp.type]||"#F9C74F");
+      var typeKey = sp.type==="SITE" ? sp.category : sp.type;
+      var c = OUTER_COLOR[typeKey]||"#F9C74F";
+      var labCol = OUTER_TEXT[typeKey]||"#fff";
       var p=og.at(i);
-      out+='<g class="sp-cell'+(hereO?" here":"")+'" opacity="'+(anyOuter?1:0.62)+'">'+
+      out+='<g class="sp-cell'+(hereO?" here":"")+'" opacity="'+(anyOuter?1:0.62)+'" filter="url(#goldGlowStrong)">'+
         '<rect x="'+p.x.toFixed(1)+'" y="'+p.y.toFixed(1)+'" width="'+og.cw.toFixed(1)+'" height="'+og.ch.toFixed(1)+'" rx="9" '+
-        'fill="'+c+'" fill-opacity="'+(hereO?0.45:0.26)+'" stroke="'+c+'" stroke-opacity="0.95" stroke-width="'+(hereO?2.4:1.4)+'"/>'+
-        '<text class="sp-label" x="'+p.cx.toFixed(1)+'" y="'+(p.cy+5).toFixed(1)+'" text-anchor="middle" fill="'+c+'">'+lab+'</text></g>';
+        'fill="'+c+'" fill-opacity="'+(hereO?0.55:0.36)+'" stroke="#F0C24B" stroke-opacity="0.9" stroke-width="'+(hereO?2.4:1.4)+'"/>'+
+        '<text class="sp-label" x="'+p.cx.toFixed(1)+'" y="'+(p.cy+5).toFixed(1)+'" text-anchor="middle" fill="'+labCol+'">'+lab+'</text></g>';
     });
   }
 
@@ -647,7 +669,7 @@ ui.renderFinBoard = function(){
       nmW.appendChild(tg);
       r.appendChild(nmW);
       r.appendChild(el("span","px num",M(price)));
-      r.appendChild(el("span","ch "+(chg>=0?"pos":"neg"),(chg>=0?"▲":"▼")+util.pct(Math.abs(chgP),1)));
+      r.appendChild(el("span","ch chg "+(chg>=0?"pos":"neg"),(chg>=0?"▲":"▼")+util.pct(Math.abs(chgP),1)));
       var sp=el("span","spark"); sp.innerHTML=ui.miniSpark(hist, recent>=0); r.appendChild(sp);
       r.onclick=function(){ ui.showStockPanel(def.symbol); };   // S14a：點該檔直接開單檔面板（交易入口從操作區搬到這裡）
       s2.appendChild(r);
