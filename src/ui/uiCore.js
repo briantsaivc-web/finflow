@@ -903,9 +903,41 @@ ui.showReferPanel = function(cd){
 };
 
 // 九期：全服公告（重大事件）——橫幅由上方滑入，數秒後自動收；可點擊立即關閉
-ui.broadcast = function(title, sub, tone, ms){
+/* S24：夢想里程碑的圖片。刻意放外部檔案（assets/dreams/<檔名>）而不是內嵌 base64——
+   換掉一張醜圖＝用同檔名覆蓋那個檔，不必改程式、不必重新打包、不必重新發版。
+   代價是 index.html 單檔帶出去時圖會 404，所以每一處用圖的地方都必須有
+   「載不到就退回純文字」的退路（img.onerror）——單檔離線遊玩不能因此壞掉。 */
+ui.assetBase = function(){
+  var S=ui.S;
+  var b = (S && S.config && S.config.dreamImageBase);
+  if(typeof b!=="string" || !b) b = "assets/dreams/";
+  return b.charAt(b.length-1)==="/" ? b : b+"/";
+};
+ui.dreamImgSrc = function(file){
+  if(!file || typeof file!=="string") return null;
+  if(/^(https?:)?\/\//.test(file) || file.indexOf("data:")===0) return file;   // 允許整串網址
+  if(/[\\]|\.\./.test(file)) return null;                                      // 防呆：不接受跳出目錄
+  return ui.assetBase()+file;
+};
+/* 建一個「載不到就自己消失」的 <img>。回傳 null 代表沒圖可放。 */
+ui.dreamImgEl = function(file, css){
+  var src=ui.dreamImgSrc(file); if(!src) return null;
+  var im=document.createElement("img");
+  im.alt=""; im.loading="lazy";
+  im.style.cssText = css || "width:100%;max-height:180px;object-fit:cover;border-radius:10px;display:block";
+  // 圖不存在（單檔離線、或檔名打錯）→ 整個元素移除，畫面回到純文字版
+  im.onerror=function(){ if(im.parentNode) im.parentNode.removeChild(im); };
+  im.src=src;
+  return im;
+};
+
+ui.broadcast = function(title, sub, tone, ms, imgFile){
   var host=$("bcast"); if(!host) return;
   var bc=el("div","bc"+(tone==="warn"?" warn":""));
+  // S24：有圖就放在標題上面（圓夢的全服公告要看得到那張圖）
+  var im = imgFile ? ui.dreamImgEl(imgFile,
+    "width:100%;max-height:150px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px") : null;
+  if(im) bc.appendChild(im);
   bc.appendChild(el("div","ttl",title));
   if(sub) bc.appendChild(el("div","sub",sub));
   host.innerHTML="";

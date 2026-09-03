@@ -1616,7 +1616,9 @@ E.landing = function(S,p,space){
         p.atDreamSite = true;
         p.dreamProgress++; p.stats.freeProgress++;
         E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:false,
-          milestone:E.dreamMilestone(S,p,p.dreamProgress), dreamName:(dream?dream.name:"")});
+          milestone:E.dreamMilestone(S,p,p.dreamProgress),
+          milestoneImg:E.dreamMilestoneImg(S,p,p.dreamProgress),   // S24：全服公告要配圖
+          dreamName:(dream?dream.name:"")});
         E.checkDreamWin(S,p);
         if(!S.over && !p.isNPC) E.pushDecision(S,p,{kind:"ACK", site:{category:space.category}});
         // 購點機會改由 doMove 尾端的 offerDreamProgress 統一供應（免費+1 後仍可再購 1）
@@ -3471,13 +3473,54 @@ E.summarizeClaims = function(list, playerId){
   return out;
 };
 
-// V11：夢想的第 n 點對應到一個具體成就（爬玉山、帛琉潛水⋯⋯）
-E.dreamMilestone = function(S,p,n){
-  var dr=ns.content.byId[p.dreamCardId];
-  if(!dr || !dr.milestones || !dr.milestones.length) return "";
-  var i=Math.max(1,Math.min(dr.milestones.length,n))-1;
-  return dr.milestones[i]||"";
+/* ===================== S24：夢想里程碑（抽選、圖片、相容） =====================
+   V11 起「夢想的第 n 點」對應一個具體成就（爬玉山、帛琉潛水⋯⋯），原本是寫死的
+   「第 n 點 → milestones[n-1]」，所以同一個夢想每一局跑的路線一模一樣，玩久了會膩。
+
+   S24 改成：每個夢想備一池里程碑（目標 20 條），開局**抽 dreamCost 條**當本局的路線。
+   ⚠️ 相容鐵律：池子只有剛好 dreamCost 條（＝現行的 8×5 資料）時，**原序照用且完全
+   不取用亂數**——否則所有既有局的牌序都會偏掉，「開關全關要能重現基線」當場就斷。 */
+
+// 里程碑可以是字串（舊）或 {t, img}（新）——兩種並存，資料可以分批換。
+E.msText = function(m){ return (m && typeof m==="object") ? (m.t||m.text||"") : (m||""); };
+E.msImg  = function(m){ return (m && typeof m==="object") ? (m.img||null) : null; };
+
+/* 開局為每個夢想抽出本局的路線，存進 S.dreamRoutes[dreamId]＝里程碑索引陣列。
+   存索引而不是存內容：存檔小、重放穩，日後換掉某一條的文案也不會讓舊存檔對不上位置。 */
+E.rollDreamRoutes = function(S){
+  var need = S.config.dreamCost || 5;
+  S.dreamRoutes = {};
+  (ns.content.dreams||[]).forEach(function(dr){
+    var pool = dr.milestones||[];
+    if(pool.length <= need){
+      // 池子不夠或剛好 → 原序照用，且【不取用亂數】（相容鐵律）
+      S.dreamRoutes[dr.id] = pool.map(function(_,i){ return i; });
+      return;
+    }
+    var idx = pool.map(function(_,i){ return i; });
+    S.dreamRoutes[dr.id] = util.shuffle(S, idx).slice(0, need).sort(function(a,b){ return a-b; });
+    /* 抽完再依原順序排：里程碑本身是有敘事順序的（第一顆星 → 圓滿二十顆），
+       打亂順序會讓「第 5 點」講出比「第 1 點」更早的事。抽的是【哪五條】，不是順序。 */
+  });
 };
+// 本局這個夢想的第 n 條里程碑（原始物件，可能是字串或 {t,img}）
+E.dreamMilestoneRaw = function(S,p,n){
+  var dr=ns.content.byId[p.dreamCardId];
+  if(!dr || !dr.milestones || !dr.milestones.length) return null;
+  var route = (S.dreamRoutes && S.dreamRoutes[dr.id]) || null;
+  if(route && route.length){
+    var k = Math.max(1, Math.min(route.length, n)) - 1;
+    return dr.milestones[route[k]] || null;
+  }
+  // 沒有抽過（舊存檔、或內容缺失）→ 退回 V11 的寫死對應，畫面不會空掉
+  var i=Math.max(1,Math.min(dr.milestones.length,n))-1;
+  return dr.milestones[i]||null;
+};
+// 相容入口：既有呼叫端拿到的仍然是純文字
+E.dreamMilestone = function(S,p,n){ return E.msText(E.dreamMilestoneRaw(S,p,n)); };
+/* 這一點的圖檔名（相對於 assets/dreams/）。沒有就回 null——
+   介面拿到 null 就走純文字，與 S23 之前完全一樣。 */
+E.dreamMilestoneImg = function(S,p,n){ return E.msImg(E.dreamMilestoneRaw(S,p,n)); };
 
 /* v0.2 §1：購點（每回合限 1 點、價格 base×n、限現金） */
 E.buyDreamProgress = function(S,p){
@@ -3488,6 +3531,7 @@ E.buyDreamProgress = function(S,p){
   ledger.post(S,p,"投入圓夢：買下一段進度",[{account:"CASH",delta:-price,label:"圓夢支出"}],{eduTags:["dream"]});
   E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:true,
     milestone:E.dreamMilestone(S,p,p.dreamProgress),
+    milestoneImg:E.dreamMilestoneImg(S,p,p.dreamProgress),         // S24：全服公告要配圖
     dreamName:(ns.content.byId[p.dreamCardId]||{}).name||""});
   E.checkDreamWin(S,p);
   return true;

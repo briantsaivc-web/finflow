@@ -407,10 +407,12 @@ ui.handleEvents = function(evs){
           (ms?("："+ms):"")+(e.paid===false?"（聖地免費 +1）":""), e.playerId);
         ui.lastAct[e.playerId]={turn:ui.S.turnNumber, msg:"✨ "+(ms||("圓夢進度 "+e.progress+"／"+dcost))};
         // 全服公告：標題放具體成就，副標放進度與剩餘
+        // S24：公告配上這一點的圖。圖載不到時 <img> 會自己移除 → 回到純文字版公告。
         ui.broadcast("✨ "+dn+"："+(ms||("圓夢進度 "+e.progress+" ／ "+dcost)),
           (e.dreamName?("《"+e.dreamName+"》　"):"")+"進度 "+e.progress+" ／ "+dcost+"　"+
           (e.progress>=dcost?"夢想已集滿！":"還差 "+(dcost-e.progress)+" 點")+
-          (e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）"),"good",6000);
+          (e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）"),
+          "good", e.milestoneImg?7500:6000, e.milestoneImg||null);
         break; }
       case "DREAM_PENDING":
         ui.announce("🕯 "+me(e.playerId)+" 夢想已集滿，但幸福感 "+e.wellbeing+"／"+e.need+" 還沒到——人生不只是把清單打勾", e.playerId);

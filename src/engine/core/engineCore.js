@@ -188,6 +188,8 @@ E.newGame = function(opts){
 
   opts.players.forEach(function(pd,idx){ S.players.push(E.makePlayer(S, idx, pd)); });
   E.buildDecks(S);
+  // S24：抽出本局每個夢想的里程碑路線。池子剛好 dreamCost 條時不取用亂數（相容鐵律）。
+  if(E.rollDreamRoutes) E.rollDreamRoutes(S);
   ns.modules.onGameSetup(S);
   return S;
 };

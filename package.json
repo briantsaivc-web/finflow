@@ -1,6 +1,6 @@
 {
   "name": "finflow",
-  "version": "2.29.0",
+  "version": "2.30.0",
   "private": true,
   "description": "FinFlow 財商沙盒——單一 HTML 檔的財商桌遊數位版",
   "scripts": {
@@ -9,7 +9,7 @@
     "extract": "python3 tests/extract.py",
     "test:engine": "npm run build && npm run extract && node tests/gate.js",
     "test:balance": "npm run build && npm run extract && node tests/simtest.js",
-    "test:ui": "node tests/runtests.js && node tests/s17test.js && node tests/s18test.js && node tests/s19test.js && node tests/s20test.js && node tests/s22test.js && node tests/s23test.js && node tests/s23btest.js",
+    "test:ui": "node tests/runtests.js && node tests/s17test.js && node tests/s18test.js && node tests/s19test.js && node tests/s20test.js && node tests/s22test.js && node tests/s23test.js && node tests/s23btest.js && node tests/s23ctest.js && node tests/s24test.js",
     "test": "npm run test:engine && npm run test:ui"
   },
   "devDependencies": {

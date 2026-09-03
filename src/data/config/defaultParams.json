@@ -2554,6 +2554,14 @@
       "hot": true
     },
     {
+      "key": "dreamImageBase",
+      "value": "assets/dreams/",
+      "group": "夢想",
+      "label": "夢想里程碑圖片資料夾",
+      "desc": "里程碑配圖的相對路徑。換圖＝用同檔名覆蓋該資料夾裡的檔案；圖載不到會自動退回純文字，單檔離線遊玩不受影響",
+      "hot": false
+    },
+    {
       "key": "cryptoOn",
       "value": 1,
       "min": 0,
