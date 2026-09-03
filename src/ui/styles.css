@@ -49,14 +49,19 @@
   --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-/* 螢幕適配：以 iPad 橫向（~1180px）為基準，NB／PC 逐級放大 */
-@media (min-width:1440px){ body{zoom:1.12} :root{--zoom:1.12} }
-@media (min-width:1720px){ body{zoom:1.28} :root{--zoom:1.28} }
-@media (min-width:2100px){ body{zoom:1.5}  :root{--zoom:1.5}  }
-@media (max-width:1080px){ body{zoom:0.9}  :root{--zoom:0.9}  }
-/* zoom 會連 vh/vw 一起放大——所有 fixed 覆蓋層都要除回來，否則在 PC（≥1440px）上
-   視窗高度會被撐成 112~150%，上緣被切、下緣（開局鈕）也捲不到。 */
-:root{ --vh:calc(1vh / var(--zoom)); --vw:calc(1vw / var(--zoom)); }
+/* S25b 治本：拿掉依 window.innerWidth 分級的 body{zoom} 斷點系統。
+   舊寫法會跟瀏覽器原生縮放（Chrome 50%/100%）疊加——瀏覽器縮放本身就會改變
+   innerWidth，兩層 zoom 互相踩，導致同一台機器不同縮放比例呈現差很多（實測：
+   100% 縮放時約 1×1.12≈1.12 倍物理呈現；50% 縮放時約 0.5×1.5=0.75 倍，兩者相差
+   近 1.5 倍，這正是「100% 中央圈太小、50% 周圍字太小」的根因）。
+   改法：不再用 CSS zoom 做二次放大，讓瀏覽器原生縮放單獨負責「整體放大/縮小」；
+   版面本身維持 iPad 橫向（~1180px）基準的固定 px 字級，靠三欄 1fr/1fr/1fr 的
+   彈性網格＋SVG 依容器等比縮放，自然撐滿不同螢幕寬度。代價：極大螢幕（如 24
+   吋以上、100% 縮放）棋盤四周會留較多空白，不會主動放大填滿——如果之後覺得
+   這樣太空，可以再疊加一個不依賴 innerWidth（例如用 ResizeObserver 量測容器實
+   際渲染尺寸）的溫和填滿方案，這批先不做。
+   --zoom 變數保留給既有的 vh/vw 換算公式使用，固定為 1（不再有第二層縮放要換算）。*/
+:root{ --zoom:1; --vh:calc(1vh / var(--zoom)); --vw:calc(1vw / var(--zoom)); }
 html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--tx);
   font-family:var(--sans);font-size:var(--fs-body);-webkit-text-size-adjust:100%;
   -webkit-font-smoothing:antialiased;overscroll-behavior:none}
