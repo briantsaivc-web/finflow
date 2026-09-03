@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.30.0-S23c", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.31.0-S24", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -188,6 +188,8 @@ E.newGame = function(opts){
 
   opts.players.forEach(function(pd,idx){ S.players.push(E.makePlayer(S, idx, pd)); });
   E.buildDecks(S);
+  // S24：抽出本局每個夢想的里程碑路線。池子剛好 dreamCost 條時不取用亂數（相容鐵律）。
+  if(E.rollDreamRoutes) E.rollDreamRoutes(S);
   ns.modules.onGameSetup(S);
   return S;
 };

@@ -63,6 +63,25 @@ function build() {
 
   console.log('[FinFlow Bundle] Build successful! Written to index.html and dist/index.html');
 
+  /* S24：夢想里程碑的配圖是【外部檔案】（換圖＝同檔名覆蓋，不必重新打包），
+     所以 dist/ 也要有一份，否則從 dist 部署時圖會 404。
+     圖載不到時介面會退回純文字，所以這一步失敗不致命——印個提醒就好。 */
+  try {
+    const assetsSrc = path.join(ROOT, 'assets');
+    if (fs.existsSync(assetsSrc)) {
+      fs.cpSync(assetsSrc, path.join(outDist, 'assets'), { recursive: true });
+      // 圖是分資料夾放的（assets/dreams/dream_peaks/01.webp），要遞迴數
+      const countImg = (dir) => fs.readdirSync(dir, { withFileTypes: true })
+        .reduce((n, e) => n + (e.isDirectory() ? countImg(path.join(dir, e.name))
+                                               : (/\.(webp|png|jpe?g)$/i.test(e.name) ? 1 : 0)), 0);
+      const dreamDir = path.join(assetsSrc, 'dreams');
+      const nImg = fs.existsSync(dreamDir) ? countImg(dreamDir) : 0;
+      console.log(`[FinFlow Bundle] assets/ copied to dist/ (${nImg} dream images)`);
+    }
+  } catch (e) {
+    console.log('[FinFlow Bundle] WARN: assets/ 沒有複製到 dist/（圖會退回純文字）：' + e.message);
+  }
+
   // S22：卡片工坊也從同一份 src/data 打包——原本 card_editor.html 內嵌一份卡包快照，
   // 改了 src/data 之後兩邊會漂移（S21c 之後 base/m4/special 就已經不一致）。
   const editorTpl = fs.readFileSync(path.join(SRC, 'editor/cardEditor.html'), 'utf-8');

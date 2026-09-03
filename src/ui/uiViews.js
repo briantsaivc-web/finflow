@@ -407,10 +407,12 @@ ui.handleEvents = function(evs){
           (ms?("："+ms):"")+(e.paid===false?"（聖地免費 +1）":""), e.playerId);
         ui.lastAct[e.playerId]={turn:ui.S.turnNumber, msg:"✨ "+(ms||("圓夢進度 "+e.progress+"／"+dcost))};
         // 全服公告：標題放具體成就，副標放進度與剩餘
+        // S24：公告配上這一點的圖。圖載不到時 <img> 會自己移除 → 回到純文字版公告。
         ui.broadcast("✨ "+dn+"："+(ms||("圓夢進度 "+e.progress+" ／ "+dcost)),
           (e.dreamName?("《"+e.dreamName+"》　"):"")+"進度 "+e.progress+" ／ "+dcost+"　"+
           (e.progress>=dcost?"夢想已集滿！":"還差 "+(dcost-e.progress)+" 點")+
-          (e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）"),"good",6000);
+          (e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）"),
+          "good", e.milestoneImg?7500:6000, e.milestoneImg||null);
         break; }
       case "DREAM_PENDING":
         ui.announce("🕯 "+me(e.playerId)+" 夢想已集滿，但幸福感 "+e.wellbeing+"／"+e.need+" 還沒到——人生不只是把清單打勾", e.playerId);
@@ -3451,12 +3453,16 @@ ns.selftest = {
         "每個夢想應有至少 "+S.config.dreamCost+" 個具體里程碑");
       ns.content.dreams.forEach(function(d){
         assert(d.milestones && d.milestones.length>=5, d.name+" 缺少里程碑");
-        d.milestones.forEach(function(m){ assert(m && m.length>3, d.name+" 有空的里程碑"); });
+        // S24：里程碑可能是字串（舊）或 {t,img}（新），一律走 E.msText 取文字
+        d.milestones.forEach(function(m){ assert(E.msText(m).length>3, d.name+" 有空的里程碑"); });
       });
-      // 第 n 點要對應第 n 個里程碑
+      // S24：第 n 點對應「本局路線」的第 n 條（路線由 E.rollDreamRoutes 抽出）
       E.enterOuterCircle(S,p);
+      var route=(S.dreamRoutes||{})[dr.id]||[];
+      assert(route.length===S.config.dreamCost,"本局路線應有 "+S.config.dreamCost+" 條，實得 "+route.length);
       for(var i=1;i<=S.config.dreamCost;i++){
-        assert(E.dreamMilestone(S,p,i)===dr.milestones[i-1],"第 "+i+" 點應對應第 "+i+" 個里程碑");
+        assert(E.dreamMilestone(S,p,i)===E.msText(dr.milestones[route[i-1]]),
+          "第 "+i+" 點應對應本局路線的第 "+i+" 條");
       }
       // 事件要帶出里程碑文字
       S.decisionQueue=[]; S.pendingDecision=null;
@@ -3466,9 +3472,11 @@ ns.selftest = {
       E._events=[];
       E.buyDreamProgress(S,p);
       var ev=E._events.filter(function(e){return e.type==="DREAM_PROGRESS";})[0];
-      assert(ev && ev.milestone===dr.milestones[d0], "DREAM_PROGRESS 應帶出第 "+(d0+1)+" 個里程碑，實得 "+(ev&&ev.milestone));
+      assert(ev && ev.milestone===E.msText(dr.milestones[route[d0]]),
+        "DREAM_PROGRESS 應帶出本局路線的第 "+(d0+1)+" 條，實得 "+(ev&&ev.milestone));
       assert(ev.dreamName===dr.name,"事件應帶出夢想名稱");
-      return "八個夢想各有 ≥5 個具體里程碑；第 n 點對應第 n 個；事件帶出里程碑與夢想名";
+      assert(ev.milestoneImg===E.msImg(dr.milestones[route[d0]]),"事件應帶出該條的圖檔名");
+      return "八個夢想各 20 條里程碑、本局抽 "+S.config.dreamCost+" 條；第 n 點對應路線第 n 條；事件帶出里程碑、圖與夢想名";
     });
 
     t("T-28 理賠明細（原價／折抵／實付／省下）", function(){
