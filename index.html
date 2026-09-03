@@ -710,7 +710,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.32.1-S25b", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.32.2-S25c", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -4181,6 +4181,14 @@ E.sellAsset = function(S,p,a,mult,opts){
   var sum = opts.summary || ("賣出："+a.name+"（損益 "+(pl>=0?"+":"")+util.money(pl)+"）");
   ledger.post(S,p,sum,post,{eduTags:opts.eduTags||["exit"]});
   p.assets=p.assets.filter(function(x){return x.instanceId!==a.instanceId;});
+  // S25c 修復：數位資產賣出後要回頭切斷 p.digitalAssets 的來源狀態機，否則
+  // E.tickDigital 下次發薪日會發現 p.assets 裡的鏡射不見了、以為是「新起飛」
+  // 又生一筆回來（資產、被動收入、維護費全部原樣復活）。用 E.dropDigital 收尾，
+  // 順便把維護費停掉、時間槽讓出，跟主動「收掉」數位資產走同一套結算路徑。
+  if(a.kind==="DIGITAL" && a.flags && a.flags.digital){
+    var dgSold=(p.digitalAssets||[]).filter(function(x){ return x.id===a.flags.digital && !x.dead; })[0];
+    if(dgSold) E.dropDigital(S,p,dgSold,"賣出數位資產");
+  }
   E.ev(opts.evName||"ASSET_SOLD",{playerId:p.id, name:a.name, pl:pl});
 };
 
@@ -9649,6 +9657,15 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(el("div","flavor",
       "<b class='gold'>做得起來不保證，做多大更不保證</b>——但不投入就一定不會有。"+
       "投入期間不能同時進修（時間只有一份），停下來的內容會開始掉。"));
+    // S25c 修復：時間槽整局只有一份，開新的一攤會把它從目前顧著的另一攤偷走，
+    // 之前完全沒提示，玩家只會看到原本那攤卡住不動、以為是壞掉了。這裡把「開這個
+    // 會讓誰暫停」講清楚——爬坡期只是暫停不會歸零，但玩家要自己決定要不要換。
+    var tendD = p.tending ? (p.digitalAssets||[]).filter(function(x){ return x.id===p.tending && !x.dead; })[0] : null;
+    if(tendD && tendD.tier===null){
+      card.appendChild(el("div","edu",
+        "⏸️ 你目前正在顧「"+tendD.name+"」（進度 "+tendD.progress+"/"+tendD.threshold+" 輪）。"+
+        "開始經營這個會把時間切過去，「"+tendD.name+"」會暫停累積（不會歸零重來，之後切回去顧它就會繼續往前）。"));
+    }
     var oD=el("div","opts");
     var costD=util.r2(pdg.cost||0);
     var poorD = p.cash<costD;
@@ -18871,6 +18888,45 @@ ns.selftest = {
       assert(ns.mpDebug.isRoomExpired(live)===false,"活房不得被判為過期");
       assert(ns.mpDebug.isRoomExpired(null)===true,"不存在的房視為可用");
       return "房號 4 碼（0000–9999）、零補齊正確；活房不可回收、過期房可回收";
+    });
+
+    t("T-86 數位資產賣出後不得自動復活，維護費要一併停止", function(){
+      // 實測回報：賣掉起飛後的數位資產，下一個發薪日它又自己長回來——
+      // 根因是 sellAsset 只清掉 p.assets 的鏡射，沒有回頭把 p.digitalAssets
+      // 的來源狀態機標成 dead，tickDigital 找不到鏡射就當成「新起飛」又補一筆。
+      var cfgT=baseCfg();
+      var S=mkGame(5401,["M1","M2","M3","M4","M6","M8"],cfgT), p=S.players[0];
+      var card=ns.content.byId["DIG_COURSE"];
+      ns.ledger.post(S,p,"補現金",[{account:"CASH",delta:2000,label:"x"}],{eduTags:["setup"]});
+      E.startDigital(S,p,card);
+      var d0=p.digitalAssets[0];
+      for(var i=0;i<d0.threshold;i++){ S.turnNumber++; E.tickDigital(S,p); }
+      assert(d0.tier!==null,"前置條件：應已起飛，實得 tier="+d0.tier);
+      assert(d0.assetInstanceId,"前置條件：起飛後應鏡射進 p.assets");
+      var pas0=p.derived.passiveIncome, exp0=p.derived.totalExpenses;
+      var a0=p.assets.filter(function(x){return x.instanceId===d0.assetInstanceId;})[0];
+      assert(a0,"前置條件：p.assets 裡要找得到這筆鏡射");
+      E.sellAsset(S,p,a0,1,{summary:"賣出："+a0.name});
+      assert(d0.dead===true,"賣出後來源狀態機應標為 dead，實得 "+d0.dead);
+      assert(d0.monthlyIncome===0,"賣出後來源狀態機的月收入應歸零");
+      assert(!p.assets.some(function(x){return x.flags && x.flags.digital===d0.id;}),
+        "賣出後 p.assets 不得再有這筆的殘留");
+      assert(Math.abs(p.derived.passiveIncome-(pas0-a0.monthlyIncome))<0.01,
+        "被動收入應扣掉賣出的那份，實得 "+p.derived.passiveIncome);
+      var expAfterSell=p.derived.totalExpenses;
+      // 連跑多個發薪日，確認它不會自己復活、維護費也不會留下孤兒支出
+      for(var j=0;j<10;j++){ S.turnNumber++; E.tickDigital(S,p); }
+      assert(!p.digitalAssets.some(function(x){return x.id===d0.id && !x.dead;}),
+        "多輪發薪後不得死灰復燃");
+      assert(!p.assets.some(function(x){return x.flags && x.flags.digital===d0.id;}),
+        "多輪發薪後 p.assets 仍不得出現這筆的復活鏡射");
+      assert(Math.abs(p.derived.passiveIncome-(pas0-a0.monthlyIncome))<0.01,
+        "多輪發薪後被動收入不得偷偷漲回來，實得 "+p.derived.passiveIncome);
+      assert(Math.abs(p.derived.totalExpenses-exp0+(card.payload.monthlyCost||0))<0.01,
+        "維護費應隨賣出一併停止，不得留下孤兒支出，實得 "+p.derived.totalExpenses);
+      assert(p.derived.totalExpenses===expAfterSell,
+        "賣出當下維護費就該停，之後不該再變動");
+      return "賣出起飛後的數位資產：來源狀態機標記 dead、被動收入與維護費同步停止、多輪發薪不再死灰復燃";
     });
 
     var pass=results.filter(function(r){return r.ok;}).length;

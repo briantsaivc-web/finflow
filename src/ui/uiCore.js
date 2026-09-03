@@ -2205,6 +2205,15 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(el("div","flavor",
       "<b class='gold'>做得起來不保證，做多大更不保證</b>——但不投入就一定不會有。"+
       "投入期間不能同時進修（時間只有一份），停下來的內容會開始掉。"));
+    // S25c 修復：時間槽整局只有一份，開新的一攤會把它從目前顧著的另一攤偷走，
+    // 之前完全沒提示，玩家只會看到原本那攤卡住不動、以為是壞掉了。這裡把「開這個
+    // 會讓誰暫停」講清楚——爬坡期只是暫停不會歸零，但玩家要自己決定要不要換。
+    var tendD = p.tending ? (p.digitalAssets||[]).filter(function(x){ return x.id===p.tending && !x.dead; })[0] : null;
+    if(tendD && tendD.tier===null){
+      card.appendChild(el("div","edu",
+        "⏸️ 你目前正在顧「"+tendD.name+"」（進度 "+tendD.progress+"/"+tendD.threshold+" 輪）。"+
+        "開始經營這個會把時間切過去，「"+tendD.name+"」會暫停累積（不會歸零重來，之後切回去顧它就會繼續往前）。"));
+    }
     var oD=el("div","opts");
     var costD=util.r2(pdg.cost||0);
     var poorD = p.cash<costD;

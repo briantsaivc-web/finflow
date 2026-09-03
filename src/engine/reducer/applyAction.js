@@ -2396,6 +2396,14 @@ E.sellAsset = function(S,p,a,mult,opts){
   var sum = opts.summary || ("賣出："+a.name+"（損益 "+(pl>=0?"+":"")+util.money(pl)+"）");
   ledger.post(S,p,sum,post,{eduTags:opts.eduTags||["exit"]});
   p.assets=p.assets.filter(function(x){return x.instanceId!==a.instanceId;});
+  // S25c 修復：數位資產賣出後要回頭切斷 p.digitalAssets 的來源狀態機，否則
+  // E.tickDigital 下次發薪日會發現 p.assets 裡的鏡射不見了、以為是「新起飛」
+  // 又生一筆回來（資產、被動收入、維護費全部原樣復活）。用 E.dropDigital 收尾，
+  // 順便把維護費停掉、時間槽讓出，跟主動「收掉」數位資產走同一套結算路徑。
+  if(a.kind==="DIGITAL" && a.flags && a.flags.digital){
+    var dgSold=(p.digitalAssets||[]).filter(function(x){ return x.id===a.flags.digital && !x.dead; })[0];
+    if(dgSold) E.dropDigital(S,p,dgSold,"賣出數位資產");
+  }
   E.ev(opts.evName||"ASSET_SOLD",{playerId:p.id, name:a.name, pl:pl});
 };
 
