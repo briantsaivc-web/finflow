@@ -935,8 +935,13 @@ ui.broadcast = function(title, sub, tone, ms, imgFile){
   var host=$("bcast"); if(!host) return;
   var bc=el("div","bc"+(tone==="warn"?" warn":""));
   // S24：有圖就放在標題上面（圓夢的全服公告要看得到那張圖）
+  /* 圖用完整的 16:9 顯示。原本壓成 max-height:150px＋cover，等於把一張 16:9 的
+     插畫裁成 3:1 的窄帶——山頂與天空都被切掉，「配漂亮的圖」的意義就沒了。
+     aspect-ratio 同時兼作正規化：日後換上非 16:9 的圖也會被裁成一致的比例，
+     版面不會忽高忽低；max-height 是小螢幕的保險，不讓公告吃掉整個畫面。 */
   var im = imgFile ? ui.dreamImgEl(imgFile,
-    "width:100%;max-height:150px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px") : null;
+    "width:100%;aspect-ratio:16/9;max-height:38vh;object-fit:cover;"+
+    "border-radius:8px;display:block;margin-bottom:8px") : null;
   if(im) bc.appendChild(im);
   bc.appendChild(el("div","ttl",title));
   if(sub) bc.appendChild(el("div","sub",sub));
