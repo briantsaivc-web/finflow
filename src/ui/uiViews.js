@@ -6839,6 +6839,40 @@ ns.selftest = {
       return "賣出起飛後的數位資產：來源狀態機標記 dead、被動收入與維護費同步停止、多輪發薪不再死灰復燃";
     });
 
+    t("T-87 dropStudy 一次 DECIDE 只准在 actionLog 留一筆紀錄（多人連線關鍵）", function(){
+      // 實測回報：多人連線局，正在進修時抽到數位資產卡、選「放棄進修接這個」，
+      // 之後任何動作都卡在「狀態已更新，請再操作一次」。根因是 dropStudy 分支
+      // 原本整套呼叫 E.apply(ABANDON_SKILL,{mutate:true})，那條路徑自己的
+      // accept() 會在同一筆 DECIDE 動作裡對 S.actionLog 多推一筆「憑空」的
+      // 紀錄——本機重放看不出異狀（單機從不比對 seq），但多人連線只有 DECIDE
+      // 這一筆真正經過 mpSend 上傳，本機 actionLog.length 卻多算了一筆，
+      // 從此之後這個玩家送出的每個動作算出來的 seq 都會跟共用日誌對不上，
+      // mpSend 的 conflict 分支永遠觸發，玩家看到的就是「永遠卡住」。
+      // 這裡要走真正的 E.apply(DECIDE) 全路徑（不能只呼叫 E.resolveDecision，
+      // 那樣繞過了 accept()，驗不到這顆地雷——T-72 就是繞過的，才會漏掉這個）。
+      var modsT=["M1","M2","M3","M4","M6","M8"];
+      var S=mkGame(10501,modsT), p=S.players[0];
+      ns.ledger.post(S,p,"補現金",[{account:"CASH",delta:6000,label:"x"}],{eduTags:["setup"]});
+      var sk=ns.content.cards.SKILL[0], dc=ns.content.cards.DIGITAL[0];
+      E.startLearning(S,p,sk,true);
+      assert(p.learning,"前置條件：必須真的在進修中");
+      E.pushDecision(S,p,{ kind:"START_DIGITAL", cardId:dc.id });
+      E.syncPhase(S);
+      var d0=S.pendingDecision;
+      assert(d0 && d0.kind==="START_DIGITAL","前置條件：待決事項應為 START_DIGITAL");
+      var logLenBefore=S.actionLog.length;
+      var res=E.apply(S,{type:"DECIDE",playerId:p.id,
+        payload:{decisionId:d0.decisionId,optionId:"dropStudy",params:{}}},{mutate:true});
+      assert(!res.rejected,"dropStudy 這筆 DECIDE 不該被拒");
+      assert(S.actionLog.length===logLenBefore+1,
+        "一筆 DECIDE 動作只該在 actionLog 留一筆紀錄，實得 "+(S.actionLog.length-logLenBefore)+" 筆");
+      assert(!p.learning,"應已放棄進修");
+      assert((p.digitalAssets||[]).length===1,"應成功開張");
+      var lastEntry=S.actionLog[S.actionLog.length-1];
+      assert(lastEntry.type==="DECIDE","actionLog 最後一筆型別應為 DECIDE，實得 "+lastEntry.type);
+      return "dropStudy 整段效果併入同一筆 DECIDE，actionLog 不再多算一筆，多人連線 seq 不會錯位";
+    });
+
     var pass=results.filter(function(r){return r.ok;}).length;
     if(typeof console!=="undefined") results.forEach(function(r){
       console.log((r.ok?"PASS ":"FAIL ")+r.name+"　"+r.detail); });

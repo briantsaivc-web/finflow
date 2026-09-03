@@ -102,6 +102,34 @@ E.OFF_TURN_CONDITIONAL = {
 E.OFF_TURN_CONDITIONAL_KEYS = function(){ return Object.keys(E.OFF_TURN_CONDITIONAL); };
 E.OFF_TURN_SELF_KEYS = function(){ return Object.keys(E.OFF_TURN_SELF); };
 
+// S25d 修復：放棄進修的實際效果抽成獨立函式，供「主動放棄」(ABANDON_SKILL，
+// 自己一筆 actionLog) 與「START_DIGITAL 的 dropStudy 選項」(合併在同一筆 DECIDE
+// 裡) 共用。呼叫端要自己先確認 p.learning 存在——這裡只做效果，不做守門、不呼叫
+// accept()，因為它從來不是一個獨立可被分派的動作。
+// 重要：先前 dropStudy 分支是整套呼叫 E.apply(S,{type:"ABANDON_SKILL",...},
+// {mutate:true})，這條路徑內部的 accept() 會在同一個 DECIDE 動作裡於
+// S.actionLog 多推一筆「憑空」的紀錄——本機重放看不出異狀，但多人連線只有
+// DECIDE 這一筆真正經過 mpSend 上傳，本機 actionLog.length 卻多算了一筆，
+// 從此之後這個玩家送出的每一個動作算出來的 seq 都對不上共用日誌，
+// mpSend 的 conflict 分支永遠觸發——實測回報「放棄進修接數位資產之後，
+// 之後任何操作都卡在『狀態已更新，請再操作一次』」，根因就在這裡。
+E.applyAbandonSkill = function(S, p){
+  var ac = ns.content.byId[p.learning.skillId];
+  var pct = E.cfg(S,"abandonRefundPct"); if(pct===undefined) pct = 0.3;
+  var refund = util.r2((p.learning.paidCost||0) * pct);
+  var apost = [];
+  if(refund > 0) apost.push({account:"CASH", delta:refund, label:"退回部分學費"});
+  var arm = ac ? (ac.recurringMonthly||0) : 0;
+  if(arm > 0) apost.push({account:"EXPENSE", delta:util.r2(-arm), label:(ac?ac.title:"")+" 月費終止"});
+  if(apost.length) ledger.post(S,p,"放棄學習："+(ac?ac.title:"?"),apost,{eduTags:["learning","sunk-cost"]});
+  p.stats.skillsAbandoned = (p.stats.skillsAbandoned||0) + 1;
+  E.ev("SKILL_ABANDONED",{ playerId:p.id, skillId:p.learning.skillId,
+                           title:(ac?ac.title:""), refund:refund,
+                           sunk:util.r2((p.learning.paidCost||0)-refund),
+                           turnsSpent:S.turnNumber-p.learning.startTurn });
+  p.learning = null;
+};
+
 E.apply = function(state, action, opts){
   opts = opts||{};
   var S = opts.mutate ? state : util.clone(state);
@@ -761,21 +789,8 @@ E.apply = function(state, action, opts){
 
   case "ABANDON_SKILL": {                     // 中途放棄：沉沒成本的一課
     if(!p.learning) return reject("NOT_LEARNING");
-    var ac = ns.content.byId[p.learning.skillId];
-    var pct = E.cfg(S,"abandonRefundPct"); if(pct===undefined) pct = 0.3;
-    var refund = util.r2((p.learning.paidCost||0) * pct);
     accept();
-    var apost = [];
-    if(refund > 0) apost.push({account:"CASH", delta:refund, label:"退回部分學費"});
-    var arm = ac ? (ac.recurringMonthly||0) : 0;
-    if(arm > 0) apost.push({account:"EXPENSE", delta:util.r2(-arm), label:(ac?ac.title:"")+" 月費終止"});
-    if(apost.length) ledger.post(S,p,"放棄學習："+(ac?ac.title:"?"),apost,{eduTags:["learning","sunk-cost"]});
-    p.stats.skillsAbandoned = (p.stats.skillsAbandoned||0) + 1;
-    E.ev("SKILL_ABANDONED",{ playerId:p.id, skillId:p.learning.skillId,
-                             title:(ac?ac.title:""), refund:refund,
-                             sunk:util.r2((p.learning.paidCost||0)-refund),
-                             turnsSpent:S.turnNumber-p.learning.startTurn });
-    p.learning = null;
+    E.applyAbandonSkill(S,p);
     E.syncPhase(S);
     break; }
 
@@ -1915,8 +1930,10 @@ E.resolveDecision = function(S,p,d,optionId,params){
       // 所以給一個「放棄目前進修、接這個」的選項，但沉沒成本要玩家自己承擔。
       if(optionId==="dropStudy"){
         if(!p.learning) break;                               // 沒在進修就沒有東西可以放棄
-        var rDrop=E.apply(S,{type:"ABANDON_SKILL",playerId:p.id,payload:null},{mutate:true});
-        if(rDrop && rDrop.rejected) break;
+        // S25d：直接呼叫效果函式，不再整套 E.apply(ABANDON_SKILL)——那樣會在
+        // 同一筆 DECIDE 裡對 S.actionLog 多推一筆「憑空」的紀錄，多人連線會
+        // 永久對不上共用日誌（見 E.applyAbandonSkill 上方註解）。
+        E.applyAbandonSkill(S,p);
       }
       if(p.learning) break;                                  // 還在學習中就沒有時間再開一攤
       if(p.cash < util.r2((dgC.payload||{}).cost||0)) break;
