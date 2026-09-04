@@ -119,18 +119,21 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       return "賠 200／停 2；合規免賠／停 1";
     });
 
-    step("獨立董事：A 公司不爆雷，六輪後圓滿卸任（謹慎 +1、幸福 +2）",()=>{
+    // S27：任期與車馬費改成從 E.DIRECTOR_COMPANIES 讀（原本釘死 6 輪 ×8），
+    // 以後調任期或車馬費不會再撞到這一項。
+    step("獨立董事：A 公司不爆雷，任期屆滿圓滿卸任（謹慎 +1、幸福 +2）",()=>{
       const S=fresh(9306), me=S.players[0]; giveSkill(me,"SKL_BOOK"); cashTo(S,me,500);
       S.decisionQueue.length=0; E.presentCard(S,me,ns.content.byId["LE_INDEPENDENT_DIRECTOR"]);
       decide(S,me,"appoint",{company:"A"});
       A(me.directorship.crashTurn===null,"A 公司不該有爆雷輪");
+      const coA=E.DIRECTOR_COMPANIES.A, term=coA.term, inc=coA.income;
       const c0=me.cash, v0=(me.virtues.PRUDENCE||0), j0=me.stats.skillJoy||0;
-      for(let i=0;i<6;i++){ S.turnNumber+=1; S.decisionQueue.length=0; E.tickDirectorship(S,me); }
-      A(Math.abs(me.cash-c0-6*8)<0.01,"六輪車馬費應 +48，實得 "+(me.cash-c0));
+      for(let i=0;i<term;i++){ S.turnNumber+=1; S.decisionQueue.length=0; E.tickDirectorship(S,me); }
+      A(Math.abs(me.cash-c0-term*inc)<0.01,term+" 輪車馬費應 +"+(term*inc)+"，實得 "+(me.cash-c0));
       A(me.directorship===null && me.stats.directorCompleted===1,"應圓滿卸任");
       A((me.virtues.PRUDENCE||0)===Math.min(v0+1,S.config.virtueMaxLevel),"謹慎 +1");
       A((me.stats.skillJoy||0)===j0+2,"幸福感 +2");
-      return "+48、卸任";
+      return "+"+(term*inc)+"、卸任";
     });
 
     step("吸金盤：買進照常配息，到期整筆歸零＋訴訟費，資產分錄對得起來",()=>{
@@ -180,18 +183,27 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       return "STK_TECH "+p0+"→"+S.stockPrices.STK_TECH;
     });
 
-    step("定時炸彈：名媛捷徑先拿 100，兩輪後帳戶凍結扣 130、停走 1",()=>{
-      const S=fresh(9310), me=S.players[0]; cashTo(S,me,200);
+    // S27：數值改由卡片資料讀取——這支測的是「定時炸彈這個機制會不會照時程引爆」，
+    // 不是某一版的誘餌金額。Brian 之後再調數值就不用再回來改測試。
+    step("定時炸彈：名媛捷徑先入帳，兩輪後才引爆（扣款、停走、清乾淨）",()=>{
+      const S=fresh(9310), me=S.players[0]; cashTo(S,me,400);
+      const opt=ns.content.byId["CHOICE_SUGAR_AUNTIE"].decision.options[1];
+      const bait=opt.effects.filter(e=>e.op==="CASH_DELTA")[0].amount;
+      const dl=opt.effects.filter(e=>e.op==="DELAYED_EFFECTS")[0];
+      const back=-dl.effects.filter(e=>e.op==="CASH_DELTA")[0].amount;
+      A(bait>0 && back>bait,"設計前提：誘餌是正的，且事後追回大於誘餌（否則等於獎勵詐騙）");
       S.decisionQueue.length=0; E.presentCard(S,me,ns.content.byId["CHOICE_SUGAR_AUNTIE"]);
       const c0=me.cash; decide(S,me,1);   // S22 已把「捷徑」排到第 2 個選項（第 1 個是建議選項）
-      A(Math.abs(me.cash-c0-100)<0.01,"先拿 100，實得 "+(me.cash-c0));
+      A(Math.abs(me.cash-c0-bait)<0.01,"先入帳 "+bait+"，實得 "+(me.cash-c0));
       A(S.activeGlobalEvents.some(e=>e.kind==="DELAYED_FX"),"應登記延後效果");
-      S.turnNumber+=1; E.onRoundEnd(S); A(Math.abs(me.cash-c0-100)<0.01,"第 1 輪還不該引爆");
+      for(let i=1;i<dl.turns;i++){ S.turnNumber+=1; E.onRoundEnd(S);
+        A(Math.abs(me.cash-c0-bait)<0.01,"第 "+i+" 輪還不該引爆"); }
       S.turnNumber+=1; const sk=me.skippedTurns; E.onRoundEnd(S);
-      A(Math.abs(c0+100-me.cash-130*S.config.eventCardRate)<0.01,"第 2 輪應扣 130，實得 "+(c0+100-me.cash));
+      A(Math.abs(c0+bait-me.cash-back*S.config.eventCardRate)<0.01,
+        "第 "+dl.turns+" 輪應扣 "+back+"，實得 "+(c0+bait-me.cash));
       A(me.skippedTurns-sk===1,"應停走 1 輪");
       A(!S.activeGlobalEvents.some(e=>e.kind==="DELAYED_FX"),"引爆後應清掉");
-      return "OK";
+      return "誘餌 "+bait+" → "+dl.turns+" 輪後追回 "+back;
     });
 
     step("安太座：依月薪 1.5 倍計價；沒薪水回退固定 100",()=>{

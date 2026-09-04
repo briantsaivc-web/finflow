@@ -453,6 +453,28 @@ ui.handleEvents = function(evs){
       // S26：法律常識／公司法規與合規治理——賠償與和解類支出，懂的人談得下來
       case "LEGAL_DISCOUNT":
         if(e.playerId===ui.myId()) ui.toast("⚖ 懂法律，這筆賠償少了 "+M(e.saved),"good",4500); break;
+      // S27：報稅的列舉扣除——省下來的錢要讓玩家看見，「平常留單據」才會變成習慣
+      case "TAX_DEDUCTION":
+        if(e.playerId===ui.myId())
+          ui.toast("🧾 列舉扣除生效（"+Math.round((e.pct||0)*100)+"％），這筆稅少繳了 "+M(e.saved),"good",5000); break;
+      /* S27：機率型選項的擲骰結果。賭贏賭輸都全場公告——沒選的人也要看到那個 25% 到底開出什麼，
+         這比事後解釋期望值有用得多。 */
+      case "OPTION_GAMBLE": {
+        var gp = Math.round((e.chance||0)*100);
+        var gTail = "（當時的機率是 "+(e.win?gp:(100-gp))+"％）";
+        ui.announce((e.win?"🎲 ":"🎲 ")+me(e.playerId)+"「"+(e.title||"")+"」擲出結果："+e.label+gTail, e.playerId);
+        if(e.playerId===ui.myId())
+          ui.toast((e.win?"🎉 ":"💀 ")+e.label+(e.narrative?("——"+e.narrative):""), e.win?"good":"bad", 7000);
+        break; }
+      /* S27：定時炸彈引爆。引擎本來就有發這個事件，但介面完全沒接，
+         結果是當事人只在帳上看到一筆莫名其妙的支出、其他人什麼都不知道。
+         這種卡的教育價值有一半在「讓沒選的人也看到代價」，所以改成全場公告。 */
+      case "DELAYED_EFFECT_FIRED": {
+        var dTail = (e.cost?("，賠了 "+M(e.cost)):"") + (e.skip?("、停走 "+e.skip+" 回合"):"");
+        ui.announce("⏰ 當初埋下的那筆帳找上 "+me(e.playerId)+" 了："+e.label+dTail, e.playerId);
+        if(e.playerId===ui.myId())
+          ui.toast("⏰ "+e.label+dTail+"——當初拿到的那筆錢，現在連本帶利還回去了","bad",7000);
+        break; }
       // S26：卡片點亮的旗標（自我投資健康＝健康折抵、公司送你進修＝解鎖人脈）
       case "FLAG_SET": {
         var FLN={fit:"健康狀態", checked:"健檢狀態", network:"人脈", guardian:"貴人相助"};

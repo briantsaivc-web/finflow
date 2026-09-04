@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.33.0-S26", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.34.0-S27", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -551,6 +551,23 @@ E.effAmount = function(t, ef){
     return util.r2(t.derived.salaryIncome * ef.salaryMult);
   return ef.amount;
 };
+/* S27：機率型決策選項。
+   命名沿用人生商城既有的 chance / onWin / onLose（那組原本只有 MALL_BUY 走得到），
+   讓卡片作者不必學第二套語彙。亂數一律走 util.rand(S)：種子化、可重放（鐵律 1）。
+   語意：chance 是「onWin 發生的機率」；選項本身的 effects 先結算（押注／借出去的錢），
+   再依擲骰結果套用 onWin 或 onLose 的 effects。 */
+E.resolveOptionOutcome = function(S, p, op, label){
+  if(!op || op.chance===undefined) return null;
+  var win = util.rand(S) < op.chance;
+  var br = win ? op.onWin : op.onLose;
+  var res = { win:win, chance:op.chance,
+              label:(br && br.label) || (win ? "結果：成了" : "結果：沒成"),
+              narrative:(br && br.narrative) || "" };
+  if(br && br.effects && br.effects.length) E.applyEffects(S,p,br.effects,label);
+  E.ev("OPTION_GAMBLE",{playerId:p.id, title:label, win:win, chance:op.chance,
+                        label:res.label, narrative:res.narrative});
+  return res;
+};
 // 加權抽獎（主流 RNG；累積機率第一個命中即 break——工程書 §1.9-5）
 E.blessingPool = function(S){
   return [
@@ -676,6 +693,25 @@ E.applyEffects = function(S, p, effects, label, opts){
                 E.ev("LEGAL_DISCOUNT",{playerId:t.id, saved:lSaved, label:ef.label||label}); }
             }
           }
+          /* S27：綜所稅的列舉扣除——寫法完全比照上面的 legalClaim。
+             三個來源可疊加：會計／記帳技能（懂得列舉）、慈善捐款收據、保單保費。
+             總折抵夾在 taxClaimMaxPct，避免疊到接近免稅。 */
+          if(amt<0 && ef.taxClaim){
+            var tr=0;
+            if(E.hasSkill && (E.hasSkill(t,"SKL_BOOK")||E.hasSkill(t,"SKL_CPA_AUDIT"))){
+              var tv=E.cfg(S,"taxSkillDiscountPct"); tr+=(tv===undefined?0.3:tv); }
+            if(t.flags && t.flags.donor){
+              var tdv=E.cfg(S,"taxDonorDiscountPct"); tr+=(tdv===undefined?0.1:tdv); }
+            if(t.flags && t.flags.insured){
+              var tiv=E.cfg(S,"taxInsuredDiscountPct"); tr+=(tiv===undefined?0.1:tiv); }
+            var tmax=E.cfg(S,"taxClaimMaxPct"); if(tmax===undefined) tmax=0.5;
+            if(tr>tmax) tr=tmax;
+            if(tr>0){
+              var tSaved=util.r2(-amt*tr);
+              if(tSaved>0){ amt=util.r2(amt+tSaved);
+                E.ev("TAX_DEDUCTION",{playerId:t.id, saved:tSaved, pct:tr, label:ef.label||label}); }
+            }
+          }
           /* S26：醫療鏈只吃「不是產險那一筆」的效果。
              LE12／LE13 這種把修車與醫療合在一起的卡已拆成兩筆效果：
              修車那筆走 propertyClaim（產險＋法律），醫療那筆走這裡（健康＋醫療險），
@@ -740,6 +776,12 @@ E.applyEffects = function(S, p, effects, label, opts){
             // NETWORK_UNLOCKED 與 notes，不在這裡重發，避免同一件事跳兩次。
             E.ev("FLAG_SET",{playerId:t.id, flag:fg, title:label, label:ef.label||label});
           }
+        }); break;
+      /* S27：失業效果 op。實際邏輯在 E.triggerLayoff（原本寫死在棋盤格 LAYOFF 裡，
+         這一版抽成函式，行為不變），所以卡片與棋盤格共用同一份敘事與同一組參數。 */
+      case "LAYOFF":
+        targets.forEach(function(t){
+          if(E.triggerLayoff) E.triggerLayoff(S, t, { title:ef.title, note:ef.note });
         }); break;
       case "SALARY_MULT":
         targets.forEach(function(t){
@@ -818,7 +860,9 @@ E.applyEffects = function(S, p, effects, label, opts){
       case "DELAYED_EFFECTS":
         targets.forEach(function(t){
           S.activeGlobalEvents.push({ seq:++S.eventSeq, kind:"DELAYED_FX", playerId:t.id,
-            effects:ef.effects||[], label:ef.label||label, until:S.turnNumber+(ef.turns||2), priority:0, param:null });
+            effects:ef.effects||[], label:ef.label||label, until:S.turnNumber+(ef.turns||2),
+            insurable:!!ef.insurable,          // S27：延後引爆的醫療類支出也吃得到健康折抵與醫療險理賠
+            priority:0, param:null });
         }); break;
 
       /* ---------- M8 S3 ---------- */

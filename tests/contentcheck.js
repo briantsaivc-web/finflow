@@ -10,6 +10,8 @@
    6. 金額量級：單筆金額 > 50000 視為疑似把「千元」寫成「元」（S21 獨董那種）
    7. requiresSkill / requiresAnySkill / skillBranch.requires / DIGITAL.requires 指到的技能 id 必須存在
    8. 引擎與測試裡寫死的 id 必須還在（改名或刪卡前先查這份清單）
+   9b. 機率型選項：chance 落在 0～1、要有 onWin／onLose，兩個分支的 effects 一併驗 op（S27）
+   9c. requiresEmploymentType 只能是 EMPLOYEE／SELF／FOUNDER（S27）
    9. CHOICE 卡的第 1 個選項是「建議選項」——若第 1 個選項效果含 CASH_DELTA 正數且第 2 個含 GRANT_VIRTUE 正數，提醒順序可能反了
 
    用法（repo 根目錄）：node tests/contentcheck.js        非 0 結束碼＝有錯 */
@@ -56,7 +58,16 @@ function walkEffects(list, where) {
 for (const { c, deck, f } of all) {
   const where = `${f} ${deck} ${c.id}`;
   walkEffects(c.effects, where);
-  for (const o of (c.decision && c.decision.options) || []) walkEffects(o.effects, where + ' 選項');
+  for (const o of (c.decision && c.decision.options) || []) {
+    walkEffects(o.effects, where + ' 選項');
+    // S27：機率型選項的兩個分支也要驗 op，否則 onWin/onLose 裡打錯字引擎會靜默吃掉
+    if (o.chance !== undefined) {
+      if (typeof o.chance !== 'number' || o.chance < 0 || o.chance > 1) E(`${where} 選項 chance 必須是 0～1 的數字（現在是 ${JSON.stringify(o.chance)}）`);
+      if (!o.onWin && !o.onLose) E(`${where} 選項寫了 chance 卻沒有 onWin／onLose，等於白擲一次骰`);
+      walkEffects((o.onWin || {}).effects, where + ' 選項→onWin');
+      walkEffects((o.onLose || {}).effects, where + ' 選項→onLose');
+    }
+  }
   if (c.skillBranch) { walkEffects((c.skillBranch.have || {}).effects, where + ' have'); walkEffects((c.skillBranch.miss || {}).effects, where + ' miss'); }
   if (c.virtueBranch) for (const [k, v] of Object.entries(c.virtueBranch)) if (v && v.effects) walkEffects(v.effects, where + ' ' + k);
   // 3. macro target
@@ -81,6 +92,11 @@ for (const { c, deck, f } of all) {
   const optSkillRefs = (((c.decision || {}).options) || []).map(o => o.requiresSkill).filter(Boolean);
   const refs = [].concat(c.requiresSkill || [], c.requiresAnySkill || [], c.requiresNotSkill || [], (c.skillBranch || {}).requires || [], optSkillRefs, deck === 'DIGITAL' ? (c.requires || []) : []);
   for (const r of refs) if (!/^family:/.test(r) && !ids.has(r)) E(`${where} 參照不存在的技能 ${r}`);
+  // S27：身分門檻的值必須是引擎認得的三種受僱型別
+  if (c.requiresEmploymentType) {
+    if (!Array.isArray(c.requiresEmploymentType) || !c.requiresEmploymentType.length) E(`${where} requiresEmploymentType 要是非空陣列`);
+    else for (const t of c.requiresEmploymentType) if (!['EMPLOYEE', 'SELF', 'FOUNDER'].includes(t)) E(`${where} requiresEmploymentType 出現不認得的值 ${t}`);
+  }
   // 9. CHOICE 順序
   if (c.kind === 'CHOICE' && c.decision && c.decision.options && c.decision.options.length >= 2) {
     const o0 = c.decision.options[0].effects || [], o1 = c.decision.options[1].effects || [];

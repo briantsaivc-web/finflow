@@ -1705,20 +1705,29 @@ ui.renderCenter = function(){
 function cardFace(card){
   var wrap=el("div");
   wrap.appendChild(el("h3",null,card.title||card.name));
-  if(card.scamWarning){
+  /* 技能揭露的隱藏警訊：學過的人看得到、沒學過的人看不到——這個資訊落差本身就是教材。
+     S27：警語文字改成卡片可自訂（scamWarning:{law,audit}），因為原本寫死的兩句只講得通
+     「境外投資吸金」，套到人頭帳戶那種卡完全不對題。寫 true 的舊卡沿用預設句，行為不變。 */
+  /* S27：欄位一般化成 skillInsight——這種「有知識才看得到」的揭露不只用在詐騙卡
+     （作保、保單、報稅都適用）。舊卡的 scamWarning 照吃，行為不變。 */
+  var insight = card.skillInsight || card.scamWarning;
+  if(insight){
     var me = ui.S && ui.S.players[ui.myId()];
     var hasLaw = me && E.hasSkill && (E.hasSkill(me, "SKL_LAW") || E.hasSkill(me, "SKL_GOV_LEGAL"));
     var hasAudit = me && E.hasSkill && (E.hasSkill(me, "SKL_BOOK") || E.hasSkill(me, "SKL_CPA_AUDIT"));
+    var sw = (typeof insight === "object") ? insight : {};
+    var lawTxt   = sw.law   || "境外無主管機關核備，無實質履約保證，跨國追償難度極高！";
+    var auditTxt = sw.audit || "交叉比對現金流不足以支撐高額配息，極高機率為後金補前金之龐氏資金盤！";
     if(hasLaw){
       var wL=el("div","scam-warn");
       wL.style.cssText="background:rgba(240,128,60,.18);color:#F0803C;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:700;margin:6px 0;border:1px solid rgba(240,128,60,.4);";
-      wL.textContent="⚠️ 法律審查警訊：境外無主管機關核備，無實質履約保證，跨國追償難度極高！";
+      wL.textContent="⚠️ 法律審查警訊："+lawTxt;
       wrap.appendChild(wL);
     }
     if(hasAudit){
       var wA=el("div","scam-audit");
       wA.style.cssText="background:rgba(255,90,95,.2);color:#FF5A5F;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:700;margin:6px 0;border:1px solid rgba(255,90,95,.4);";
-      wA.textContent="🚨 財務審計警報：交叉比對現金流不足以支撐高額配息，極高機率為後金補前金之龐氏資金盤！";
+      wA.textContent="🚨 財務審計警報："+auditTxt;
       wrap.appendChild(wA);
     }
   }
@@ -1907,15 +1916,29 @@ ui.effectSummary = function(effects, viewer){
       case "DECAY_SKILL": { var ds=ef.skillId?ns.content.byId[ef.skillId]:null;
         out.push((ds?("「"+ds.title+"」"):"相關技能")+"即將過時（需進修更新）"); break; }
       case "DELAY_LEARNING": out.push("學習進度延後 "+(ef.turns===undefined?1:ef.turns)+" 輪"); break;
+      // S27：失業效果（金額依當事人的月支出計算，寫死數字反而會誤導）
+      case "LAYOFF": out.push("失去工作（付 1 個月生活開銷、停走 2 回合）"); break;
     }
   });
   return out.join("、");
 };
+/* S27：機率型選項的賠率說明。機率一定要明講——「知道自己在賭什麼」本身就是這幾張卡的教材，
+   把勝率藏起來就變成純運氣，學不到東西。 */
+ui.optionOddsLine = function(op, viewer){
+  if(!op || op.chance===undefined) return "";
+  var pw = Math.round(op.chance*100);
+  var w = ui.effectSummary((op.onWin||{}).effects, viewer);
+  var l = ui.effectSummary((op.onLose||{}).effects, viewer);
+  return "🎲 "+pw+"％ "+(((op.onWin||{}).label)||"成功")+(w?("："+w):"")
+       + "　／　"+(100-pw)+"％ "+(((op.onLose||{}).label)||"失敗")+(l?("："+l):"");
+};
 ui.optSub = function(op, viewer){   // 內容 sub＋自動效果摘要（避免重複：sub 已含金額者仍附一行完整效果）
   var base = ui.yuanizeSub(op.sub)||"";
   var es = ui.effectSummary(op.effects, viewer);
-  if(!es) return base;
-  return base ? base+"　▸ "+es : "▸ "+es;
+  var odds = ui.optionOddsLine(op, viewer);
+  var line = base ? (es ? base+"　▸ "+es : base) : (es ? "▸ "+es : "");
+  if(odds) line = line ? line+"　"+odds : odds;
+  return line;
 };
 
 /* S26：決策選項按鈕的統一產生器（SELF_INVEST／CHOICE 共用，原本兩邊各寫一份幾乎相同的碼）。
@@ -1971,7 +1994,10 @@ ui.decisionCard = function(S,p,d){
     var oA=el("div","opts");
     ["A","B","C"].forEach(function(k){
       var co=E.DIRECTOR_COMPANIES[k];
-      var sub="每輪車馬費 +"+M(co.income)+"、任期 "+co.term+" 輪｜風險："+co.risk
+      // S27：爆雷改機率制之後，機率一定要明講——這是玩家評估風險溢酬的唯一依據
+      var pct = (co.crashChance!==undefined) ? Math.round(co.crashChance*100) : null;
+      var sub="每輪車馬費 +"+M(co.income)+"、任期 "+co.term+" 輪（一年）｜風險："+co.risk
+        +(pct===null?"":"｜任內爆雷機率 "+pct+"％")
         +(co.fineAmount?"｜弊案賠償 "+M(co.fineAmount)+(co.hasInsurance?"（D&O 險承擔八成）":"（無責任險）"):"｜有 D&O 險")
         +"\n"+co.note;
       oA.appendChild(optBtn(k+"．"+co.title, sub, function(){ decide("appoint",{company:k}); }, k==="A"));

@@ -21,6 +21,26 @@ E.LAYOFF_FLAVOR = {
             skip:"公司斷炊，全力在救公司",
             note:"創辦人不會被資遣——但公司沒錢時，第一個停薪的就是自己。" }
 };
+/* S27：把原本寫死在棋盤格 case "LAYOFF" 裡的邏輯抽成函式，行為完全不變
+   （成本＝1 個月總支出 × layoffPayMonths、停走 layoffSkipTurns 輪，敘事依 employmentType 換）。
+   抽出來的目的：卡片效果 op "LAYOFF" 也能觸發同一件事，敘事與參數只維護一份。 */
+E.triggerLayoff = function(S, p, opts){
+  opts = opts || {};
+  var mult = (opts.mult!==undefined) ? opts.mult : ((S.spaceMult && S.spaceMult["LAYOFF"]) || 1);
+  var cost = util.r2(p.derived.totalExpenses*S.config.layoffPayMonths*mult);
+  var et = E.employmentType(S,p), fl = E.LAYOFF_FLAVOR[et] || E.LAYOFF_FLAVOR.EMPLOYEE;
+  var skip = Math.round(S.config.layoffSkipTurns*mult);
+  var title = opts.title || fl.title, note = opts.note || fl.note;
+  ledger.post(S,p,fl.ledger,[{account:"CASH",delta:-cost,label:fl.label}],{eduTags:["layoff"]});
+  p.skippedTurns += skip;
+  p.skipReason = fl.skip;
+  E.ev("LAYOFF",{playerId:p.id, cost:cost, skip:p.skippedTurns, employmentType:et,
+                 title:title, note:note});
+  E.pushDecision(S,p,{kind:"ACK", layoff:{cost:cost, skip:skip,
+                 employmentType:et, title:title, note:note}});
+  if(p.cash<0) E.enterBankruptcy(S,p);
+  return { cost:cost, skip:skip, employmentType:et };
+};
 /* S15：BUY 決策的鎖——只鎖「把這張卡拿出去拍賣／轉介／合資的那個人」的「那一張卡」。
    回傳 null 表示可以解鎖決策。這是 UI 判斷「現在到底在等誰」的單一真相來源，
    npc 迴圈與等待畫面都讀它，不再各寫一份。 */
@@ -1602,19 +1622,9 @@ E.landing = function(S,p,space){
       }
       break; }
     case "LAYOFF": {
-      // S15：自營者與創辦人被「資遣」還要「找下一份工作」不通。依職業型別換敘事；
-      // 經濟效果（支出、停走輪數）刻意完全不動——這一版只修邏輯，不動平衡。
-      var mult = S.spaceMult["LAYOFF"]||1;
-      var cost = util.r2(p.derived.totalExpenses*S.config.layoffPayMonths*mult);
-      var et = E.employmentType(S,p), fl = E.LAYOFF_FLAVOR[et] || E.LAYOFF_FLAVOR.EMPLOYEE;
-      ledger.post(S,p,fl.ledger,[{account:"CASH",delta:-cost,label:fl.label}],{eduTags:["layoff"]});
-      p.skippedTurns += Math.round(S.config.layoffSkipTurns*mult);
-      p.skipReason=fl.skip;
-      E.ev("LAYOFF",{playerId:p.id, cost:cost, skip:p.skippedTurns, employmentType:et,
-                     title:fl.title, note:fl.note});
-      E.pushDecision(S,p,{kind:"ACK", layoff:{cost:cost, skip:Math.round(S.config.layoffSkipTurns*mult),
-                     employmentType:et, title:fl.title, note:fl.note}});
-      if(p.cash<0) E.enterBankruptcy(S,p);
+      // S15：自營者與創辦人被「資遣」還要「找下一份工作」不通，依職業型別換敘事。
+      // S27：邏輯抽成 E.triggerLayoff，棋盤格與卡片效果共用同一份；行為與參數完全不變。
+      E.triggerLayoff(S,p);
       break; }
     case "SITE": {
       var dream = ns.content.byId[p.dreamCardId];
@@ -1691,6 +1701,11 @@ E.cardUsable = function(S,p,c){
   if(c.kind==="SKILL" && c.requiresSkill && !E.hasSkill(p, c.requiresSkill)) return false;
   // S22：獨立董事邀請等「要有資格才會找上門」的卡：列出的技能至少會一項
   if(c.requiresAnySkill && !c.requiresAnySkill.some(function(sid){ return E.hasSkill(p, sid); })) return false;
+  /* S27：身分門檻。有些卡在敘事上只對某種受僱型態成立——「跟老闆談加薪」對自營者與
+     創辦人不通，「公司發你選擇權」對創辦人更荒謬。E.employmentType 早在 S15 就有，
+     這裡只是把它接成抽牌條件；沒寫這個欄位的卡完全不受影響。
+     公平性配套：擋掉一張成長機會，就要在另一邊補一張等價的（SI_NEGO ↔ SI_REPRICE）。 */
+  if(c.requiresEmploymentType && c.requiresEmploymentType.indexOf(E.employmentType(S,p)) < 0) return false;
   if(c.kind==="SPECIAL" && c.payload && c.payload.decisionKind==="APPOINT_DIRECTOR"
      && (p.directorship || p.playerStage!=="INNER")) return false;   // 同時只能兼一席；外圈不接
   if(c.kind==="TAPESTRY" && c.virtueAxis==="PARENTING" && p.childrenCount<=0) return false;
@@ -1865,11 +1880,14 @@ E.resolveDecision = function(S,p,d,optionId,params){
       if(optionId==="appoint"){
         var comp = (params && params.company) || "A";
         var sel = E.DIRECTOR_COMPANIES[comp] || E.DIRECTOR_COMPANIES.A;
-        var crashAt = sel.crashMin ? S.turnNumber + util.randInt(S, sel.crashMin, sel.crashMax) : null;
+        /* S27：就任時先擲一次「這一任會不會爆」，會爆的再擲時間。
+           沒寫 crashChance 的公司（或舊存檔）沿用原本「有 crashMin 就一定爆」的判定。 */
+        var willCrash = (sel.crashChance!==undefined) ? (util.rand(S) < sel.crashChance) : !!sel.crashMin;
+        var crashAt = (willCrash && sel.crashMax) ? S.turnNumber + util.randInt(S, sel.crashMin, sel.crashMax) : null;
         p.directorship = {
           companyType: comp, title: sel.title, monthlyIncome: sel.income,
           hasInsurance: sel.hasInsurance, crashTurn: crashAt, fineAmount: sel.fineAmount,
-          termTurnsLeft: sel.term, warned: false, resigned: false
+          termTurnsLeft: sel.term, termTurns: sel.term, warned: false, resigned: false
         };
         p.stats.directorAppointed = (p.stats.directorAppointed||0) + 1;
         E.ev("DIRECTOR_APPOINTED", { playerId:p.id, company:sel.title, income:sel.income });
@@ -2113,6 +2131,7 @@ E.resolveDecision = function(S,p,d,optionId,params){
         var sCost = E.optionCost(S,p,sop);        // S26：支援 costSalaryMult 依月薪計價
         if(sCost && p.cash<sCost){ break; }       // 買不起則視同不投資
         E.applyEffects(S,p,sop.effects,sc.title);
+        E.resolveOptionOutcome(S,p,sop,sc.title);   // S27：機率型選項（沒寫 chance 就是 no-op）
         if(p.cash<0) E.enterBankruptcy(S,p);
       }
       break; }
@@ -2134,6 +2153,7 @@ E.resolveDecision = function(S,p,d,optionId,params){
         var cCost = E.optionCost(S,p,cop);
         if(cCost && p.cash<cCost){ break; }
         E.applyEffects(S,p,cop.effects,cc.title);
+        E.resolveOptionOutcome(S,p,cop,cc.title);   // S27：機率型選項（沒寫 chance 就是 no-op）
         if(p.cash<0) E.enterBankruptcy(S,p);
       }
       break; }
@@ -3940,8 +3960,17 @@ E.onRoundEnd = function(S){
           ledger.post(S,pl2,"事件結束："+e.label,[{account:"INCOME_PASSIVE",delta:e.amount,refId:a.instanceId,label:e.label}],{eduTags:["event-end"]}); } } }
     if(e.kind==="DELAYED_FX"){ var plX=S.players[e.playerId];      // S22：定時炸彈到期
       if(plX && !plX.bankrupt){
-        E.applyEffects(S,plX,e.effects,e.label);
-        E.ev("DELAYED_EFFECT_FIRED",{playerId:plX.id, label:e.label});
+        // S27：只帶 insurable，刻意不帶 lifeEvent——「貴人相助」是用來減免倒楣事的，
+        // 不該拿來幫人頭帳戶那種自找的定時炸彈打折。
+        E.applyEffects(S,plX,e.effects,e.label,{insurable:!!e.insurable});
+        // S27：把代價一起帶進事件，介面才播得出「賠了多少、停幾輪」——這是要讓全桌都看到的教材，
+        // 不能只有當事人在帳上看到一筆莫名其妙的支出。
+        var dCost=0, dSkip=0;
+        (e.effects||[]).forEach(function(x){
+          if(x.op==="CASH_DELTA" && x.amount<0) dCost=util.r2(dCost-x.amount);
+          if(x.op==="SKIP_TURNS") dSkip+=(x.turns!==undefined?x.turns:(x.n!==undefined?x.n:1));
+        });
+        E.ev("DELAYED_EFFECT_FIRED",{playerId:plX.id, label:e.label, cost:dCost, skip:dSkip});
         if(plX.cash<0) E.enterBankruptcy(S,plX);
       } }
     if(e.kind==="DIV_BONUS") delete S.dividendBonus[e.symbol];
@@ -4200,12 +4229,20 @@ E.finishByRanking = function(S, reason){
    單位提醒：全遊戲金額以「千元」計（月薪 30–42）。S21 原版把車馬費寫成 8000–25000、
    賠償 40000–200000，是把千元當成元；S22 全部換回遊戲量級。
    公司表放在引擎，介面與 NPC 都從這裡讀，數字只維護一份。 */
+/* S27 三項調整（Brian 2026-09-04 裁示）：
+   1. 任期 6 → 12 輪。一輪＝一個月，原本 6 輪只有半年；現實的獨立董事一任三年，
+      12 輪（一年）是在「擬真」與「一局的長度」之間取的折衷。
+   2. 爆雷改機率制。原本 B／C 是「註定會爆、只有時間隨機」，B 之所以有約三分之一躲得掉，
+      純粹是爆雷時間可能落在 6 輪任期之外——那是任期長度的副作用，不是設計。
+      改成就任時先擲一次 crashChance 決定「這一任會不會爆」，會爆的再擲時間，
+      沒爆的局玩家真的賺得到，風險溢酬才成立。
+   3. A 的車馬費 8 → 5：任期加倍，總額從 48 變 60，維持「最穩但最少」的定位。 */
 E.DIRECTOR_COMPANIES = {
-  A: { title:"大型績優權值股", income:8,  term:6, hasInsurance:true,  crashMin:0, crashMax:0, fineAmount:0,
-       risk:"低", note:"治理健全、有 D&O 責任險；車馬費最少，但任期六輪可以安穩領完。" },
-  B: { title:"成長型科技新創板", income:15, term:6, hasInsurance:true,  crashMin:3, crashMax:8, fineAmount:120,
+  A: { title:"大型績優權值股", income:5,  term:12, hasInsurance:true,  crashChance:0,   crashMin:0, crashMax:0, fineAmount:0,
+       risk:"低", note:"治理健全、有 D&O 責任險；車馬費最少，但一年任期可以安穩領完。" },
+  B: { title:"成長型科技新創板", income:15, term:12, hasInsurance:true,  crashChance:0.5, crashMin:4, crashMax:10, fineAmount:120,
        risk:"中", note:"有 D&O 責任險（承擔八成）；成長故事漂亮，但帳有沒有做過，任期內未必看得出來。" },
-  C: { title:"爭議家族小型股", income:25, term:6, hasInsurance:false, crashMin:2, crashMax:5, fineAmount:200,
+  C: { title:"爭議家族小型股", income:25, term:12, hasInsurance:false, crashChance:0.8, crashMin:3, crashMax:8,  fineAmount:200,
        risk:"高", note:"沒有責任險；車馬費最高，關係人交易也最多——弊案幾乎是時間問題。" }
 };
 // 能在爆雷前看出假帳的技能（S21 用 SKL_BOOK／SKL_CPA_AUDIT；法律線只擋賠償，看不出帳）
@@ -4242,7 +4279,7 @@ E.tickDirectorship = function(S, p){
 
   // 2) 已請辭：等到原本會爆的那一輪，揭曉「你躲過了」
   if(d.resigned){
-    if(d.crashTurn===null || S.turnNumber >= d.crashTurn){
+    if(d.crashTurn===null || S.turnNumber >= d.crashTurn){   // crashTurn 為 null 時立即結案（請辭只由審計警訊觸發，警訊只在排定爆雷的局出現）
       E.ev("DIRECTOR_CRASH_AVOIDED", { playerId:p.id, company:d.title });
       E.pushDecision(S,p,{ kind:"ACK", title:"🚢 你跳船了："+d.title+" 弊案爆發",
         text:"前董事會成員全數遭起訴，只有及時辭任、留下查核紀錄的你全身而退。" });
@@ -4277,7 +4314,7 @@ E.tickDirectorship = function(S, p){
     p.stats.directorCompleted = (p.stats.directorCompleted||0) + 1;
     E.ev("DIRECTOR_TERM_COMPLETE", { playerId:p.id, company:d.title });
     E.pushDecision(S,p,{ kind:"ACK", title:"🎓 獨立董事任期圓滿："+d.title,
-      text:"六輪任期平安落幕，聲譽與人脈都留下了（謹慎修養 +1、幸福感 +2）。" });
+      text:(d.termTurns||12)+" 輪（一年）任期平安落幕，聲譽與人脈都留下了（謹慎修養 +1、幸福感 +2）。" });
     p.directorship = null;
   }
 };

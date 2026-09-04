@@ -2113,7 +2113,10 @@
               "effects": []
             }
           ]
-        }
+        },
+        "requiresEmploymentType": [
+          "EMPLOYEE"
+        ]
       },
       {
         "id": "SI_LANG",
@@ -2718,7 +2721,7 @@
         "deck": "LIFE_EVENT",
         "kind": "CHOICE",
         "title": "神秘名媛的捷徑私訊",
-        "flavor": "私訊說只要「借」提款卡和帳戶給她走帳幾天，就先給十萬謝禮，還要介紹貴人。",
+        "flavor": "私訊說只要「借」提款卡和帳戶給她走帳幾天，就先給二十萬謝禮，還要介紹貴人。",
         "eduNote": "借出銀行帳戶在法律上視為詐欺幫助犯，將面臨帳戶凍結與全額求償。",
         "group": "灰色誘惑",
         "stage": "INNER",
@@ -2738,16 +2741,12 @@
             },
             {
               "label": "⚠️ 冒險走捷徑赴約",
-              "sub": "現拿 100，但 2 輪後帳戶遭凍結：追償 130、停走 1 輪、謹慎 −2",
+              "sub": "對方說先付謝禮，錢好像很好賺",
               "effects": [
                 {
                   "op": "CASH_DELTA",
-                  "amount": 100
-                },
-                {
-                  "op": "GRANT_VIRTUE",
-                  "axis": "PRUDENCE",
-                  "delta": -2
+                  "amount": 200,
+                  "label": "名媛的「謝禮」"
                 },
                 {
                   "op": "DELAYED_EFFECTS",
@@ -2756,7 +2755,8 @@
                   "effects": [
                     {
                       "op": "CASH_DELTA",
-                      "amount": -130
+                      "amount": -260,
+                      "label": "被害人求償與帳戶凍結"
                     },
                     {
                       "op": "SKIP_TURNS",
@@ -2764,13 +2764,17 @@
                     },
                     {
                       "op": "GRANT_JOY",
-                      "amount": -2
+                      "amount": -3
                     }
                   ]
                 }
               ]
             }
           ]
+        },
+        "scamWarning": {
+          "law": "詐騙的甜頭是預付、代價是後付——借出帳戶即為幫助詐欺，有罰款與坐牢風險。",
+          "audit": "天下沒有白吃的午餐。"
         }
       },
       {
@@ -2779,7 +2783,7 @@
         "kind": "CHOICE",
         "title": "少年股神當沖衝鋒",
         "flavor": "論壇每天都在曬當沖無本翻倍對帳單，同學慫恿：『不開槓桿怎麼翻身？一萬塊也能玩！』",
-        "eduNote": "過度自信與頻繁當沖是散戶資本蒸發的主因，唯有紀律與複利能穿越週期。",
+        "eduNote": "當沖是負和遊戲：手續費與交易稅先扣，期望值本來就是負的。這一把押 150，期望值是 −60——賭得越多次，離破產越近。",
         "group": "投資考驗",
         "stage": "INNER",
         "decision": {
@@ -2798,18 +2802,41 @@
             },
             {
               "label": "🎰 賭一把全倉當沖",
-              "sub": "違約交割慘賠 150，幸福感 −2",
+              "sub": "押上 150：10% 機率賺五倍（+750），90% 機率賠光",
               "cost": 150,
+              "chance": 0.1,
               "effects": [
                 {
                   "op": "CASH_DELTA",
-                  "amount": -150
-                },
-                {
-                  "op": "GRANT_JOY",
-                  "amount": -2
+                  "amount": -150,
+                  "label": "全倉押上當沖"
                 }
-              ]
+              ],
+              "onWin": {
+                "label": "當沖翻五倍",
+                "narrative": "這一把你賭對了方向，帳上多了一個零。",
+                "effects": [
+                  {
+                    "op": "CASH_DELTA",
+                    "amount": 900,
+                    "label": "當沖獲利了結"
+                  },
+                  {
+                    "op": "GRANT_JOY",
+                    "amount": 1
+                  }
+                ]
+              },
+              "onLose": {
+                "label": "連本金一起蒸發",
+                "narrative": "沒設停損，一路凹到收盤，本金全數蒸發。",
+                "effects": [
+                  {
+                    "op": "GRANT_JOY",
+                    "amount": -2
+                  }
+                ]
+              }
             }
           ]
         }
@@ -2843,7 +2870,7 @@
             },
             {
               "label": "💸 裝作不知情鑽漏洞解約",
-              "sub": "現賺 100，但謹慎 −2",
+              "sub": "現賺 100——但這種事不會永遠沒人知道",
               "cost": 0,
               "effects": [
                 {
@@ -2854,6 +2881,22 @@
                   "op": "GRANT_VIRTUE",
                   "axis": "PRUDENCE",
                   "delta": -2
+                },
+                {
+                  "op": "DELAYED_EFFECTS",
+                  "turns": 3,
+                  "label": "合約漏洞東窗事發",
+                  "effects": [
+                    {
+                      "op": "LAYOFF",
+                      "title": "東窗事發",
+                      "note": "當年那份合約被翻出來。這一行說小不小，話傳得比你想的快。"
+                    },
+                    {
+                      "op": "GRANT_JOY",
+                      "amount": -2
+                    }
+                  ]
                 }
               ]
             }
@@ -2893,12 +2936,13 @@
             },
             {
               "label": "🏠 退掉補習，自己每晚盯功課",
-              "sub": "省下 15，但下班後的時間都沒了：幸福感 −1",
+              "sub": "省下 15；親自盯功課，教養 +2",
               "cost": 0,
               "effects": [
                 {
-                  "op": "GRANT_JOY",
-                  "amount": -1
+                  "op": "GRANT_VIRTUE",
+                  "axis": "PARENTING",
+                  "delta": 2
                 }
               ]
             }
@@ -2910,7 +2954,7 @@
         "id": "DAILY_PARENT_NIGHT_CALL",
         "deck": "LIFE_EVENT",
         "kind": "CHOICE",
-        "title": "長輩深夜的問候電話",
+        "title": "每週撥電話給爸媽關心近況",
         "flavor": "陪伴不是剩餘時間的施捨，而是情感帳戶的日常存款。",
         "eduNote": "再成功的事業也無法彌補家庭關係的疏離，溫暖傾聽能滋養一生的內心力量。",
         "group": "孝親家庭",
@@ -2918,30 +2962,25 @@
         "decision": {
           "options": [
             {
-              "label": "❤️ 放慢呼吸耐心聆聽 20 分鐘",
-              "sub": "孝親好感 +1，幸福感 +1",
+              "label": "📞 撥電話關心近況",
+              "sub": "孝親好感 +1",
               "cost": 0,
               "effects": [
                 {
                   "op": "GRANT_VIRTUE",
                   "axis": "FILIAL",
                   "delta": 1
-                },
-                {
-                  "op": "GRANT_JOY",
-                  "amount": 1
                 }
               ]
             },
             {
-              "label": "💨 抱怨疲累匆匆掛斷",
-              "sub": "孝親好感 −1",
+              "label": "⏳ 時間用在忙自己的事",
+              "sub": "幸福感 +1",
               "cost": 0,
               "effects": [
                 {
-                  "op": "GRANT_VIRTUE",
-                  "axis": "FILIAL",
-                  "delta": -1
+                  "op": "GRANT_JOY",
+                  "amount": 1
                 }
               ]
             }
@@ -2953,7 +2992,6 @@
         "deck": "LIFE_EVENT",
         "kind": "SPECIAL",
         "title": "知名企業獨立董事邀請",
-        "subtitle": "獵頭推薦高階董監席次，享每月車馬費與社會聲望，但須承擔重大連帶法定義務。",
         "flavor": "董事會審計委員會的席次虛位以待，車馬費優厚，但也是地雷公司的祭品首選。",
         "eduNote": "獨立董事不只是車馬費；若缺乏審計查核能力，假帳弊案爆發時要面對連帶民事賠償（現實中動輒上億）。",
         "group": "獨立董監",
@@ -2971,6 +3009,496 @@
             "C"
           ]
         }
+      },
+      {
+        "id": "SI_REPRICE",
+        "deck": "LIFE_EVENT",
+        "kind": "SELF_INVEST",
+        "title": "重新報價：把工錢調到市場行情",
+        "flavor": "同行早就漲價了，只有你還在用三年前的價目表。",
+        "eduNote": "自營者的「加薪」叫調價——不敢開口的成本，是每一單都少賺。",
+        "oncePerLife": true,
+        "requiresEmploymentType": [
+          "SELF",
+          "FOUNDER"
+        ],
+        "decision": {
+          "options": [
+            {
+              "label": "投資自己",
+              "sub": "投入 8　收入 ×1.12",
+              "cost": 8,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "target": "self",
+                  "amount": -8,
+                  "label": "重新報價 投入"
+                },
+                {
+                  "op": "SALARY_MULT",
+                  "target": "self",
+                  "factor": 1.12,
+                  "label": "重新報價"
+                }
+              ]
+            },
+            {
+              "label": "暫時不",
+              "sub": "把錢與時間留著",
+              "effects": []
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_FILIAL_ALLOWANCE",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "每月孝親費",
+        "flavor": "爸媽從來沒開口要，但你算過他們的勞保年金撐不到月底。",
+        "eduNote": "孝親費是固定支出，不是善心捐款——要先排進預算再談投資。金額量力而為，能持續才有意義。",
+        "group": "孝親家庭",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "decision": {
+          "options": [
+            {
+              "label": "📮 每月固定匯孝親費",
+              "sub": "每月薪水的 5%，細水長流；孝親好感 +1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "ADD_RECURRING_EXPENSE",
+                  "salaryMult": 0.05,
+                  "amount": 3,
+                  "label": "孝親費"
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": 1
+                }
+              ]
+            },
+            {
+              "label": "🏃 手頭緊，先不給",
+              "sub": "爸媽說沒事，你先顧好自己",
+              "cost": 0,
+              "effects": []
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_CHARITY_DONATION",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "每月慈善捐款",
+        "flavor": "勸募的信在信箱躺了三天。你想起自己也曾經被幫過。",
+        "eduNote": "捐款是財務規劃的一部分，不是有剩才做——固定比例、細水長流，勝過一次衝動的大額。合法的捐款收據，報稅時可以列舉扣除。",
+        "group": "孝親家庭",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "decision": {
+          "options": [
+            {
+              "label": "❤️ 每月固定小額捐款",
+              "sub": "每月薪水的 2%；幸福感 +2，捐款收據報稅可扣抵",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "ADD_RECURRING_EXPENSE",
+                  "salaryMult": 0.02,
+                  "amount": 1,
+                  "label": "每月慈善捐款"
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 2
+                },
+                {
+                  "op": "SET_FLAG",
+                  "flag": "donor",
+                  "label": "固定捐款人（報稅可列舉扣除）"
+                }
+              ]
+            },
+            {
+              "label": "🙏 心意到就好，行有餘力再說",
+              "sub": "把錢留在自己手上",
+              "cost": 0,
+              "effects": []
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_MY_WEDDING",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "我的婚禮：面子還是裡子",
+        "flavor": "兩邊家長都在問同一件事：席開幾桌？",
+        "eduNote": "一場婚禮的差額，常常就是頭期款的一半。婚姻的品質，不由席數決定。",
+        "group": "家庭反思",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "decision": {
+          "options": [
+            {
+              "label": "💒 盛大婚宴＋體面聘金",
+              "sub": "花掉半年薪水；幸福感 +3",
+              "costSalaryMult": 6,
+              "cost": 300,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "salaryMult": -6,
+                  "amount": -300,
+                  "label": "婚宴與聘金"
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 3
+                }
+              ]
+            },
+            {
+              "label": "📄 公證結婚＋家宴一桌",
+              "sub": "花掉一個半月薪水；幸福感 +1",
+              "costSalaryMult": 1.5,
+              "cost": 75,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "salaryMult": -1.5,
+                  "amount": -75,
+                  "label": "公證與家宴"
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_ELDER_CARE",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "爸媽需要人照顧了",
+        "flavor": "醫生說，出院之後不能讓他一個人住。",
+        "eduNote": "長照是現金流問題，不是一次性支出。「自己顧比較省」要先把你少賺的薪水算進去——那叫機會成本。",
+        "group": "孝親家庭",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "decision": {
+          "options": [
+            {
+              "label": "🧑‍⚕️ 請看護",
+              "sub": "每月固定支出 30",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "ADD_RECURRING_EXPENSE",
+                  "amount": 30,
+                  "label": "長照看護費"
+                }
+              ]
+            },
+            {
+              "label": "🏠 自己減班回家顧",
+              "sub": "薪水降為七成；孝親好感 +2",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "SALARY_MULT",
+                  "factor": 0.7,
+                  "label": "減班照顧長輩"
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": 2
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_HEALTH_RED_FLAG",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "健檢報告上的紅字",
+        "flavor": "三高全紅。醫生說：現在改，還來得及。",
+        "eduNote": "健康的支出只有兩種付法：現在小額分期付，或以後一次付清。規律運動與醫療險，是同一件事的兩隻腳。",
+        "group": "家庭反思",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "decision": {
+          "options": [
+            {
+              "label": "💪 認真調整作息與飲食",
+              "sub": "花掉兩成月薪；接下來 24 輪醫療支出打折",
+              "costSalaryMult": 0.2,
+              "cost": 10,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "salaryMult": -0.2,
+                  "amount": -10,
+                  "label": "健身與飲食調整"
+                },
+                {
+                  "op": "SET_FLAG",
+                  "flag": "fit",
+                  "turns": 24,
+                  "label": "開始規律運動"
+                }
+              ]
+            },
+            {
+              "label": "😮‍💨 工作要緊，先撐著",
+              "sub": "把時間留給工作；但紅字放著不管，身體遲早會來討",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
+                },
+                {
+                  "op": "DELAYED_EFFECTS",
+                  "turns": 6,
+                  "insurable": true,
+                  "label": "紅字放著不管，身體先把帳單寄來了",
+                  "effects": [
+                    {
+                      "op": "CASH_DELTA",
+                      "amount": -40,
+                      "label": "急性發作住院"
+                    },
+                    {
+                      "op": "GRANT_JOY",
+                      "amount": -2
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_GUARANTOR",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "朋友請你當保證人",
+        "flavor": "他說只是形式，銀行規定要有人簽個名。",
+        "eduNote": "連帶保證人不是「後補」，你就是債務人——債權人不必先去找他，可以直接向你求償。簽名之前先問：這筆錢我賠得起嗎？",
+        "group": "灰色誘惑",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "✍️ 簽下去，朋友一場",
+              "sub": "六成機率他按時還完；四成機率換你還",
+              "cost": 0,
+              "chance": 0.6,
+              "effects": [],
+              "onWin": {
+                "label": "他按時還完了",
+                "narrative": "幾年後他把清償證明拿給你看，還請你吃了頓飯。",
+                "effects": [
+                  {
+                    "op": "GRANT_JOY",
+                    "amount": 1
+                  },
+                  {
+                    "op": "GRANT_VIRTUE",
+                    "axis": "TEMPER",
+                    "delta": 1
+                  }
+                ]
+              },
+              "onLose": {
+                "label": "朋友跑路，銀行找上你",
+                "narrative": "電話打不通了。銀行的存證信函倒是很準時。",
+                "effects": [
+                  {
+                    "op": "CASH_DELTA",
+                    "amount": -200,
+                    "legalClaim": true,
+                    "label": "連帶保證債務"
+                  }
+                ]
+              }
+            },
+            {
+              "label": "🙅 婉拒，這段關係大概就這樣了",
+              "sub": "錢守住了，人可能就淡了",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "GRANT_JOY",
+                  "amount": -1
+                }
+              ]
+            }
+          ]
+        },
+        "skillInsight": {
+          "law": "連帶保證是無限責任，不因你不知情或未收取任何報酬而免除；債權人可以直接向你求償。",
+          "audit": "對方需要找保證人，通常代表銀行已經算出他一個人還不起。"
+        }
+      },
+      {
+        "id": "LE_LEND_TO_FRIEND",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "親戚開口跟你借錢",
+        "flavor": "「只是周轉一下，下個月一定還。」",
+        "eduNote": "救急不救窮。借出去的錢，要當成送出去的錢來決定金額——借得起才借。",
+        "group": "孝親家庭",
+        "stage": "INNER",
+        "decision": {
+          "options": [
+            {
+              "label": "💸 借他 50",
+              "sub": "四成機率如期還你；六成機率從此不再提起",
+              "cost": 50,
+              "chance": 0.4,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": -50,
+                  "label": "借給親戚"
+                }
+              ],
+              "onWin": {
+                "label": "他真的還了",
+                "narrative": "下個月他主動轉帳回來，還多帶了一箱水果。",
+                "effects": [
+                  {
+                    "op": "CASH_DELTA",
+                    "amount": 50,
+                    "label": "親戚還款"
+                  },
+                  {
+                    "op": "GRANT_VIRTUE",
+                    "axis": "FILIAL",
+                    "delta": 1
+                  }
+                ]
+              },
+              "onLose": {
+                "label": "從此不再提起",
+                "narrative": "過年見面照樣寒暄，只是誰都沒再提那筆錢。",
+                "effects": [
+                  {
+                    "op": "GRANT_JOY",
+                    "amount": -2
+                  }
+                ]
+              }
+            },
+            {
+              "label": "🍜 不借，但請他吃頓飯聽他說",
+              "sub": "花 3；孝親好感 +1",
+              "cost": 3,
+              "effects": [
+                {
+                  "op": "CASH_DELTA",
+                  "amount": -3,
+                  "label": "請親戚吃飯"
+                },
+                {
+                  "op": "GRANT_VIRTUE",
+                  "axis": "FILIAL",
+                  "delta": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_STOCK_OPTION",
+        "deck": "LIFE_EVENT",
+        "kind": "CHOICE",
+        "title": "選擇權還是加薪",
+        "flavor": "創辦人把你留下來單獨談：你是重要員工，可以選擇拿選擇權還是加薪。",
+        "eduNote": "選擇權是彩券不是薪水。談 offer 要問的是「稀釋後占幾 %、什麼條件能換成錢」，不是「拿到幾張」。你還打算待幾年，才是它真正的定價因子。",
+        "group": "職涯抉擇",
+        "stage": "INNER",
+        "oncePerLife": true,
+        "requiresEmploymentType": [
+          "EMPLOYEE"
+        ],
+        "decision": {
+          "options": [
+            {
+              "label": "🎫 我要選擇權",
+              "sub": "25% 機率公司上市大賺；75% 機率是一張壁紙",
+              "cost": 0,
+              "chance": 0.25,
+              "effects": [],
+              "onWin": {
+                "label": "公司上市了",
+                "narrative": "閉鎖期一過，你把那疊紙換成了現金。",
+                "effects": [
+                  {
+                    "op": "CASH_DELTA",
+                    "amount": 300,
+                    "label": "選擇權兌現"
+                  },
+                  {
+                    "op": "GRANT_JOY",
+                    "amount": 2
+                  }
+                ]
+              },
+              "onLose": {
+                "label": "一張壁紙",
+                "narrative": "幾年後公司悄悄收了，那份合約你留著當紀念。",
+                "effects": []
+              }
+            },
+            {
+              "label": "💵 我要現金，加薪 10%",
+              "sub": "薪水永久 ×1.1",
+              "cost": 0,
+              "effects": [
+                {
+                  "op": "SALARY_MULT",
+                  "factor": 1.1,
+                  "label": "談成加薪"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "LE_TAX_MAY",
+        "deck": "LIFE_EVENT",
+        "kind": "LIFE_EVENT",
+        "title": "五月報稅",
+        "flavor": "五月的這張帳單，是去年的你寄來的。",
+        "eduNote": "綜所稅的扣除額要提前一年布局；等到五月才想省稅，已經來不及了。列舉扣除、捐款收據與保費單據，都要平常就留著。",
+        "group": "家庭反思",
+        "stage": "INNER",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "salaryMult": -1,
+            "amount": -50,
+            "taxClaim": true,
+            "label": "綜合所得稅"
+          }
+        ]
       }
     ],
     "MARKET": [

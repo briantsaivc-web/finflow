@@ -1052,7 +1052,7 @@ npc.decide = function(S,p,d){
     payload:{ decisionId:d.decisionId, optionId:opt, params:params||{} } }; };
   switch(d.kind){
     // S21/S22：獨立董事——收到審計警訊一律跳船（決定論基準行為）；
-    // 邀請則看性格：保守派接 A（穩領六輪）、槓桿派接 B、創投派敢接 C。
+    // 邀請則看性格：保守派接 A（穩領一年）、槓桿派接 B、創投派敢接 C。
     case "RESIGN_DIRECTORSHIP": return A("resign");
     case "APPOINT_DIRECTOR": {
       var ap=w.capitalGainAppetite||0;
@@ -1097,13 +1097,33 @@ npc.decide = function(S,p,d){
     case "CHOICE": {
       var ch=ns.content.byId[d.cardId], o0=ch.decision.options[0];
       var c0=E.optionCost(S,p,o0);
-      var okOpt = function(op){ return !E.optionLocked(S,p,op); };
-      var cheapest=-1, cheapCost=1e9;
+      /* S26：鎖住的選項不列入考慮。
+         S27：機率型選項（chance）電腦一律不碰——與「電腦不踩詐騙選項」同一條基準線。
+         這幾張賭局卡的期望值刻意設成負的（當沖、作保），讓 NPC 去賭只會製造雜訊；
+         真人要不要賭是他的抉擇，電腦提供的是一條保守的對照線。 */
+      var okOpt = function(op){ return !E.optionLocked(S,p,op) && op.chance===undefined; };
+      /* S27：選項的「每月負擔」。ADD_RECURRING_EXPENSE 與 SALARY_MULT<1 都會永久壓縮月結餘，
+         但兩者都不走 cost，原本只看現金水位的判斷完全看不到——結果是電腦會在孝親費、長照、
+         捐款這類卡上一路簽下永久承諾，然後在幾十輪後集體破產。
+         負擔以一年（12 輪）折算成一次性金額，與一次付清的選項放在同一把尺上比較。
+         沒有 recurring 的選項 monthly 為 0、burden 等於 cost，行為與 S26 完全相同。 */
+      var monthlyOf = function(op){
+        var m=0;
+        (op.effects||[]).forEach(function(e){
+          if(e.op==="ADD_RECURRING_EXPENSE") m+=(E.effAmount(p,e)||0);
+          if(e.op==="SALARY_MULT" && e.factor<1) m+=util.r2(p.derived.salaryIncome*(1-e.factor));
+        });
+        return util.r2(m);
+      };
+      var burdenOf = function(op){ return util.r2(E.optionCost(S,p,op) + monthlyOf(op)*12); };
+      var cheapest=-1, cheapCost=1e18;
       ch.decision.options.forEach(function(op,i){
-        if(!okOpt(op)) return;                       // 鎖住的選項不列入考慮
-        var c=E.optionCost(S,p,op); if(c<cheapCost){cheapCost=c;cheapest=i;} });
-      if(cheapest<0) cheapest=0;                      // 全鎖住（理論上不會發生）就照原本行為挑第一個
-      var okFirst = okOpt(o0) && p.cash-c0 > w.cashReserveFloor*p.derived.totalExpenses;
+        if(!okOpt(op)) return;
+        var b=burdenOf(op); if(b<cheapCost){cheapCost=b;cheapest=i;} });
+      if(cheapest<0) cheapest=0;                      // 全部都不可選（理論上不會發生）就照原本行為挑第一個
+      var m0=monthlyOf(o0);
+      var okFirst = okOpt(o0) && p.cash-c0 > w.cashReserveFloor*p.derived.totalExpenses
+                    && (m0<=0 || p.derived.netCashflow-m0 > 0);   // 永久承諾要月結餘扛得住
       return A(okFirst ? 0 : cheapest); }
     case "FOLLOW_ON":
       return A((w.startupAppetite>0.5 && p.cash>d.invest*1.5) ? "follow" : "pass");
