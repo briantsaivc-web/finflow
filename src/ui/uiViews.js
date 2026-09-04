@@ -7159,6 +7159,9 @@ ns.boot = function(){
   };
   $("btnReport").onclick=function(){ if(ui.S){ ui._reported=false; ui.showReport(); } };
   $("btnMall").onclick=function(){ if(ui.S) ui.showMall(); };
+  /* S34：進修商城從人生商城裡面拉到操作區，與人生商城同一階。
+     實測回饋——它被埋在商城裡，玩家不會想到「學技能」要先點「買東西」。 */
+  $("btnSkill").onclick=function(){ if(ui.S) ui.showSkillMenu(ui.S.players[ui.myId()]); };
   // S11：自動執行——沿用既有的 PLAYER_LEAVE／PLAYER_RETURN（多人的「離席代打」機制），
   // 不另外做一套代打。動作照樣走 dispatch → actionLog，重放與多人 lockstep 都不受影響。
   $("btnAuto").onclick=function(){ if(ui.S) ui.toggleAutopilot(); };

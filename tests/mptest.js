@@ -42,12 +42,40 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       if(gb.disabled) throw new Error('按鈕出現但是停用的');
       return '';
     });
-    step('FF-003a 嚴重 bug 6：seat2 看得到「進修」且可按', ()=>{
-      const btns=[].slice.call(document.getElementById('sheet').querySelectorAll('button'));
-      const sb=btns.filter(b=>/進修（自己找資源）/.test(b.textContent))[0];
-      if(!sb) throw new Error('進修按鈕沒出現');
-      if(sb.disabled) throw new Error('進修按鈕出現但是停用的');
+    /* S34：進修入口從右欄財報升到操作區（跟人生商城同一階），這一項跟著改指新按鈕。
+       原本要防的 bug 沒變：多人局的 seat2 必須看得到、而且按得下去自己的進修入口。 */
+    step('FF-003a 嚴重 bug 6：seat2 看得到操作區的「進修商城」且可按', ()=>{
+      ui.renderPlayerCards();
+      const sb=document.getElementById('btnSkill');
+      if(!sb) throw new Error('操作區沒有進修商城按鈕');
+      if(sb.disabled) throw new Error('進修商城按鈕出現但是停用的');
+      const why=ui.skillEnrolBlock(S, S.players[2]);
+      if(why) throw new Error('輪到 seat2 時不該有阻擋理由，實得：'+why);
       return '';
+    });
+    step('S34：不能報名的時段，進修商城仍打得開（只是不能執行）', ()=>{
+      const keep=S.phase;
+      try{
+        S.phase='RESOLVE';
+        const why=ui.skillEnrolBlock(S, S.players[2]);
+        if(!why) throw new Error('決策未處理完時應該有阻擋理由');
+        ui.renderPlayerCards();
+        const sb=document.getElementById('btnSkill');
+        if(sb.disabled) throw new Error('阻擋理由不該讓按鈕停用——玩家要趁空檔研究內容');
+        document.querySelectorAll('#overlays .overlay').forEach(o=>o.remove());
+        ui.showSkillMenu(S.players[2]);
+        const ov=document.querySelector('#overlays .overlay');
+        if(!ov) throw new Error('面板應該打得開');
+        if(!/現在只能看/.test(ov.textContent)) throw new Error('表頭要說明現在只能看');
+        const rows=[].slice.call(ov.querySelectorAll('button.opt'));
+        const live=rows.filter(b=>!b.disabled && /・/.test(b.textContent));
+        if(live.length) throw new Error('不能報名時所有技能列都該停用，實得 '+live.length+' 列可按');
+        return '面板開得了、'+rows.length+' 列全停用';
+      } finally {
+        // 不論成敗都要把階段還原，否則污染後面的測項（這正是上一版踩到的坑）
+        document.querySelectorAll('#overlays .overlay').forEach(o=>o.remove());
+        S.phase=keep;
+      }
     });
     step('GRADUATE_NOW 真的送得出去且引擎接受', ()=>{
       const r=E.apply(S,{type:"GRADUATE_NOW",playerId:2,payload:null},{mutate:true});

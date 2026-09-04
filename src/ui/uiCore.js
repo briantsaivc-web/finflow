@@ -593,6 +593,28 @@ ui.renderPlayerCards = function(){
   var bm=$("btnMall");
   if(bm && mallPer>0 && !(myTurn && mallLeft>0 && !me0.bankrupt))
     bm.title = me0.bankrupt ? "破產程序中" : (mallLeft<=0 ? "本回合的商城額度已用完（仍可先看）" : "現在不是你的操作時機（仍可先看）");
+  /* S34：進修商城比照人生商城——隨時打得開（玩家會趁空檔研究內容），
+     能不能真的報名由面板內每一列自己把關，引擎的 START_SKILL 守門完全沒動。 */
+  var skOn = S.enabledModules.indexOf("M8")>=0 && (E.cfg(S,"skillPerGame")||0)>0;
+  gate("btnSkill", skOn, "本局未開啟進修");
+  var bs=$("btnSkill");
+  if(bs && skOn) bs.title = ui.skillEnrolBlock(S, me0) || "";
+};
+
+/* S34：現在為什麼不能報名？回傳一句話；回得出空字串代表可以報名。
+   介面（操作區按鈕的 title、進修商城的表頭與每一列）與這裡共用同一份判斷，
+   才不會出現「按鈕說可以、按下去被引擎擋掉」。條件順序對齊 START_SKILL 的守門。 */
+ui.skillEnrolBlock = function(S, p){
+  if(!p) return "";
+  if(p.bankrupt) return "破產程序中（仍可先看）";
+  if(S.over) return "遊戲已結束（仍可先看）";
+  if(p.playerStage!=="INNER") return "已經進入自由圈，專心圓夢（仍可先看）";
+  if(p.learning) return "你正在進修，時間排不開（仍可先看）";
+  var cd = Math.max(0, (p.skillCooldownUntil||0) - S.turnNumber);
+  if(cd>0) return "剛學完，休息 "+cd+" 輪後可以再開始（仍可先看）";
+  if(S.activePlayerIdx!==p.id) return "現在不是你的操作時機（仍可先看）";
+  if(S.phase!=="ROLL" && S.phase!=="READY_END") return "先把手上的決策或記帳處理完（仍可先看）";
+  return "";
 };
 ui.renderBottom = function(){ ui.renderPlayerCards(); };
 
@@ -815,13 +837,11 @@ ui.showMall = function(){
   hd.appendChild(el("b","gold","現金 "+M(p.cash)+"　本輪可買 "+left+" 項"+
     (myTurn ? "" : (offTurnOk ? "（不必等自己的回合）" : "（現在只能看——買東西要等自己的回合）"))));
   box.appendChild(hd);
-  /* S31：把進修放進商城的第一排——它是這個畫面裡最重要、也最容易被忽略的一種消費。 */
+  /* S31 把進修放進商城的第一排，S34 又拉出去了——實測回饋是「學技能」被埋在
+     「買東西」底下，玩家不會想到要先點商城。現在它跟人生商城平起平坐，在操作區。
+     證書牆留在這裡（進修商城的表頭也有一顆，兩邊都進得去）。 */
   if(S.enabledModules.indexOf("M8")>=0 && (E.cfg(S,"skillPerGame")||0)>0){
     var sbRow=el("div"); sbRow.style.cssText="display:flex;gap:8px;margin:6px 0 2px";
-    var sbA=el("button","act"); sbA.style.flex="1"; sbA.textContent="🎓 進修商城（學技能）";
-    sbA.onclick=function(){ ui.showSkillMenu(p); };
-    if(p.learning){ sbA.disabled=true; sbA.title="你正在進修，時間排不開"; }
-    sbRow.appendChild(sbA);
     var sbB=el("button","act"); sbB.style.flex="1";
     sbB.textContent="🎓 技能證書牆（"+Object.keys(p.skills||{}).length+"）";
     sbB.onclick=function(){ ui.showSkillWall(p.id); };
@@ -1310,10 +1330,16 @@ ui.renderSheet = function(){
     box.appendChild(dfB);
   }
 
-  /* M8 S1：學習與準備 */
+  /* M8 S1：學習與準備
+     S34（實測回饋）：這一區原本永遠佔著右欄一格，內容卻是一份「已具備：…」清單——
+     那份清單在進修商城與技能證書牆裡都看得到，右欄再列一次只是佔位置。
+     現在改成只有「真的有事在進行」才出現：正在進修（含進度條與放棄）、或剛學完在冷卻。
+     主動進修的入口也拿掉了——它已經升到操作區，跟人生商城同一階。 */
   if(S.enabledModules.indexOf("M8")>=0 && !p.bankrupt){
     var nSk = E.cfg(S,"skillPerGame"); if(nSk===undefined) nSk = 12;
-    if(nSk > 0){
+    var cdLeft0 = Math.max(0, (p.skillCooldownUntil||0) - S.turnNumber);
+    var showLearn = nSk > 0 && (!!p.learning || (isMe && cdLeft0 > 0));
+    if(showLearn){
       var ls = el("div","sec"); ls.setAttribute("data-tut","learn");  // S20：互動教學錨點
       var lt = el("div"); lt.style.cssText="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px";
       lt.appendChild(el("b",null,"學習與準備"));
@@ -1337,26 +1363,8 @@ ui.renderSheet = function(){
           ab.onclick = function(){ ui.showAbandonSkill(p); };
           ls.appendChild(ab);
         }
-      } else if(isMe){
-        var cdLeft = Math.max(0, (p.skillCooldownUntil||0) - S.turnNumber);
-        if(cdLeft > 0){
-          ls.appendChild(el("div","flavor","剛學完，休息 "+cdLeft+" 輪後可以再開始"));
-        } else if(canAct){
-          var sb = el("button","act","📖 進修（自己找資源）");
-          sb.style.width="100%"; sb.onclick = function(){ ui.showSkillMenu(p); };
-          ls.appendChild(sb);
-        }
-      }
-      if(nSkills > 0){
-        var slist = el("div","flavor"); slist.style.marginTop="4px";
-        slist.textContent = "已具備："+Object.keys(p.skills).map(function(sid){
-          var sc = ns.content.byId[sid];
-          var rc0=p.skills[sid];
-          var warnLeft = rc0.decayPendingUntil ? Math.max(0, rc0.decayPendingUntil - S.turnNumber) : 0;
-          return (sc?sc.title:sid) + (rc0.decayed ? "（已過時，可半價更新）"
-                 : (rc0.decayPendingUntil ? "（"+warnLeft+" 輪後過時）" : ""));
-        }).join("、");
-        ls.appendChild(slist);
+      } else {
+        ls.appendChild(el("div","flavor","剛學完，休息 "+cdLeft0+" 輪後可以再開始（進修商城仍可先看）"));
       }
       box.appendChild(ls);
     }
@@ -2974,6 +2982,15 @@ ui.showSkillMenu = function(p){
   wallBtn.onclick=function(){ ui.showSkillWall(p.id); };
   hdS.appendChild(wallBtn);
   box.appendChild(hdS);
+  /* S34（實測回饋）：不能進修的時段也要打得開——玩家會趁空檔研究內容，只是不能執行。
+     比照人生商城：面板隨時開，能不能報名由每一列自己把關（判斷與操作區共用同一份）。 */
+  var blockWhy = ui.skillEnrolBlock(S, p), canEnrol = !blockWhy;
+  if(blockWhy){
+    var wn=el("div","flavor");
+    wn.style.cssText="margin:4px 0 2px;color:var(--gold)";
+    wn.textContent="👀 現在只能看——"+blockWhy.replace("（仍可先看）","");
+    box.appendChild(wn);
+  }
   box.appendChild(el("div","flavor","想學什麼由自己決定，課永遠開得成——真正稀缺的是時間跟現金。"+
     "自己報名要全額付費，而且同時只能學一項。　現金 "+M(p.cash)));
   var inSample={}; (S.skillSample||[]).forEach(function(id){ inSample[id]=1; });
@@ -3007,9 +3024,12 @@ ui.showSkillMenu = function(p){
       var preOk = !sc.requiresSkill || E.hasSkill(p, sc.requiresSkill);
       if(sc.requiresSkill){ var pr=el("div","fl"); pr.style.cssText="font-size:12px;color:"+(preOk?"var(--pos)":"var(--gold)");
         pr.textContent="先修："+((ns.content.byId[sc.requiresSkill]||{}).title||sc.requiresSkill)+(preOk?"（已具備）":"（尚未學會）"); b.appendChild(pr); }
-      b.disabled=!afford || !preOk;
-      if(!preOk) b.title="要先學會先修技能"; else if(!afford) b.title="現金不足";
-      b.onclick=function(){ ov.remove(); ui.dispatch({type:"START_SKILL",playerId:ui.myId(),payload:{skillId:sc.id}}); };
+      b.disabled=!afford || !preOk || !canEnrol;
+      if(!preOk) b.title="要先學會先修技能";
+      else if(!afford) b.title="現金不足";
+      else if(!canEnrol) b.title=blockWhy;
+      b.onclick=function(){ if(!canEnrol) return;
+        ov.remove(); ui.dispatch({type:"START_SKILL",playerId:ui.myId(),payload:{skillId:sc.id}}); };
       return b;
     };
     var groups=[
