@@ -450,6 +450,15 @@ ui.handleEvents = function(evs){
         if(e.playerId===ui.myId()) ui.toast("🛡 保險理賠 +"+M(e.claim)+"　保費終於派上用場","good",5000); break;
       case "HEALTH_DISCOUNT":
         if(e.playerId===ui.myId()) ui.toast("💪 平時有健身／健檢，這筆支出少了 "+M(e.saved),"good",4500); break;
+      // S26：法律常識／公司法規與合規治理——賠償與和解類支出，懂的人談得下來
+      case "LEGAL_DISCOUNT":
+        if(e.playerId===ui.myId()) ui.toast("⚖ 懂法律，這筆賠償少了 "+M(e.saved),"good",4500); break;
+      // S26：卡片點亮的旗標（自我投資健康＝健康折抵、公司送你進修＝解鎖人脈）
+      case "FLAG_SET": {
+        var FLN={fit:"健康狀態", checked:"健檢狀態", network:"人脈", guardian:"貴人相助"};
+        if(e.playerId===ui.myId())
+          ui.toast("✨ 取得「"+(FLN[e.flag]||e.flag)+"」"+(e.until?("，效期到第 "+e.until+" 輪"):""),"good",4500);
+        break; }
       case "INSURANCE_CANCELLED":
         ui.announce(me(e.playerId)+" 解約醫療＋意外險", e.playerId);
         if(e.playerId===ui.myId()) ui.toast("已解約：每月省下 "+M(e.premium)+"，但風險回到自己身上","warn",4500); break;

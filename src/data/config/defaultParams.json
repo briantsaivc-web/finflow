@@ -1002,6 +1002,17 @@
       "hot": true
     },
     {
+      "key": "legalSkillDiscountPct",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "group": "商城",
+      "label": "法律技能賠償折抵",
+      "desc": "持有法律常識／公司法規技能時，意外賠償類支出的減免比例",
+      "hot": true
+    },
+    {
       "key": "propertyClaimPct",
       "value": 0.5,
       "min": 0,

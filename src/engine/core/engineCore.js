@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.32.3-S25d", date:"2026-09-03" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.33.0-S26", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -517,6 +517,40 @@ E.healthDiscount = function(S, p){
   var d=E.cfg(S,"healthDiscountPct"); if(d===undefined) d=0.3;
   return d;
 };
+/* S26：法律知識（法律常識／公司法規與合規治理）——意外賠償類支出懂得談判與求償，
+   實際損失比較小。與健康折抵同一個形狀：查得到技能就回折抵比例，查不到回 0。 */
+E.legalDiscount = function(S, p){
+  if(!E.hasSkill) return 0;
+  if(!(E.hasSkill(p,"SKL_LAW") || E.hasSkill(p,"SKL_GOV_LEGAL"))) return 0;
+  var d=E.cfg(S,"legalSkillDiscountPct"); if(d===undefined) d=0.5;
+  return d;
+};
+/* S26：決策選項的「這次要付多少」。
+   costSalaryMult 依當下月薪計價（與人生商城 E.mallCost 同語意、同回退規則）；
+   沒有薪水的人（自由圈／失業）回退到寫死的 cost，才不會「沒收入反而付最貴」。 */
+E.optionCost = function(S, p, op){
+  if(!op) return 0;
+  if(op.costSalaryMult && p && p.derived && p.derived.salaryIncome > 0)
+    return util.r2(p.derived.salaryIncome * op.costSalaryMult);
+  return op.cost || 0;
+};
+/* S26：選項層級的先修技能鎖。
+   只在「這一局真的學得到那張技能」時才鎖——技能卡若掛在沒啟用的模組底下（例如 SKL_BOOK 需要 M8），
+   照鎖會讓那個選項永遠選不了，整張卡變成只剩「暫時不」的廢卡。 */
+E.optionLocked = function(S, p, op){
+  var need = op && op.requiresSkill;
+  if(!need) return false;
+  var sk = (ns.content && ns.content.byId) ? ns.content.byId[need] : null;
+  if(sk && sk.moduleReq && (S.enabledModules||[]).indexOf(sk.moduleReq) < 0) return false;
+  return !(E.hasSkill && E.hasSkill(p, need));
+};
+/* S26：效果金額也能依月薪計價（salaryMult，負數＝省下來的錢）。
+   規則與 optionCost 一致：沒有薪水就回退到寫死的 amount。 */
+E.effAmount = function(t, ef){
+  if(ef.salaryMult && t && t.derived && t.derived.salaryIncome > 0)
+    return util.r2(t.derived.salaryIncome * ef.salaryMult);
+  return ef.amount;
+};
 // 加權抽獎（主流 RNG；累積機率第一個命中即 break——工程書 §1.9-5）
 E.blessingPool = function(S){
   return [
@@ -609,7 +643,8 @@ E.applyEffects = function(S, p, effects, label, opts){
       case "CASH_DELTA":
         targets.forEach(function(t){
           if(ef.filter && !t.assets.some(function(a){return a.kind===ef.filter.kind;})) return;
-          var amt = util.r2(ef.amount * (ef.amount<0 ? rate : 1));
+          var amt0 = E.effAmount(t, ef);                       // S26：salaryMult 依月薪計價，沒有就用寫死的 amount
+          var amt = util.r2(amt0 * (amt0<0 ? rate : 1));
           // §2.4 貴人相助：負面人生事件費用減免一次（觸發後清旗標）
           if(amt<0 && opts.lifeEvent && t.flags && t.flags.guardian){
             var disc=E.cfg(S,"guardianDiscount"); if(disc===undefined) disc=0.5;
@@ -631,7 +666,21 @@ E.applyEffects = function(S, p, effects, label, opts){
               E.ev("PROPERTY_CLAIM",{playerId:t.id, claim:claimP, where:"disaster", label:ef.label||label});
             }
           }
-          if(amt<0 && opts.insurable){
+          /* S26：法律知識折抵——賠償／和解類支出，懂法的人談得下來。
+             掛在效果的 legalClaim 旗標上（不是整張卡），才不會連同一張卡的醫療費也一起打折。 */
+          if(amt<0 && ef.legalClaim){
+            var ld=E.legalDiscount(S,t);
+            if(ld>0){
+              var lSaved=util.r2(-amt*ld);
+              if(lSaved>0){ amt=util.r2(amt+lSaved);
+                E.ev("LEGAL_DISCOUNT",{playerId:t.id, saved:lSaved, label:ef.label||label}); }
+            }
+          }
+          /* S26：醫療鏈只吃「不是產險那一筆」的效果。
+             LE12／LE13 這種把修車與醫療合在一起的卡已拆成兩筆效果：
+             修車那筆走 propertyClaim（產險＋法律），醫療那筆走這裡（健康＋醫療險），
+             各折各的，不再對同一筆金額疊三層。 */
+          if(amt<0 && opts.insurable && !ef.propertyClaim){
             var hd=E.healthDiscount(S,t);
             if(hd>0){ hSaved=util.r2(-amt*hd); amt=util.r2(amt*(1-hd));
               E.ev("HEALTH_DISCOUNT",{playerId:t.id, saved:hSaved, label:ef.label||label}); }
@@ -665,10 +714,32 @@ E.applyEffects = function(S, p, effects, label, opts){
         break;
       case "ADD_RECURRING_EXPENSE":
         targets.forEach(function(t){
-          var amt = util.r2(ef.amount);
+          var amt = util.r2(E.effAmount(t, ef));               // S26：salaryMult 依月薪計價（負數＝每月省下）
           ledger.post(S,t, ef.label||label, [{account:"EXPENSE",delta:amt,label:ef.label||label}], {eduTags:["recurring"]});
           if(ef.durationTurns) S.activeGlobalEvents.push({ seq:++S.eventSeq, kind:"EXPENSE_REVERT",
             playerId:t.id, amount:amt, until:S.turnNumber+ef.durationTurns, label:ef.label||label, priority:0, param:null });
+        }); break;
+      /* S26：讓卡片效果也能點亮玩家旗標——原本只有「在人生商城買東西」做得到，
+         所以「自我投資健康」點不亮健康折抵、「公司送你去念 MBA」也解鎖不了人脈。
+         期限型（ef.turns）寫 flags[<flag>Until]，語意與商城的 flag/flagTurns 相同，
+         但刻意不寫 <flag>Item：這不是年約，沒有月費、到期也不該跳續約詢問
+         （到期迴圈查不到 Item 會自動略過，見 applyAction 的旗標到期處理）。 */
+      case "SET_FLAG":
+        targets.forEach(function(t){
+          var fg = ef.flag; if(!fg) return;
+          if(!t.flags) t.flags = {};
+          if(ef.turns){
+            var until = S.turnNumber + ef.turns;
+            if(!(t.flags[fg+"Until"] >= until)) t.flags[fg+"Until"] = until;   // 只延長、不縮短既有效期
+            t.flags[fg+"Asked"] = 0;
+            E.ev("FLAG_SET",{playerId:t.id, flag:fg, until:t.flags[fg+"Until"], label:ef.label||label});
+          } else {
+            if(t.flags[fg]) return;                                            // 已經有了就不重複觸發
+            t.flags[fg] = true;
+            // 一律發 FLAG_SET（介面統一在這裡出提示）。商城購買那條路徑另有自己的
+            // NETWORK_UNLOCKED 與 notes，不在這裡重發，避免同一件事跳兩次。
+            E.ev("FLAG_SET",{playerId:t.id, flag:fg, title:label, label:ef.label||label});
+          }
         }); break;
       case "SALARY_MULT":
         targets.forEach(function(t){

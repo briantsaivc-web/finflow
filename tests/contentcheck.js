@@ -77,7 +77,9 @@ for (const { c, deck, f } of all) {
     if (typeof pl[k] === 'number' && pl[k] > 50000) W(`${where} payload.${k}=${pl[k]}：疑似把千元寫成元`);
   if (typeof c.cost === 'number' && c.cost > 50000) W(`${where} cost=${c.cost}：疑似把千元寫成元`);
   // 7. 技能參照
-  const refs = [].concat(c.requiresSkill || [], c.requiresAnySkill || [], c.requiresNotSkill || [], (c.skillBranch || {}).requires || [], deck === 'DIGITAL' ? (c.requires || []) : []);
+  // S26：先修技能也可以掛在單一決策選項上（SI_DEBT），這裡一併驗 id 存在
+  const optSkillRefs = (((c.decision || {}).options) || []).map(o => o.requiresSkill).filter(Boolean);
+  const refs = [].concat(c.requiresSkill || [], c.requiresAnySkill || [], c.requiresNotSkill || [], (c.skillBranch || {}).requires || [], optSkillRefs, deck === 'DIGITAL' ? (c.requires || []) : []);
   for (const r of refs) if (!/^family:/.test(r) && !ids.has(r)) E(`${where} 參照不存在的技能 ${r}`);
   // 9. CHOICE 順序
   if (c.kind === 'CHOICE' && c.decision && c.decision.options && c.decision.options.length >= 2) {

@@ -1086,16 +1086,24 @@ npc.decide = function(S,p,d){
       var wantExam = pc.id==="PE_CPA_EXAM" && p.cash>200;
       return A(wantExam?0:1); }
     case "SELF_INVEST": {
-      var sc=ns.content.byId[d.cardId], op0=sc.decision.options[0], cost=op0.cost||0;
-      var boostsSalary = op0.effects.some(function(e){return e.op==="SALARY_MULT";});
+      // S26：成本走 E.optionCost（支援 costSalaryMult 依月薪計價）；
+      // 先修技能沒學會的選項，電腦也不能選——否則引擎會擋下來、變成白白空過一次決策。
+      var sc=ns.content.byId[d.cardId], op0=sc.decision.options[0];
+      var cost=E.optionCost(S,p,op0);
+      var lockedSI = E.optionLocked(S,p,op0);
       var afford = p.cash-cost > w.cashReserveFloor*p.derived.totalExpenses;
       // 薪資提升長期划算，多數性格願投資；降支出型也划算
-      return A(afford ? 0 : 1); }
+      return A((afford && !lockedSI) ? 0 : 1); }
     case "CHOICE": {
-      var ch=ns.content.byId[d.cardId], o0=ch.decision.options[0], c0=o0.cost||0;
-      var cheapest=0, cheapCost=1e9;
-      ch.decision.options.forEach(function(op,i){ var c=op.cost||0; if(c<cheapCost){cheapCost=c;cheapest=i;} });
-      var okFirst = p.cash-c0 > w.cashReserveFloor*p.derived.totalExpenses;
+      var ch=ns.content.byId[d.cardId], o0=ch.decision.options[0];
+      var c0=E.optionCost(S,p,o0);
+      var okOpt = function(op){ return !E.optionLocked(S,p,op); };
+      var cheapest=-1, cheapCost=1e9;
+      ch.decision.options.forEach(function(op,i){
+        if(!okOpt(op)) return;                       // 鎖住的選項不列入考慮
+        var c=E.optionCost(S,p,op); if(c<cheapCost){cheapCost=c;cheapest=i;} });
+      if(cheapest<0) cheapest=0;                      // 全鎖住（理論上不會發生）就照原本行為挑第一個
+      var okFirst = okOpt(o0) && p.cash-c0 > w.cashReserveFloor*p.derived.totalExpenses;
       return A(okFirst ? 0 : cheapest); }
     case "FOLLOW_ON":
       return A((w.startupAppetite>0.5 && p.cash>d.invest*1.5) ? "follow" : "pass");

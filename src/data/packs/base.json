@@ -1710,6 +1710,30 @@
           "cost": 50
         },
         "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS26",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "畢業典禮治裝",
+        "flavor": "孩子說「就這一次」，全家一起去買了正式服裝與皮鞋。",
+        "eduNote": "一次性的儀式感支出，先想清楚是買給孩子，還是買給自己的面子。",
+        "payload": {
+          "cost": 10
+        },
+        "requiresChildSinceS12": true
+      },
+      {
+        "id": "LS27",
+        "deck": "LIFESTYLE",
+        "kind": "LIFESTYLE",
+        "title": "孩子的生日派對",
+        "flavor": "同學都辦過了，孩子問今年可不可以也請大家。",
+        "eduNote": "比較心態帶來的支出最容易逐年加碼——先定預算，再決定怎麼慶祝。",
+        "payload": {
+          "cost": 15
+        },
+        "requiresChildSinceS12": true
       }
     ],
     "LIFE_EVENT": [
@@ -1718,11 +1742,21 @@
         "deck": "LIFE_EVENT",
         "kind": "LIFE_EVENT",
         "title": "家裡多了一個人",
-        "flavor": "半夜的哭聲從此變成背景音。",
+        "flavor": "恭喜夫人老爺你們要當爸媽了！家裡多一個人",
         "eduNote": "每個孩子都是一筆長期的月支出，要提早進預算。",
         "effects": [
           {
             "op": "ADD_CHILD"
+          },
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": 30,
+            "label": "長輩紅包"
+          },
+          {
+            "op": "GRANT_JOY",
+            "amount": 3
           }
         ],
         "tags": [
@@ -1735,7 +1769,7 @@
         "deck": "LIFE_EVENT",
         "kind": "LIFE_EVENT",
         "title": "年度調薪",
-        "flavor": "主管說你今年表現很好。",
+        "flavor": "主管說你積極主動表現很好",
         "eduNote": "加薪讓你更快存到本金，但它不會自己變成被動收入。",
         "effects": [
           {
@@ -1765,7 +1799,9 @@
           }
         ],
         "tags": [
-          "health"
+          "health",
+          "insurable",
+          "medical"
         ],
         "moduleReq": null
       },
@@ -1799,6 +1835,16 @@
         "effects": [
           {
             "op": "ADD_CHILD"
+          },
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": 30,
+            "label": "長輩紅包"
+          },
+          {
+            "op": "GRANT_JOY",
+            "amount": 3
           }
         ],
         "tags": [
@@ -1811,12 +1857,12 @@
         "deck": "LIFE_EVENT",
         "kind": "LIFE_EVENT",
         "title": "被挖角跳槽",
-        "flavor": "對方開的價碼你想了三天。",
+        "flavor": "表現突出被高薪挖角",
         "eduNote": "換工作是提高主動收入最快的方式之一。",
         "effects": [
           {
             "op": "SALARY_MULT",
-            "factor": 1.15,
+            "factor": 1.5,
             "label": "跳槽加薪"
           },
           {
@@ -1855,12 +1901,22 @@
         "id": "LE10",
         "deck": "LIFE_EVENT",
         "kind": "LIFE_EVENT",
-        "title": "三寶出生",
-        "flavor": "家裡真的滿了。",
+        "title": "增產報國，三寶出生",
+        "flavor": "政府頒發「努力做人」錦旗一面",
         "eduNote": "家庭規模是你自由門檻的乘數。",
         "effects": [
           {
             "op": "ADD_CHILD"
+          },
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": 30,
+            "label": "長輩紅包"
+          },
+          {
+            "op": "GRANT_JOY",
+            "amount": 3
           }
         ],
         "tags": [
@@ -1880,13 +1936,13 @@
           "options": [
             {
               "label": "投資自己",
-              "sub": "投入 60　薪資 ×1.28",
-              "cost": 60,
+              "sub": "表現出潛力值得培養，學費公司補助八成",
+              "cost": 200,
               "effects": [
                 {
                   "op": "CASH_DELTA",
                   "target": "self",
-                  "amount": -60,
+                  "amount": -200,
                   "label": "在職進修念個 MBA 投入"
                 },
                 {
@@ -1894,6 +1950,12 @@
                   "target": "self",
                   "factor": 1.28,
                   "label": "在職進修念個 MBA"
+                },
+                {
+                  "op": "SET_FLAG",
+                  "target": "self",
+                  "flag": "network",
+                  "label": "MBA 同學與校友人脈"
                 }
               ]
             },
@@ -1947,7 +2009,7 @@
         "deck": "LIFE_EVENT",
         "kind": "SELF_INVEST",
         "title": "轉職到成長型產業",
-        "flavor": "空窗與從頭學起的陣痛，換來更高的天花板。",
+        "flavor": "男怕入錯行，女怕嫁錯郎；勇敢跳出舒適圈",
         "eduNote": "選對產業，努力的邊際報酬會完全不同。",
         "oncePerLife": true,
         "decision": {
@@ -1984,7 +2046,7 @@
         "deck": "LIFE_EVENT",
         "kind": "SELF_INVEST",
         "title": "學會第二專長（數位技能）",
-        "flavor": "下班後的線上課，補上了缺的那塊拼圖。",
+        "flavor": "人至少要有兩把刷子",
         "eduNote": "一技之長，是通膨時代最保值的資產。",
         "oncePerLife": true,
         "decision": {
@@ -2021,7 +2083,7 @@
         "deck": "LIFE_EVENT",
         "kind": "SELF_INVEST",
         "title": "上完溝通課，成功談加薪",
-        "flavor": "你準備了數據、也準備了勇氣。",
+        "flavor": "你不爭取，沒人會主動幫你加薪",
         "eduNote": "你的薪水，有時只差一次好好開口。",
         "oncePerLife": true,
         "decision": {
@@ -2094,7 +2156,7 @@
         "id": "SI_SIDE",
         "deck": "LIFE_EVENT",
         "kind": "SELF_INVEST",
-        "title": "副業起步：週末工作坊",
+        "title": "副業起步：經營週末工作坊",
         "flavor": "把興趣變成收入，週末不再只是休息。",
         "eduNote": "第二收入來源，是抗風險的底氣。",
         "oncePerLife": true,
@@ -2139,22 +2201,25 @@
           "options": [
             {
               "label": "投資自己",
-              "sub": "投入 5　每月支出 -5",
-              "cost": 5,
+              "sub": "投入約 1.2 個月薪水，之後每月省下 5% 薪水（約兩年回本）",
+              "cost": 48,
               "effects": [
                 {
                   "op": "CASH_DELTA",
                   "target": "self",
-                  "amount": -5,
+                  "salaryMult": -1.2,
+                  "amount": -48,
                   "label": "戒除昂貴習慣，重整生活 投入"
                 },
                 {
                   "op": "ADD_RECURRING_EXPENSE",
                   "target": "self",
-                  "amount": -5,
+                  "salaryMult": -0.05,
+                  "amount": -2,
                   "label": "戒除昂貴習慣，重整生活（每月）"
                 }
-              ]
+              ],
+              "costSalaryMult": 1.2
             },
             {
               "label": "暫時不",
@@ -2176,22 +2241,25 @@
           "options": [
             {
               "label": "投資自己",
-              "sub": "投入 10　每月支出 -6",
-              "cost": 10,
+              "sub": "投入約 0.3 個月薪水，之後每月省下 2.5% 薪水（約一年回本）",
+              "cost": 12,
               "effects": [
                 {
                   "op": "CASH_DELTA",
                   "target": "self",
-                  "amount": -10,
+                  "salaryMult": -0.3,
+                  "amount": -12,
                   "label": "搬到房租更合理的地方 投入"
                 },
                 {
                   "op": "ADD_RECURRING_EXPENSE",
                   "target": "self",
-                  "amount": -6,
+                  "salaryMult": -0.025,
+                  "amount": -1,
                   "label": "搬到房租更合理的地方（每月）"
                 }
-              ]
+              ],
+              "costSalaryMult": 0.3
             },
             {
               "label": "暫時不",
@@ -2205,8 +2273,8 @@
         "id": "SI_AUTO",
         "deck": "LIFE_EVENT",
         "kind": "SELF_INVEST",
-        "title": "建立自動化理財系統",
-        "flavor": "設定好自動轉帳與記帳，錢就乖了。",
+        "title": "自學AI建立自動化理財系統",
+        "flavor": "設定好自動轉帳與記帳，省下不該花的錢",
         "eduNote": "好的系統，讓省錢不必靠意志力。",
         "oncePerLife": true,
         "decision": {
@@ -2250,7 +2318,7 @@
           "options": [
             {
               "label": "投資自己",
-              "sub": "投入 20　每月支出 -4",
+              "sub": "投入 20　每月支出 -5　並取得 24 輪健康狀態",
               "cost": 20,
               "effects": [
                 {
@@ -2262,8 +2330,15 @@
                 {
                   "op": "ADD_RECURRING_EXPENSE",
                   "target": "self",
-                  "amount": -4,
+                  "amount": -5,
                   "label": "認真投資健康，減少醫療支出（每月）"
+                },
+                {
+                  "op": "SET_FLAG",
+                  "target": "self",
+                  "flag": "fit",
+                  "turns": 24,
+                  "label": "規律運動與定期檢查"
                 }
               ]
             },
@@ -2302,7 +2377,8 @@
                   "amount": -5,
                   "label": "把高利卡債整合成低利貸（每月）"
                 }
-              ]
+              ],
+              "requiresSkill": "SKL_BOOK"
             },
             {
               "label": "暫時不",
@@ -2341,6 +2417,10 @@
                   "op": "GRANT_VIRTUE",
                   "axis": "FILIAL",
                   "delta": 1
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
                 }
               ]
             },
@@ -2391,6 +2471,10 @@
                   "op": "GRANT_VIRTUE",
                   "axis": "FILIAL",
                   "delta": 1
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 1
                 }
               ]
             },
@@ -2420,17 +2504,24 @@
         "kind": "LIFE_EVENT",
         "title": "開車擦撞，對方要求賠償",
         "flavor": "路口一個閃神，保險桿凹了一角。",
-        "eduNote": "車險與緊急預備金，就是為這種「一定會發生的意外」準備的。",
+        "eduNote": "車險與緊急預備金，就是為這種「一定會發生的意外」準備的。有產險與法律知識能降低實際損失。",
         "effects": [
           {
             "op": "CASH_DELTA",
             "target": "self",
-            "amount": -28,
-            "label": "修車與和解金"
+            "amount": -12,
+            "label": "自己的車進廠維修",
+            "propertyClaim": true
+          },
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -16,
+            "label": "對方求償與和解金",
+            "legalClaim": true
           }
         ],
         "tags": [
-          "insurable",
           "accident"
         ],
         "moduleReq": null
@@ -2441,18 +2532,27 @@
         "kind": "LIFE_EVENT",
         "title": "騎車犁田，手臂擦傷",
         "flavor": "雨天路滑，人和車一起滑出去。",
-        "eduNote": "機車族的醫療與修車支出，發生率比想像高得多。",
+        "eduNote": "機車族的醫療與修車支出，發生率比想像高得多。有產險與法律知識能降低實際損失。",
         "effects": [
           {
             "op": "CASH_DELTA",
             "target": "self",
-            "amount": -18,
-            "label": "醫療自付與修車"
+            "amount": -10,
+            "label": "手臂擦傷的醫療自付"
+          },
+          {
+            "op": "CASH_DELTA",
+            "target": "self",
+            "amount": -8,
+            "label": "機車進廠維修",
+            "propertyClaim": true,
+            "legalClaim": true
           }
         ],
         "tags": [
           "insurable",
-          "medical"
+          "medical",
+          "accident"
         ],
         "moduleReq": null
       },
@@ -2462,7 +2562,7 @@
         "kind": "LIFE_EVENT",
         "title": "寵物生病掛急診",
         "flavor": "半夜牠一直吐，你抱著牠衝獸醫院。",
-        "eduNote": "獸醫沒有健保——養寵物前，醫療預備金要先想好。",
+        "eduNote": "寵物生病沒有健保，寵物險也很少人買，養寵物前，醫療預備金要先想好。",
         "effects": [
           {
             "op": "CASH_DELTA",
@@ -2482,7 +2582,7 @@
         "deck": "LIFE_EVENT",
         "kind": "CHOICE",
         "title": "交往對象出現了",
-        "flavor": "聊得來的人不常有，這次好像是真的。",
+        "flavor": "聊得來的人不常有，有些人，錯過就是一輩子",
         "eduNote": "感情是資產負債表外最重要的一項，但約會預算要入表。",
         "oncePerLife": true,
         "decision": {
@@ -2502,6 +2602,10 @@
                   "op": "ADD_RECURRING_EXPENSE",
                   "amount": 4,
                   "label": "每月約會開銷"
+                },
+                {
+                  "op": "GRANT_JOY",
+                  "amount": 2
                 }
               ]
             },
@@ -2564,7 +2668,8 @@
               ]
             }
           ]
-        }
+        },
+        "oncePerLife": true
       },
       {
         "id": "CHOICE_MOTO_MONKEY",

@@ -1869,22 +1869,37 @@ ui.yuanizeSub = function(sub){
 };
 
 /* 六期：把 DSL 效果翻成白話，附在選項下——卡面沒講清楚的，按鈕講清楚 */
-ui.effectSummary = function(effects){
+/* S26：多吃一個 viewer——效果金額可能寫成「月薪的 X%」（salaryMult），
+   要換算成這位玩家自己的數字才有意義；沒傳 viewer 就用卡片寫死的 amount。 */
+ui.effectSummary = function(effects, viewer){
   if(!effects || !effects.length) return "";
   var out=[];
+  var amtOf = function(ef){ return (viewer && E.effAmount) ? E.effAmount(viewer, ef) : ef.amount; };
   effects.forEach(function(ef){
     var who = ef.target==="all"?"全體 ":(ef.target==="others"?"其他玩家 ":"");
     switch(ef.op){
-      case "CASH_DELTA": out.push(who+"現金 "+(ef.amount>=0?"+":"−")+M(Math.abs(ef.amount))); break;
-      case "ADD_RECURRING_EXPENSE": out.push(who+"每月支出 +"+M(ef.amount)+(ef.durationTurns?"（"+ef.durationTurns+" 輪）":"（永久）")); break;
+      case "CASH_DELTA": { var ca=amtOf(ef);
+        out.push(who+"現金 "+(ca>=0?"+":"−")+M(Math.abs(ca))); break; }
+      // S26：負數是「每月省下」。原本一律寫「每月支出 +」，省錢型的卡會顯示成「+−5,000」。
+      case "ADD_RECURRING_EXPENSE": { var ra=amtOf(ef);
+        var durR=(ef.durationTurns?"（"+ef.durationTurns+" 輪）":"（永久）");
+        out.push(who+(ra<0 ? ("每月省下 "+M(Math.abs(ra))) : ("每月支出 +"+M(ra)))+durR); break; }
       case "SALARY_MULT": { var pc=Math.round((ef.factor-1)*100);
         out.push(who+"薪資 "+(pc>=0?"+":"")+pc+"%"); break; }
       case "ASSET_VALUE_MULT": out.push((ef.filter&&ef.filter.kind?({REALESTATE:"房產",STOCK:"股票",BUSINESS:"事業",STARTUP:"新創"}[ef.filter.kind]||"資產"):"資產")+"估值 ×"+ef.factor); break;
       case "ASSET_INCOME_MULT": out.push((ef.filter&&ef.filter.kind?({REALESTATE:"租金",BUSINESS:"分紅"}[ef.filter.kind]||"資產收入"):"資產收入")+" ×"+ef.factor+(ef.durationTurns?"（"+ef.durationTurns+" 輪）":"")); break;
       case "SKIP_TURNS": out.push("停走 "+(ef.turns||1)+" 回合"); break;
       case "ADD_CHILD": out.push("家庭新成員（每月養育支出增加）"); break;
-      case "GRANT_VIRTUE": out.push("品格 +"+(ef.amount||1)); break;
-      case "GRANT_JOY": out.push("幸福感 +"+(ef.amount||1)); break;
+      // S26：品格用的是 delta 不是 amount，扣分的卡原本也一律顯示成「品格 +1」。
+      case "GRANT_VIRTUE": { var VS={TEMPER:"情緒",PRUDENCE:"守法",PARENTING:"教養",FILIAL:"孝親"};
+        var dv=(ef.delta!==undefined?ef.delta:(ef.amount!==undefined?ef.amount:1));
+        out.push((VS[ef.axis]||"品格")+" "+(dv>=0?"+":"−")+Math.abs(dv)); break; }
+      case "GRANT_JOY": { var jv=(ef.amount===undefined?1:ef.amount);
+        out.push("幸福感 "+(jv>=0?"+":"−")+Math.abs(jv)); break; }
+      // S26：卡片點亮的旗標（健康折抵效期、人脈解鎖…）
+      case "SET_FLAG": { var FL={fit:"健康狀態（醫療意外支出折抵）", checked:"健檢狀態（醫療支出折抵）",
+          network:"人脈：解鎖「特殊機會」牌堆", guardian:"貴人相助（下一次負面事件費用減免）"};
+        out.push((FL[ef.flag]||("旗標 "+ef.flag))+(ef.turns?("，"+ef.turns+" 輪"):"")); break; }
       case "DIVIDEND_BONUS": out.push("配息加發 ×"+ef.mult+(ef.durationTurns?"（"+ef.durationTurns+" 輪）":"")); break;
       case "STOCK_PRICE_SET": out.push("股價變動"); break;
       case "GRANT_SKILL": { var gs=ns.content.byId[ef.skillId];
@@ -1896,11 +1911,35 @@ ui.effectSummary = function(effects){
   });
   return out.join("、");
 };
-ui.optSub = function(op){   // 內容 sub＋自動效果摘要（避免重複：sub 已含金額者仍附一行完整效果）
+ui.optSub = function(op, viewer){   // 內容 sub＋自動效果摘要（避免重複：sub 已含金額者仍附一行完整效果）
   var base = ui.yuanizeSub(op.sub)||"";
-  var es = ui.effectSummary(op.effects);
+  var es = ui.effectSummary(op.effects, viewer);
   if(!es) return base;
   return base ? base+"　▸ "+es : "▸ "+es;
+};
+
+/* S26：決策選項按鈕的統一產生器（SELF_INVEST／CHOICE 共用，原本兩邊各寫一份幾乎相同的碼）。
+   一次處理三件事：依月薪計價的成本（costSalaryMult）、現金不足、選項層級的先修技能。
+   先修沒學會時「顯示但鎖住」而不是藏起來——藏起來玩家根本不知道有這條路，
+   就談不上「為了解鎖更好的選項去學技能」這個誘因。 */
+ui.decisionOptBtn = function(p, op, i, decide){
+  var cost    = E.optionCost ? E.optionCost(ui.S, p, op) : (op.cost||0);
+  var afford  = !cost || cost<=p.cash;
+  var need    = op.requiresSkill;
+  var hasSk   = !(E.optionLocked ? E.optionLocked(ui.S,p,op) : (need && !E.hasSkill(p,need)));
+  var skTitle = need ? (((ns.content.byId||{})[need]||{}).title || need) : "";
+  var sub = ui.optSub(op, p);
+  if(need) sub += "　🔑 先修：「"+skTitle+"」"+(hasSk?"（已具備）":"（尚未學會）");
+  if(!hasSk) sub += "——學會之後這個選項才會開放";
+  else if(!afford && cost) sub += "（現金不足，需 "+M(cost)+"）";
+  var ok = afford && hasSk;
+  var b = optBtn(op.label, sub, function(){
+    if(!hasSk){ ui.toast("要先學會「"+skTitle+"」才能選這個","warn",4000); return; }
+    if(!afford){ ui.toast("現金不足","warn"); return; }
+    decide(i);
+  }, i===0 && ok);
+  if(!ok){ b.disabled=true; b.style.opacity=".5"; }
+  return b;
 };
 
 ui.decisionCard = function(S,p,d){
@@ -2604,26 +2643,14 @@ ui.decisionCard = function(S,p,d){
     card.appendChild(cardFace(cd)); var ebS=eduBox(cd); if(ebS) card.appendChild(ebS);
     card.appendChild(el("div","flavor","翻轉人生的機會——投資自己，長期改變你的收入或支出結構。"));
     var oS=el("div","opts");
-    cd.decision.options.forEach(function(op,i){
-      var afford = !op.cost || op.cost<=p.cash;
-      var sub = ui.optSub(op) + (op.cost&&!afford?"（現金不足，需 "+M(op.cost)+"）":"");
-      var b=optBtn(op.label, sub, function(){ if(!afford){ ui.toast("現金不足","warn"); return; } decide(i); }, i===0&&afford);
-      if(!afford){ b.disabled=true; b.style.opacity=".5"; }
-      oS.appendChild(b);
-    });
+    cd.decision.options.forEach(function(op,i){ oS.appendChild(ui.decisionOptBtn(p,op,i,decide)); });
     card.appendChild(oS); c.appendChild(card); return;
   }
 
   if(d.kind==="CHOICE"){
     card.appendChild(cardFace(cd)); var ebC=eduBox(cd); if(ebC) card.appendChild(ebC);
     var oC=el("div","opts");
-    cd.decision.options.forEach(function(op,i){
-      var afford = !op.cost || op.cost<=p.cash;
-      var sub = ui.optSub(op) + (op.cost&&!afford?"（現金不足，需 "+M(op.cost)+"）":"");
-      var b=optBtn(op.label, sub, function(){ if(!afford){ ui.toast("現金不足","warn"); return; } decide(i); }, i===0&&afford);
-      if(!afford){ b.disabled=true; b.style.opacity=".5"; }
-      oC.appendChild(b);
-    });
+    cd.decision.options.forEach(function(op,i){ oC.appendChild(ui.decisionOptBtn(p,op,i,decide)); });
     card.appendChild(oC); c.appendChild(card); return;
   }
 

@@ -106,8 +106,11 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
         E.apply(St,{type:"DECIDE",playerId:d.playerId,
           payload:{decisionId:d.decisionId,optionId:0,params:{}}},{mutate:true});
       }
-      if(St.bookkeeping) St.bookkeeping=null;
       St.turnResolved=true; E.syncPhase(St);
+      // S26：記帳題是 afterResolve／syncPhase 之後才重建的，原本在 syncPhase 之前清，
+      // 一旦牌序讓這回合真的產生記帳題，END_TURN 就會卡在 BOOKKEEPING_INCOMPLETE。
+      // 這支測的是商城的每輪計數、不是記帳流程，所以在送出前把題目清掉。
+      if(St.bookkeeping) St.bookkeeping=null;
       const pid=E.activePlayer(St).id;
       return E.apply(St,{type:"END_TURN",playerId:pid,payload:null},{mutate:true});
     }

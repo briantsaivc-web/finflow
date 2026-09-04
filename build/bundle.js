@@ -93,9 +93,18 @@ function build() {
   }
   const marker = 'let PACKS = /* PACKS_PLACEHOLDER */ {};';
   if (editorTpl.indexOf(marker) < 0) throw new Error('cardEditor.html 缺少 PACKS_PLACEHOLDER');
-  const editorOut = editorTpl.replace(marker, 'let PACKS = ' + JSON.stringify(packsObj) + ';');
+  let editorOut = editorTpl.replace(marker, 'let PACKS = ' + JSON.stringify(packsObj) + ';');
+
+  // S26：工坊的「引擎認得哪些 op」也從引擎原始碼掃出來注入，與 tests/contentcheck.js 同源。
+  // 手抄一份清單遲早會漏，漏掉的 op 會讓工坊把正常的卡標成錯誤。
+  const engineSrc = ['engine/core/engineCore.js','engine/reducer/applyAction.js','engine/npc/contentNpcSim.js']
+    .map(f => fs.readFileSync(path.join(SRC, f), 'utf-8')).join('\n');
+  const ops = Array.from(new Set([...engineSrc.matchAll(/case "([A-Z_]+)":/g)].map(m => m[1]))).sort();
+  const opMarker = /const KNOWN_OPS = \/\* OPS_PLACEHOLDER \*\/ \[[^\]]*\];/;
+  if (!opMarker.test(editorOut)) throw new Error('cardEditor.html 缺少 OPS_PLACEHOLDER');
+  editorOut = editorOut.replace(opMarker, 'const KNOWN_OPS = ' + JSON.stringify(ops) + ';');
   fs.writeFileSync(path.join(ROOT, 'card_editor.html'), editorOut, 'utf-8');
-  console.log('[FinFlow Bundle] card_editor.html rebuilt from src/data (' + Object.keys(packsObj).length + ' packs)');
+  console.log('[FinFlow Bundle] card_editor.html rebuilt from src/data (' + Object.keys(packsObj).length + ' packs, ' + ops.length + ' ops)');
 }
 
 build();

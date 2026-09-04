@@ -6,958 +6,676 @@
   <title>FinFlow 卡片工坊 (Card Studio & Validator)</title>
   <style>
     :root {
-      --bg: #0E1622;
-      --panel: #16202E;
-      --panel2: #1B2839;
-      --panel-hover: #223247;
-      --border: #24344A;
-      --border-focus: #3E7DD6;
-      --tx: #E8EEF5;
-      --tx2: #9DB0C7;
-      --tx3: #6B7F98;
-      --pos: #35C4A8;
-      --neg: #F0803C;
-      --gold: #F2C14E;
-      --opp: #3E7DD6;
-      --life: #B45FD0;
-      --mkt: #2E9E86;
-      --mall: #1CB5E0;
-      --danger: #FF5A5F;
+      --bg:#0E1622; --panel:#16202E; --panel2:#1B2839; --panel-hover:#223247;
+      --border:#24344A; --border-focus:#3E7DD6; --tx:#E8EEF5; --tx2:#9DB0C7; --tx3:#6B7F98;
+      --pos:#35C4A8; --neg:#F0803C; --gold:#F2C14E; --opp:#3E7DD6; --life:#B45FD0;
+      --mkt:#2E9E86; --mall:#1CB5E0; --danger:#FF5A5F;
       --font-mono: Consolas, Monaco, "Courier New", monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--tx);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    /* Top Header */
-    header {
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 56px;
-      flex-shrink: 0;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
-    .brand-tag {
-      background: rgba(62,125,214,.2);
-      color: var(--opp);
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 600;
-      border: 1px solid rgba(62,125,214,.4);
-    }
-    .actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    button {
-      background: var(--panel2);
-      color: var(--tx);
-      border: 1px solid var(--border);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all .15s ease;
-    }
-    button:hover {
-      background: var(--panel-hover);
-      border-color: var(--border-focus);
-    }
-    button.primary {
-      background: #2563eb;
-      border-color: #3b82f6;
-      color: #fff;
-    }
-    button.primary:hover {
-      background: #1d4ed8;
-    }
-    button.success {
-      background: rgba(53,196,168,.2);
-      border-color: var(--pos);
-      color: var(--pos);
-    }
-    button.success:hover {
-      background: rgba(53,196,168,.3);
-    }
-    button.danger {
-      background: rgba(255,90,95,.2);
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-
-    /* Main 3-Column Layout */
-    .app-body {
-      display: grid;
-      grid-template-columns: 320px 1fr 380px;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Column 1: Card List */
-    .col-list {
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .list-filter {
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    input, select, textarea {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--tx);
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      width: 100%;
-      outline: none;
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 2px rgba(62,125,214,.25);
-    }
-    .cards-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 6px;
-    }
-    .card-item {
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      background: var(--panel2);
-      transition: all .15s ease;
-    }
-    .card-item:hover {
-      background: var(--panel-hover);
-      border-color: var(--border);
-    }
-    .card-item.active {
-      background: rgba(62,125,214,.18);
-      border-color: var(--border-focus);
-    }
-    .ci-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    .ci-title {
-      font-weight: 700;
-      font-size: 13.5px;
-      color: var(--tx);
-    }
-    .ci-badge {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .badge-opp { background: rgba(62,125,214,.2); color: var(--opp); }
-    .badge-mall { background: rgba(28,181,224,.2); color: var(--mall); }
-    .badge-life { background: rgba(180,95,208,.2); color: var(--life); }
-    .badge-mkt { background: rgba(46,158,134,.2); color: var(--mkt); }
-    .ci-sub {
-      font-size: 11.5px;
-      color: var(--tx2);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Column 2: Form Editor */
-    .col-editor {
-      background: var(--bg);
-      overflow-y: auto;
-      padding: 24px 32px;
-    }
-    .editor-section {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px 20px;
-      margin-bottom: 20px;
-    }
-    .sec-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--gold);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
-    label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--tx2);
-    }
-    .hint {
-      font-size: 11px;
-      color: var(--tx3);
-      margin-top: 2px;
-    }
-
-    /* Column 3: Live Preview & Auditor */
-    .col-preview {
-      background: var(--panel);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    .preview-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    /* Realistic In-Game Card Preview */
-    .game-card {
-      width: 100%;
-      max-width: 320px;
-      background: linear-gradient(165deg, #1A2636, #121A26);
-      border: 2px solid var(--opp);
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.4);
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .game-card.MALL { border-color: var(--mall); }
-    .game-card.LIFE { border-color: var(--life); }
-    .game-card.MARKET { border-color: var(--mkt); }
-    .game-card.GOLD { border-color: var(--gold); }
-
-    .gc-tag {
-      display: inline-block;
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #7FE3CE;
-      background: rgba(53,196,168,.16);
-      padding: 2px 7px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-    .gc-title {
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--tx);
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-    .gc-sub {
-      font-size: 12px;
-      color: var(--tx2);
-      line-height: 1.4;
-      margin-bottom: 12px;
-      min-height: 32px;
-    }
-    .gc-stats {
-      background: rgba(0,0,0,.3);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-    }
-    .stat-label {
-      font-size: 10.5px;
-      color: var(--tx3);
-    }
-    .stat-val {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--tx);
-    }
-    .stat-val.pos { color: var(--pos); }
-    .stat-val.neg { color: var(--neg); }
-    .stat-val.gold { color: var(--gold); }
-    .gc-flavor {
-      font-size: 11px;
-      color: var(--tx3);
-      font-style: italic;
-      line-height: 1.4;
-      border-top: 1px dashed var(--border);
-      padding-top: 8px;
-    }
-
-    /* Auditor Output */
-    .audit-card {
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .audit-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      font-size: 12px;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-    }
-    .audit-row:last-child { border: none; }
-    .audit-badge {
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 4px;
-    }
-    .badge-pass { background: rgba(53,196,168,.2); color: var(--pos); }
-    .badge-warn { background: rgba(240,128,60,.2); color: var(--neg); }
-    .badge-err { background: rgba(255,90,95,.2); color: var(--danger); }
-
-    /* Modal / JSON Dialog */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal-box {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      width: 90%;
-      max-width: 680px;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-    }
-    .modal-body {
-      padding: 16px;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .json-area {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      height: 380px;
-      white-space: pre;
-    }
-    .modal-footer {
-      padding: 12px 18px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--tx);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+      height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+    header { background:var(--panel); border-bottom:1px solid var(--border); padding:8px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px; height:52px; flex-shrink:0; }
+    .brand { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:800; white-space:nowrap; }
+    .brand-tag { background:rgba(62,125,214,.2); color:var(--opp); font-size:11px; padding:2px 8px;
+      border-radius:12px; font-weight:600; border:1px solid rgba(62,125,214,.4); }
+    .actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    button { background:var(--panel2); color:var(--tx); border:1px solid var(--border); padding:6px 12px;
+      border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .15s ease; }
+    button:hover { background:var(--panel-hover); border-color:var(--border-focus); }
+    button.primary { background:#2563eb; border-color:#3b82f6; color:#fff; }
+    button.primary:hover { background:#1d4ed8; }
+    button.success { background:rgba(53,196,168,.18); border-color:var(--pos); color:var(--pos); }
+    button.danger  { background:rgba(255,90,95,.16); border-color:var(--danger); color:var(--danger); }
+    .app-body { display:grid; grid-template-columns:300px 1fr 400px; flex:1; overflow:hidden; }
+    .col-list { background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+    .list-filter { padding:10px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:6px; }
+    input, select, textarea { background:var(--bg); border:1px solid var(--border); color:var(--tx);
+      padding:7px 9px; border-radius:6px; font-size:13px; width:100%; outline:none; font-family:inherit; }
+    textarea { font-family:var(--font-mono); font-size:12px; line-height:1.5; resize:vertical; }
+    input:focus, select:focus, textarea:focus { border-color:var(--border-focus); box-shadow:0 0 0 2px rgba(62,125,214,.22); }
+    .cards-container { flex:1; overflow-y:auto; padding:6px; }
+    .card-item { padding:8px 10px; border-radius:6px; margin-bottom:5px; cursor:pointer;
+      border:1px solid transparent; background:var(--panel2); }
+    .card-item:hover { background:var(--panel-hover); border-color:var(--border); }
+    .card-item.active { background:rgba(62,125,214,.18); border-color:var(--border-focus); }
+    .ci-header { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:3px; }
+    .ci-title { font-weight:700; font-size:13px; }
+    .ci-badge { font-size:9.5px; padding:2px 5px; border-radius:4px; font-weight:700; white-space:nowrap;
+      background:rgba(62,125,214,.2); color:var(--opp); }
+    .ci-sub { font-size:11px; color:var(--tx2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ci-warn { color:var(--neg); }
+    .col-editor { background:var(--bg); overflow-y:auto; padding:18px 22px; }
+    .editor-section { background:var(--panel); border:1px solid var(--border); border-radius:8px;
+      padding:14px 16px; margin-bottom:14px; }
+    .sec-title { font-size:13.5px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; }
+    .form-group.full { grid-column:1/-1; }
+    label { font-size:11.5px; font-weight:600; color:var(--tx2); }
+    .hint { font-size:10.5px; color:var(--tx3); margin-top:2px; line-height:1.45; }
+    .col-preview { background:var(--panel); border-left:1px solid var(--border);
+      display:flex; flex-direction:column; overflow-y:auto; padding:16px; gap:14px; }
+    .pv-title { font-size:12.5px; font-weight:700; color:var(--tx2); margin-bottom:8px; }
+    .game-card { background:linear-gradient(165deg,#1A2636,#121A26); border:2px solid var(--opp);
+      border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.4); padding:14px; }
+    .game-card.MALL { border-color:var(--mall); }
+    .game-card.LIFE_EVENT, .game-card.CHOICE, .game-card.SELF_INVEST { border-color:var(--life); }
+    .game-card.LIFESTYLE { border-color:var(--gold); }
+    .game-card.MACRO_EVENT, .game-card.MARKET { border-color:var(--mkt); }
+    .gc-tag { display:inline-block; font-size:10px; font-weight:700; color:#7FE3CE;
+      background:rgba(53,196,168,.16); padding:2px 7px; border-radius:4px; margin-bottom:7px; }
+    .gc-title { font-size:16.5px; font-weight:800; line-height:1.3; margin-bottom:5px; }
+    .gc-flavor { font-size:12px; color:var(--tx2); line-height:1.5; margin-bottom:9px; }
+    .gc-edu { font-size:11.5px; color:var(--gold); background:rgba(242,193,78,.1);
+      border-left:3px solid var(--gold); padding:6px 9px; border-radius:4px; line-height:1.5; margin-bottom:9px; }
+    .gc-opt { background:rgba(0,0,0,.28); border-radius:7px; padding:7px 9px; margin-top:6px; }
+    .gc-opt b { font-size:12.5px; }
+    .gc-opt div { font-size:11px; color:var(--tx2); margin-top:3px; line-height:1.45; }
+    .gc-eff { font-size:11.5px; color:var(--pos); margin-top:6px; line-height:1.5; }
+    .audit { background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+    .audit-row { display:flex; justify-content:space-between; gap:8px; padding:5px 0; font-size:12px;
+      border-bottom:1px solid rgba(255,255,255,.05); }
+    .audit-row:last-child { border:none; }
+    .audit-msg { font-size:11.5px; line-height:1.6; padding:4px 0; }
+    .badge { font-weight:700; padding:1px 6px; border-radius:4px; font-size:11px; white-space:nowrap; }
+    .b-pass { background:rgba(53,196,168,.2); color:var(--pos); }
+    .b-warn { background:rgba(240,128,60,.2); color:var(--neg); }
+    .b-err  { background:rgba(255,90,95,.2); color:var(--danger); }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); display:none;
+      align-items:center; justify-content:center; z-index:1000; }
+    .modal-box { background:var(--panel); border:1px solid var(--border); border-radius:10px;
+      width:92%; max-width:760px; max-height:84vh; display:flex; flex-direction:column; overflow:hidden; }
+    .modal-header { padding:12px 16px; border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center; font-weight:700; }
+    .modal-body { padding:14px; flex:1; overflow-y:auto; }
+    .modal-footer { padding:10px 16px; border-top:1px solid var(--border);
+      display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .json-area { height:400px; white-space:pre; }
+    .row { display:flex; gap:6px; align-items:center; }
+    .row > * { flex:1; }
+    .dirty-dot { display:inline-block; width:8px; height:8px; border-radius:50%;
+      background:var(--neg); margin-left:6px; vertical-align:middle; }
+    .muted { color:var(--tx3); font-size:11.5px; line-height:1.6; }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
   <header>
     <div class="brand">
       <span>FinFlow 卡片工坊</span>
-      <span class="brand-tag">v2.27.0-S22</span>
+      <span class="brand-tag" id="pkgTag">—</span>
+      <span id="dirtyDot"></span>
     </div>
     <div class="actions">
-      <button onclick="createNewCard()">＋ 新增卡片</button>
-      <button onclick="cloneCurrentCard()">📑 複製此卡</button>
+      <button onclick="createNewCard()">＋ 新增</button>
+      <button onclick="cloneCurrentCard()">📑 複製</button>
+      <button class="danger" onclick="deleteCurrentCard()">🗑 刪除</button>
       <button onclick="openJsonModal('import')">📂 匯入 JSON</button>
-      <button class="success" onclick="openJsonModal('export')">💾 匯出目前卡包</button>
-      <button class="primary" onclick="saveToMemory()">✓ 儲存修改</button>
+      <button onclick="openJsonModal('export')">👁 檢視 JSON</button>
+      <button class="success" onclick="saveCurrentPack()">💾 存成 <span id="saveName">pack.json</span></button>
+      <button class="primary" onclick="validateAll()">🛡 全部驗證</button>
     </div>
   </header>
 
-  <!-- App Body -->
   <div class="app-body">
-    <!-- Col 1: Card List -->
+    <!-- 左：卡片清單 -->
     <div class="col-list">
       <div class="list-filter">
-        <select id="packSelector" onchange="onPackChanged()">
-          <option value="base">擴充包：base (基礎機會/市場/命運)</option>
-          <option value="mall">擴充包：mall (人生商城/保險/體驗)</option>
-          <option value="special">擴充包：special (特殊機會/人脈)</option>
-          <option value="m1">擴充包：m1 (股票市場定義)</option>
-          <option value="m4">擴充包：m4 (宏觀經濟事件)</option>
-          <option value="outer">擴充包：outer (外圈圓夢/第二人生)</option>
-          <option value="skill">擴充包：skill (專業技能樹)</option>
-          <option value="m6">擴充包：m6 (人生織錦)</option>
-        </select>
-        <select id="kindSelector" onchange="renderCardList()">
-          <option value="">全部類型 (All Kinds)</option>
-          <option value="OPPORTUNITY_SMALL">小生意 (OPPORTUNITY_SMALL)</option>
-          <option value="OPPORTUNITY_LARGE">大買賣 (OPPORTUNITY_LARGE)</option>
-          <option value="OPPORTUNITY_SPECIAL">特殊機會 (SPECIAL)</option>
-          <option value="MALL">人生商城 (MALL)</option>
-          <option value="LIFE">命運與人生 (LIFE)</option>
-          <option value="MACRO_EVENT">總經大事件 (MACRO)</option>
-          <option value="SKILL">專業技能 (SKILL)</option>
-        </select>
-        <input type="text" id="searchInput" placeholder="🔍 搜尋卡片 ID 或標題..." oninput="renderCardList()">
+        <select id="packSelector" onchange="onPackChanged()"></select>
+        <select id="deckSelector" onchange="renderCardList()"></select>
+        <select id="kindSelector" onchange="renderCardList()"></select>
+        <input type="text" id="searchInput" placeholder="🔍 搜尋 id／標題／文案…" oninput="renderCardList()">
+        <div class="muted" id="listCount"></div>
       </div>
-      <div class="cards-container" id="cardsListContainer">
-        <!-- Dynamic list -->
-      </div>
+      <div class="cards-container" id="cardsListContainer"></div>
     </div>
 
-    <!-- Col 2: Form Editor -->
+    <!-- 中：表單 -->
     <div class="col-editor" id="editorContainer">
-      <!-- Section 1: Basic Info -->
       <div class="editor-section">
-        <div class="sec-title">📌 基本設定 (Basic Info)</div>
+        <div class="sec-title">📌 基本欄位</div>
         <div class="form-grid">
           <div class="form-group">
-            <label>卡片 ID (唯一鍵)</label>
-            <input type="text" id="inp_id" oninput="onFormFieldChanged('id', this.value)">
-            <div class="hint">例如：OPP_CONDO_01, MALL_YOGA</div>
+            <label>卡片 ID（唯一鍵）</label>
+            <input type="text" id="f_id" oninput="setField('id',this.value)">
+            <div class="hint">改 id 之前先確認引擎／測試沒有寫死它</div>
           </div>
           <div class="form-group">
-            <label>卡片名稱 (Title)</label>
-            <input type="text" id="inp_title" oninput="onFormFieldChanged('title', this.value)">
+            <label>kind</label>
+            <input type="text" id="f_kind" list="kindList" oninput="setField('kind',this.value)">
+            <datalist id="kindList"></datalist>
           </div>
           <div class="form-group">
-            <label>副標題 / 分組 (Group)</label>
-            <input type="text" id="inp_group" oninput="onFormFieldChanged('group', this.value)">
-            <div class="hint">例如：房地產、科技新創、人情品格</div>
+            <label>標題 title（卡面大字）</label>
+            <input type="text" id="f_title" oninput="setField('title',this.value)">
           </div>
           <div class="form-group">
-            <label>適用階段 (Stage)</label>
-            <select id="inp_stage" onchange="onFormFieldChanged('stage', this.value)">
-              <option value="INNER">內圈 (老鼠賽跑)</option>
-              <option value="OUTER">外圈 (圓夢與第二人生)</option>
-              <option value="ANY">全階段適用</option>
+            <label>分組 group</label>
+            <input type="text" id="f_group" oninput="setField('group',this.value)">
+          </div>
+          <div class="form-group full">
+            <label>情境句 flavor（標題下方那行，玩家看得到）</label>
+            <input type="text" id="f_flavor" oninput="setField('flavor',this.value)">
+          </div>
+          <div class="form-group full">
+            <label>教育意義 eduNote（獨立的黃框，玩家看得到）</label>
+            <textarea rows="2" id="f_edu" oninput="setField('eduNote',this.value)"></textarea>
+          </div>
+          <div class="form-group full">
+            <label>標籤 tags（逗號分隔）</label>
+            <input type="text" id="f_tags" oninput="setTags(this.value)">
+            <div class="hint">會影響機制的：<b>insurable</b>（醫療／意外險可理賠）。其餘多為分類用。</div>
+          </div>
+          <div class="form-group">
+            <label>moduleReq（需要哪個模組）</label>
+            <input type="text" id="f_mod" oninput="setField('moduleReq',this.value||null)">
+          </div>
+          <div class="form-group">
+            <label>限次</label>
+            <select id="f_once" onchange="setOnce(this.value)">
+              <option value="">不限次</option>
+              <option value="oncePerGame">每局限一次（oncePerGame，商城用）</option>
+              <option value="oncePerLife">每局每人限一次（oncePerLife，人生卡用）</option>
             </select>
           </div>
-          <div class="form-group full">
-            <label>說明描述 (Description / Subtitle)</label>
-            <textarea rows="2" id="inp_sub" oninput="onFormFieldChanged('subtitle', this.value)"></textarea>
-          </div>
-          <div class="form-group full">
-            <label>背景故事 / 風味文字 (Flavor Text)</label>
-            <input type="text" id="inp_flavor" oninput="onFormFieldChanged('flavor', this.value)">
+          <div class="form-group">
+            <label>需要有小孩</label>
+            <select id="f_child" onchange="setChild(this.value)">
+              <option value="">不限制</option>
+              <option value="1">需要有小孩</option>
+            </select>
+            <div class="hint" id="childHint"></div>
           </div>
         </div>
       </div>
 
-      <!-- Section 2: Financial & Asset Params -->
-      <div class="editor-section" id="sec_financial">
-        <div class="sec-title">💰 財務與資產數值 (Financials & ROI)</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>資產總價 / 成本 (Cost / Price)</label>
-            <input type="number" id="inp_price" oninput="onPayloadFieldChanged('price', parseFloat(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>自備款 (Down Payment)</label>
-            <input type="number" id="inp_downPayment" oninput="onPayloadFieldChanged('downPayment', parseFloat(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>月被動收入 / 租金 / 淨利 (Monthly Income)</label>
-            <input type="number" id="inp_monthlyIncome" oninput="onPayloadIncomeChanged(parseFloat(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>每月營運成本 (Monthly Cost - 僅房產)</label>
-            <input type="number" id="inp_monthlyCost" oninput="onPayloadFieldChanged('monthlyCost', parseFloat(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>資產類別 (Asset Kind)</label>
-            <select id="inp_assetKind" onchange="onFormFieldChanged('kind', this.value)">
-              <option value="REALESTATE">房地產 (REALESTATE)</option>
-              <option value="BUSINESS">事業 / 新創 (BUSINESS)</option>
-              <option value="DIGITAL">數位資產 (DIGITAL)</option>
-              <option value="STOCK">股票 (STOCK)</option>
-              <option value="MALL">人生商城 (MALL)</option>
-              <option value="LIFE">人生事件 (LIFE)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>預估現金回報率 (CoC ROI)</label>
-            <input type="text" id="inp_calcRoi" disabled style="background: rgba(0,0,0,.2); font-weight: 700; color: var(--pos);">
-          </div>
+      <div class="editor-section" id="sec_payload">
+        <div class="sec-title">💰 payload 數值</div>
+        <div class="form-grid" id="payloadGrid"></div>
+        <div class="hint" style="margin-top:8px">欄位依 kind 自動切換；這裡沒有的欄位請用下方「完整 JSON」編輯。</div>
+      </div>
+
+      <div class="editor-section" id="sec_effects">
+        <div class="sec-title">⚡ 效果 effects</div>
+        <textarea rows="8" id="f_effects" oninput="setJsonField('effects',this.value)"></textarea>
+        <div class="hint" id="effHint"></div>
+      </div>
+
+      <div class="editor-section" id="sec_decision">
+        <div class="sec-title">🔀 決策選項 decision.options</div>
+        <textarea rows="12" id="f_decision" oninput="setJsonField('decision',this.value)"></textarea>
+        <div class="hint">
+          每個選項可用：<code>label</code>（按鈕字）、<code>sub</code>（按鈕小字）、<code>cost</code>／<code>costSalaryMult</code>（依月薪計價）、
+          <code>requiresSkill</code>（先修技能，未達會鎖住這個選項）、<code>effects</code>。
         </div>
       </div>
 
-      <!-- Section 3: Mall & Well-being Params -->
-      <div class="editor-section" id="sec_mall">
-        <div class="sec-title">🌟 人生商城與品格規則 (Mall & Well-being)</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>商城花費 (Mall Cost)</label>
-            <input type="number" id="inp_mallCost" oninput="onPayloadFieldChanged('cost', parseFloat(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>賦予幸福感 (Joy)</label>
-            <input type="number" id="inp_mallJoy" oninput="onPayloadFieldChanged('joy', parseInt(this.value)||0)">
-          </div>
-          <div class="form-group">
-            <label>重複購買冷卻輪數 (Repeat Cooldown Turns)</label>
-            <input type="number" id="inp_mallCd" oninput="onPayloadFieldChanged('repeatCooldown', parseInt(this.value)||0)">
-            <div class="hint">預設 3 輪冷卻，防死結必填</div>
-          </div>
-          <div class="form-group">
-            <label>賦予品格屬性 (Virtue)</label>
-            <select id="inp_virtue" onchange="onPayloadFieldChanged('virtue', this.value||null)">
-              <option value="">無</option>
-              <option value="GENEROSITY">慷慨 (GENEROSITY)</option>
-              <option value="INTEGRITY">誠信 (INTEGRITY)</option>
-              <option value="DILIGENCE">勤勉 (DILIGENCE)</option>
-              <option value="COURAGE">勇氣 (COURAGE)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>每局限購一次 (Once Per Game)</label>
-            <select id="inp_once" onchange="onFormFieldChanged('oncePerGame', this.value==='true')">
-              <option value="false">否 (可重複購買)</option>
-              <option value="true">是 (每局限購一次)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>投保與特殊條件</label>
-            <select id="inp_mallSpecial" onchange="onMallSpecialChanged(this.value)">
-              <option value="none">無特殊限制</option>
-              <option value="insurance">醫療保險 (需身分)</option>
-              <option value="propInsurance">財產險 (需有房產)</option>
-              <option value="network">人脈入場券 (EMBA/留學)</option>
-              <option value="reqChild">育兒體驗 (需有小孩)</option>
-            </select>
-          </div>
-        </div>
+      <div class="editor-section">
+        <div class="sec-title">🧾 完整 JSON（這張卡的全部欄位）</div>
+        <textarea rows="14" id="f_raw" oninput="setRaw(this.value)"></textarea>
+        <div class="hint" id="rawHint">上面表單沒有的欄位都可以在這裡直接改；格式錯誤時不會寫回。</div>
       </div>
     </div>
 
-    <!-- Col 3: Live Preview & Auditor -->
+    <!-- 右：預覽與驗證 -->
     <div class="col-preview">
-      <div style="font-size: 13px; font-weight: 700; color: var(--tx2); margin-bottom: 12px;">📱 即時遊戲渲染預覽</div>
-      <div class="preview-box">
-        <div class="game-card" id="cardPreviewWidget">
-          <span class="gc-tag" id="prev_tag">投資機會 · 房地產</span>
-          <div class="gc-title" id="prev_title">二房中古屋</div>
-          <div class="gc-sub" id="prev_sub">穩定收租標的，鄰近學區與捷運。</div>
-          <div class="gc-stats" id="prev_stats">
-            <div class="stat-item">
-              <span class="stat-label">自備款</span>
-              <span class="stat-val neg" id="prev_down">$300,000</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">月現金流</span>
-              <span class="stat-val pos" id="prev_income">+$5,500</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">總價</span>
-              <span class="stat-val" id="prev_price">$3,000,000</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">現金報酬率</span>
-              <span class="stat-val gold" id="prev_roi">22.0%</span>
-            </div>
-          </div>
-          <div class="gc-flavor" id="prev_flavor">「好地段的房子永遠有人租。」</div>
-        </div>
+      <div>
+        <div class="pv-title">📱 卡面預覽（玩家實際看得到的欄位）</div>
+        <div class="game-card" id="preview"></div>
       </div>
-
-      <div style="font-size: 13px; font-weight: 700; color: var(--tx2); margin-bottom: 12px;">🛡 數值審計與 AI 評估</div>
-      <div class="audit-card" id="auditReport">
-        <div class="audit-row">
-          <span>Schema 合法性</span>
-          <span class="audit-badge badge-pass" id="audit_schema">通過</span>
-        </div>
-        <div class="audit-row">
-          <span>ID 唯一性</span>
-          <span class="audit-badge badge-pass" id="audit_id">唯一</span>
-        </div>
-        <div class="audit-row">
-          <span>AI 決策安全性</span>
-          <span class="audit-badge badge-pass" id="audit_ai">冷卻與階段把關已就緒</span>
-        </div>
-        <div class="audit-row">
-          <span>NPC 吸引力評分 (lifeScore)</span>
-          <span style="font-weight:700; color:var(--tx);" id="audit_score">+15.2</span>
-        </div>
+      <div>
+        <div class="pv-title">🛡 驗證</div>
+        <div class="audit" id="audit"></div>
+      </div>
+      <div>
+        <div class="pv-title">💾 存檔流程</div>
+        <div class="audit muted" id="saveHelp"></div>
       </div>
     </div>
   </div>
 
-  <!-- JSON Modal -->
   <div class="modal-overlay" id="jsonModal">
     <div class="modal-box">
       <div class="modal-header">
-        <span id="modalTitle">匯出卡包 JSON</span>
+        <span id="modalTitle">JSON</span>
         <button onclick="closeJsonModal()">✕</button>
       </div>
-      <div class="modal-body">
-        <textarea class="json-area" id="jsonModalText"></textarea>
-      </div>
+      <div class="modal-body"><textarea class="json-area" id="jsonModalText"></textarea></div>
       <div class="modal-footer">
-        <button onclick="copyModalJson()">📋 複製到剪貼簿</button>
-        <button class="primary" id="modalConfirmBtn" onclick="confirmModalAction()">確定</button>
+        <span class="muted" id="modalHint"></span>
+        <span class="row" style="flex:0 0 auto">
+          <button onclick="copyModalJson()">📋 複製</button>
+          <button class="primary" id="modalConfirmBtn" onclick="confirmModalAction()">確定</button>
+        </span>
       </div>
     </div>
   </div>
 
   <script>
-    // Embedded Packs Store
+    // Embedded Packs Store（build/bundle.js 會把 src/data/packs/*.json 打包進來）
     let PACKS = /* PACKS_PLACEHOLDER */ {};
-    let currentPackKey = 'base';
-    let currentCardIndex = 0;
-    let currentCard = null;
 
-    function init() {
+    /* ---------------- 狀態 ---------------- */
+    let currentPackKey = null, currentCard = null, dirty = {};
+
+    const PACK_LABEL = {
+      base:"base（基礎：機會／生活／人生／市場／夢想）", m1:"m1（股票定義）", m2:"m2", m3:"m3",
+      m4:"m4（總經大事件）", v10:"v10（人生商城 V10）", special:"special（特殊機會）",
+      mall:"mall（人生商城）", outer:"outer（外圈圓夢／第二人生）", m6:"m6（人生織錦）",
+      skill:"skill（專業技能樹）"
+    };
+    // 各牌堆的欄位慣例——寫錯欄位名不會報錯，只是靜靜失效，所以在這裡擋下來
+    const CHILD_FIELD = { MALL:"payload.reqChild", LIFESTYLE:"requiresChildSinceS12", LIFE_EVENT:"requiresChildSinceS12" };
+    /* 引擎認得的效果 op：由 build/bundle.js 從 src/engine 原始碼掃出來注入，
+       跟 contentcheck.js 用同一個來源——手抄清單一定會漏，漏了就會把好卡誤判成壞卡。 */
+    const KNOWN_OPS = /* OPS_PLACEHOLDER */ ["CASH_DELTA","ADD_RECURRING_EXPENSE","SALARY_MULT","SET_FLAG"];
+    const PAYLOAD_FIELDS = {
+      REALESTATE:[["price","總價"],["downPayment","自備款"],["mortgageRate","房貸利率"],
+                  ["monthlyRent","月租金"],["monthlyCost","月營運成本"]],
+      BUSINESS:  [["price","總價"],["monthlyProfit","月淨利"]],
+      STARTUP:   [["investAmount","投資金額"],["equityPct","取得股權%"],["postMoney","投後估值"]],
+      STOCK:     [["symbol","代號"],["shares","股數"]],
+      MALL:      [["cost","花費"],["costSalaryMult","依月薪計價（倍）"],["joy","幸福感"],
+                  ["recurringMonthly","每月費用"],["repeatCooldown","重複購買冷卻輪"],["flagTurns","旗標效期輪數"]],
+      LIFESTYLE: [["cost","花費"],["recurringMonthly","每月費用"]],
+      SKILL:     [["cost","學費"],["turns","學習輪數"]]
+    };
+
+    /* ---------------- 工具 ---------------- */
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    const allCards = pack => {
+      if(!pack || !pack.cards) return [];
+      const out=[];
+      Object.keys(pack.cards).forEach(deck=>{
+        (pack.cards[deck]||[]).forEach(c=>{ if(!c.deck) c.deck=deck; out.push(c); });
+      });
+      return out;
+    };
+    const everyCard = () => { const out=[]; Object.keys(PACKS).forEach(k=>allCards(PACKS[k]).forEach(c=>out.push({c,pack:k}))); return out; };
+    const deckOf = c => c.deck || "（未指定）";
+    const markDirty = () => { dirty[currentPackKey]=true; renderDirty(); };
+    const renderDirty = () => {
+      $("dirtyDot").innerHTML = dirty[currentPackKey] ? '<span class="dirty-dot" title="有未存檔的修改"></span>' : "";
+      $("saveName").textContent = currentPackKey ? currentPackKey+".json" : "pack.json";
+    };
+
+    /* ---------------- 啟動 ---------------- */
+    function init(){
+      const keys = Object.keys(PACKS);
+      $("packSelector").innerHTML = keys.map(k=>`<option value="${k}">${esc(PACK_LABEL[k]||k)}（${allCards(PACKS[k]).length} 張）</option>`).join("");
+      currentPackKey = keys[0];
+      $("pkgTag").textContent = keys.length+" 個內容包／"+everyCard().length+" 張卡";
+      $("saveHelp").innerHTML =
+        '1. 改完按「💾 存成 xxx.json」——支援直接覆蓋原檔的瀏覽器（Chrome／Edge）會跳存檔視窗，'+
+        '其餘瀏覽器會下載一份到「下載」資料夾。<br>'+
+        '2. 把檔案放回 <code>src/data/packs/</code>，覆蓋同名檔。<br>'+
+        '3. 在 repo 根目錄跑 <code>npm run build</code>（會先跑 contentcheck 再重建 index.html 與本工坊）。<br>'+
+        '4. 跑 <code>npm test</code> 確認沒有打破既有回歸。';
       onPackChanged();
     }
 
-    function getDeckList(packObj) {
-      if (!packObj) return [];
-      if (Array.isArray(packObj.cards)) return packObj.cards;
-      if (packObj.cards && typeof packObj.cards === 'object') {
-        let res = [];
-        for (const [deckName, list] of Object.entries(packObj.cards)) {
-          if (Array.isArray(list)) {
-            list.forEach(c => {
-              if (!c.deck) c.deck = deckName;
-              res.push(c);
-            });
-          }
-        }
-        return res;
-      }
-      return [];
-    }
-
-    function onPackChanged() {
-      currentPackKey = document.getElementById('packSelector').value;
+    function onPackChanged(){
+      currentPackKey = $("packSelector").value || currentPackKey;
+      const cards = allCards(PACKS[currentPackKey]);
+      const decks = Array.from(new Set(cards.map(deckOf))).sort();
+      const kinds = Array.from(new Set(cards.map(c=>c.kind).filter(Boolean))).sort();
+      $("deckSelector").innerHTML = '<option value="">全部牌堆（'+decks.length+'）</option>'
+        + decks.map(d=>`<option value="${esc(d)}">${esc(d)}（${cards.filter(c=>deckOf(c)===d).length}）</option>`).join("");
+      $("kindSelector").innerHTML = '<option value="">全部 kind（'+kinds.length+'）</option>'
+        + kinds.map(k=>`<option value="${esc(k)}">${esc(k)}（${cards.filter(c=>c.kind===k).length}）</option>`).join("");
+      $("kindList").innerHTML = Array.from(new Set(everyCard().map(x=>x.c.kind).filter(Boolean))).sort()
+        .map(k=>`<option value="${esc(k)}">`).join("");
+      currentCard = null;
+      renderDirty();
       renderCardList();
     }
 
-    function renderCardList() {
-      const pack = PACKS[currentPackKey];
-      const allCards = getDeckList(pack);
-      const kindFilter = document.getElementById('kindSelector').value;
-      const search = document.getElementById('searchInput').value.trim().toLowerCase();
-
-      const container = document.getElementById('cardsListContainer');
-      container.innerHTML = '';
-
-      const filtered = allCards.filter(c => {
-        if (kindFilter && c.kind !== kindFilter && c.deck !== kindFilter) return false;
-        if (search) {
-          const matchId = (c.id || '').toLowerCase().includes(search);
-          const matchTitle = (c.title || c.name || '').toLowerCase().includes(search);
-          if (!matchId && !matchTitle) return false;
+    function filtered(){
+      const cards = allCards(PACKS[currentPackKey]);
+      const dk = $("deckSelector").value, kd = $("kindSelector").value;
+      const q = $("searchInput").value.trim().toLowerCase();
+      return cards.filter(c=>{
+        if(dk && deckOf(c)!==dk) return false;
+        if(kd && c.kind!==kd) return false;
+        if(q){
+          const hay = [c.id,c.title,c.name,c.flavor,c.eduNote,c.group].join(" ").toLowerCase();
+          if(hay.indexOf(q)<0) return false;
         }
         return true;
       });
+    }
 
-      filtered.forEach((card, idx) => {
-        const div = document.createElement('div');
-        div.className = 'card-item' + (card === currentCard ? ' active' : '');
-        div.onclick = () => selectCard(card);
-
-        let badgeClass = 'badge-opp';
-        if (card.kind === 'MALL') badgeClass = 'badge-mall';
-        else if (card.kind === 'LIFE') badgeClass = 'badge-life';
-
-        div.innerHTML = `
-          <div class="ci-header">
-            <span class="ci-title">${card.title || card.name || card.id}</span>
-            <span class="ci-badge ${badgeClass}">${card.kind || card.deck || 'CARD'}</span>
-          </div>
-          <div class="ci-sub">${card.subtitle || card.description || card.group || card.id}</div>
-        `;
-        container.appendChild(div);
+    function renderCardList(){
+      const list = filtered(), box = $("cardsListContainer");
+      $("listCount").textContent = "顯示 "+list.length+" 張";
+      box.innerHTML = "";
+      list.forEach(c=>{
+        const div=document.createElement("div");
+        div.className="card-item"+(c===currentCard?" active":"");
+        div.onclick=()=>selectCard(c);
+        const problems = validateCard(c).filter(x=>x.level==="err").length;
+        div.innerHTML =
+          '<div class="ci-header"><span class="ci-title">'+esc(c.title||c.name||c.id)+
+          (problems?' <span class="ci-warn">●</span>':'')+'</span>'+
+          '<span class="ci-badge">'+esc(c.kind||deckOf(c))+'</span></div>'+
+          '<div class="ci-sub">'+esc(c.id)+'　'+esc((c.flavor||c.group||"").slice(0,22))+'</div>';
+        box.appendChild(div);
       });
+      if(list.length && (!currentCard || list.indexOf(currentCard)<0)) selectCard(list[0]);
+      if(!list.length){ currentCard=null; renderAll(); }
+    }
 
-      if (filtered.length > 0) {
-        if (!currentCard || !filtered.includes(currentCard)) {
-          selectCard(filtered[0]);
+    function selectCard(c){ currentCard=c; renderCardList(); renderAll(); }
+
+    /* ---------------- 表單 ---------------- */
+    function renderAll(){ fillForm(); renderPayload(); renderPreview(); renderAudit(); }
+
+    function fillForm(){
+      const c = currentCard || {};
+      $("f_id").value    = c.id||"";
+      $("f_kind").value  = c.kind||"";
+      $("f_title").value = c.title||c.name||"";
+      $("f_group").value = c.group||"";
+      $("f_flavor").value= c.flavor||"";
+      $("f_edu").value   = c.eduNote||"";
+      $("f_tags").value  = (c.tags||[]).join("、");
+      $("f_mod").value   = c.moduleReq||"";
+      $("f_once").value  = c.oncePerGame?"oncePerGame":(c.oncePerLife?"oncePerLife":"");
+      const deck = deckOf(c), cf = CHILD_FIELD[deck];
+      const hasChild = deck==="MALL" ? !!((c.payload||{}).reqChild) : !!c.requiresChildSinceS12;
+      $("f_child").value = hasChild?"1":"";
+      $("childHint").textContent = cf ? ("這個牌堆要寫 "+cf+"（工坊會自動用對的欄位名）") : "此牌堆沒有小孩閘門";
+      $("f_effects").value  = c.effects ? JSON.stringify(c.effects,null,2) : "";
+      $("f_decision").value = c.decision ? JSON.stringify(c.decision,null,2) : "";
+      $("f_raw").value      = currentCard ? JSON.stringify(c,null,2) : "";
+      $("effHint").innerHTML = "可用的 op："+KNOWN_OPS.join("、");
+      $("sec_effects").style.display  = "block";
+      $("sec_decision").style.display = "block";
+    }
+
+    function renderPayload(){
+      const grid=$("payloadGrid"); grid.innerHTML="";
+      if(!currentCard){ return; }
+      const kind = currentCard.kind, pl = currentCard.payload||{};
+      const fields = PAYLOAD_FIELDS[kind] || PAYLOAD_FIELDS[deckOf(currentCard)] || [];
+      const known = fields.map(f=>f[0]);
+      const extra = Object.keys(pl).filter(k=>known.indexOf(k)<0);
+      if(!fields.length && !extra.length){
+        grid.innerHTML = '<div class="hint" style="grid-column:1/-1">這種卡沒有常用的 payload 欄位；需要的話用下方「完整 JSON」加。</div>';
+        return;
+      }
+      fields.concat(extra.map(k=>[k,k+"（既有欄位）"])).forEach(([key,label])=>{
+        const g=document.createElement("div"); g.className="form-group";
+        const val = pl[key];
+        const isNum = typeof val==="number" || (val===undefined && key!=="symbol" && key!=="note");
+        g.innerHTML = '<label>'+esc(label)+'　<span class="hint">'+esc(key)+'</span></label>';
+        const inp=document.createElement("input");
+        inp.type = isNum?"number":"text"; inp.step="any";
+        inp.value = val===undefined?"":(typeof val==="object"?JSON.stringify(val):val);
+        inp.oninput = ()=>setPayload(key, inp.value, isNum);
+        g.appendChild(inp); grid.appendChild(g);
+      });
+    }
+
+    function setField(k,v){
+      if(!currentCard) return;
+      if(v===null || v===""){ delete currentCard[k]; } else { currentCard[k]=v; }
+      markDirty(); refreshLight();
+    }
+    function setTags(v){
+      if(!currentCard) return;
+      const arr = v.split(/[、,，\s]+/).map(s=>s.trim()).filter(Boolean);
+      if(arr.length) currentCard.tags=arr; else delete currentCard.tags;
+      markDirty(); refreshLight();
+    }
+    function setOnce(v){
+      if(!currentCard) return;
+      delete currentCard.oncePerGame; delete currentCard.oncePerLife;
+      if(v) currentCard[v]=true;
+      markDirty(); refreshLight();
+    }
+    function setChild(v){
+      if(!currentCard) return;
+      const deck=deckOf(currentCard);
+      delete currentCard.requiresChildSinceS12;
+      if(currentCard.payload) delete currentCard.payload.reqChild;
+      if(v){
+        if(deck==="MALL"){ currentCard.payload=currentCard.payload||{}; currentCard.payload.reqChild=true; }
+        else currentCard.requiresChildSinceS12=true;
+      }
+      markDirty(); refreshLight();
+    }
+    function setPayload(key,val,isNum){
+      if(!currentCard) return;
+      currentCard.payload = currentCard.payload||{};
+      if(val===""){ delete currentCard.payload[key]; }
+      else currentCard.payload[key] = isNum ? (parseFloat(val)||0) : val;
+      markDirty(); refreshLight();
+    }
+    function setJsonField(k,text){
+      if(!currentCard) return;
+      const hint = k==="effects" ? $("effHint") : $("rawHint");
+      if(!text.trim()){ delete currentCard[k]; markDirty(); refreshLight(); return; }
+      try{
+        currentCard[k]=JSON.parse(text);
+        markDirty(); renderPreview(); renderAudit(); $("f_raw").value=JSON.stringify(currentCard,null,2);
+      }catch(e){ renderAuditMsg("err", k+" JSON 解析失敗："+e.message); }
+    }
+    function setRaw(text){
+      if(!currentCard) return;
+      try{
+        const obj=JSON.parse(text);
+        Object.keys(currentCard).forEach(k=>delete currentCard[k]);
+        Object.assign(currentCard,obj);
+        markDirty(); fillForm(); renderPayload(); renderPreview(); renderAudit();
+      }catch(e){ renderAuditMsg("err","完整 JSON 解析失敗（尚未寫回）："+e.message); }
+    }
+    function refreshLight(){ renderPreview(); renderAudit(); renderCardList(); $("f_raw").value=JSON.stringify(currentCard,null,2); }
+
+    /* ---------------- 預覽 ---------------- */
+    function effText(ef){
+      const n = v => (v===undefined?"":v);
+      switch(ef.op){
+        case "CASH_DELTA": return "現金 "+(ef.salaryMult?("月薪 ×"+ef.salaryMult):(ef.amount>=0?"+":"")+n(ef.amount))
+          + (ef.propertyClaim?"（產險可理賠）":"") + (ef.legalClaim?"（法律技能可折抵）":"");
+        case "ADD_RECURRING_EXPENSE": return (ef.salaryMult?("每月 月薪 ×"+ef.salaryMult):((ef.amount<0?"每月省下 ":"每月支出 +")+Math.abs(n(ef.amount))))
+          + (ef.durationTurns?("，"+ef.durationTurns+" 輪"):"（永久）");
+        case "SALARY_MULT": return "薪資 ×"+n(ef.factor);
+        case "ADD_CHILD": return "新增小孩（每月養育支出自動增加）";
+        case "GRANT_JOY": return "幸福感 "+(ef.amount>=0?"+":"")+n(ef.amount);
+        case "GRANT_VIRTUE": return "品格("+n(ef.axis)+") "+(ef.delta>=0?"+":"")+n(ef.delta);
+        case "SKIP_TURNS": return "停走 "+n(ef.turns!==undefined?ef.turns:ef.n)+" 輪";
+        case "SET_FLAG": return "取得旗標 "+n(ef.flag)+(ef.turns?("（"+ef.turns+" 輪）"):"（永久）");
+        case "DELAYED_EFFECTS": return n(ef.turns)+" 輪後："+(ef.effects||[]).map(effText).join("；");
+        default: return ef.op+" "+JSON.stringify(ef).slice(0,60);
+      }
+    }
+    function renderPreview(){
+      const box=$("preview");
+      if(!currentCard){ box.innerHTML='<div class="muted">沒有選取卡片</div>'; return; }
+      const c=currentCard;
+      let h='<div class="game-card '+esc(c.kind||"")+'" style="border:0;padding:0;box-shadow:none">';
+      h+='<span class="gc-tag">'+esc(deckOf(c))+(c.group?("・"+esc(c.group)):"")+'</span>';
+      h+='<div class="gc-title">'+esc(c.title||c.name||c.id)+'</div>';
+      if(c.flavor) h+='<div class="gc-flavor">'+esc(c.flavor)+'</div>';
+      if(c.eduNote) h+='<div class="gc-edu">'+esc(c.eduNote)+'</div>';
+      if(c.effects && c.effects.length)
+        h+='<div class="gc-eff">▸ '+c.effects.map(effText).map(esc).join('<br>▸ ')+'</div>';
+      if(c.decision && c.decision.options)
+        c.decision.options.forEach((o,i)=>{
+          h+='<div class="gc-opt"><b>'+esc(o.label||("選項"+(i+1)))+'</b>';
+          if(o.sub) h+='<div>'+esc(o.sub)+'</div>';
+          if(o.costSalaryMult) h+='<div>成本：月薪 ×'+esc(o.costSalaryMult)+'（無薪水時 '+esc(o.cost)+'）</div>';
+          else if(o.cost) h+='<div>成本：'+esc(o.cost)+'</div>';
+          if(o.requiresSkill) h+='<div>🔑 先修：'+esc(o.requiresSkill)+'（未學會會鎖住這個選項）</div>';
+          if(o.effects && o.effects.length) h+='<div>▸ '+o.effects.map(effText).map(esc).join('<br>▸ ')+'</div>';
+          h+='</div>';
+        });
+      if(!c.flavor && !c.eduNote) h+='<div class="muted">（沒有 flavor／eduNote，卡面會很空）</div>';
+      box.innerHTML=h+'</div>';
+    }
+
+    /* ---------------- 驗證 ---------------- */
+    function validateCard(c, idIndex){
+      const out=[];
+      const push=(level,msg)=>out.push({level,msg});
+      if(!c.id) push("err","缺 id");
+      if(!c.kind) push("err","缺 kind");
+      if(!c.title && deckOf(c)!=="DREAM") push("err","缺 title");
+      // id 唯一
+      const idx = idIndex || buildIdIndex();
+      if(c.id && idx[c.id] && idx[c.id].length>1) push("err","id 重複："+idx[c.id].join("、"));
+      // 小孩閘門欄位名
+      const deck=deckOf(c);
+      if(deck==="MALL" && (c.requiresChild||c.requiresChildSinceS12)) push("err","MALL 的小孩閘門要寫 payload.reqChild");
+      if((deck==="LIFESTYLE"||deck==="LIFE_EVENT") && (c.payload||{}).reqChild) push("err","這個牌堆要寫 requiresChildSinceS12");
+      // 效果 op
+      const walk=(list,where)=>{ (list||[]).forEach(ef=>{
+        if(!ef || !ef.op){ push("err",where+" 效果缺 op"); return; }
+        if(KNOWN_OPS.indexOf(ef.op)<0) push("err",where+" 用了引擎沒有的 op："+ef.op);
+        ["amount","cost"].forEach(k=>{ if(typeof ef[k]==="number" && Math.abs(ef[k])>50000)
+          push("warn",where+" "+k+"="+ef[k]+"：疑似把千元寫成元"); });
+        if(ef.op==="DELAYED_EFFECTS") walk(ef.effects, where+"→延遲");
+      }); };
+      walk(c.effects,"effects");
+      ((c.decision||{}).options||[]).forEach((o,i)=>{
+        walk(o.effects,"選項"+(i+1));
+        if(!o.label) push("warn","選項"+(i+1)+" 沒有 label，按鈕會沒有字");
+        if(o.requiresSkill && !(idx[o.requiresSkill]||[]).length) push("err","選項"+(i+1)+" 的先修技能不存在："+o.requiresSkill);
+        if(o.costSalaryMult && !o.cost) push("warn","選項"+(i+1)+" 有 costSalaryMult 但沒有 cost 回退值（沒薪水的玩家會變成免費）");
+      });
+      // 機會卡必要數值
+      if(/^OPPORTUNITY/.test(deck)){
+        const need={REALESTATE:["price","monthlyRent","monthlyCost"],BUSINESS:["price","monthlyProfit"],
+                    STARTUP:["investAmount","equityPct","postMoney"]}[c.kind];
+        if(!need) push("err","機會牌堆不支援 kind="+c.kind);
+        else need.forEach(k=>{ if(typeof (c.payload||{})[k]!=="number") push("err",c.kind+" 缺數值欄位 "+k); });
+      }
+      // 金額量級
+      Object.keys(c.payload||{}).forEach(k=>{
+        const v=c.payload[k];
+        if(typeof v==="number" && v>50000) push("warn","payload."+k+"="+v+"：疑似把千元寫成元");
+      });
+      if(!c.flavor) push("warn","沒有 flavor（卡面會少一行情境）");
+      if(!c.eduNote) push("warn","沒有 eduNote（少了教育意義的黃框）");
+      return out;
+    }
+    function buildIdIndex(){
+      const idx={};
+      everyCard().forEach(({c,pack})=>{ if(!c.id) return; (idx[c.id]=idx[c.id]||[]).push(pack); });
+      return idx;
+    }
+    function renderAudit(){
+      const box=$("audit");
+      if(!currentCard){ box.innerHTML='<div class="muted">沒有選取卡片</div>'; return; }
+      const res=validateCard(currentCard);
+      const errs=res.filter(r=>r.level==="err"), warns=res.filter(r=>r.level==="warn");
+      let h='<div class="audit-row"><span>結構檢查</span><span class="badge '+(errs.length?"b-err":"b-pass")+'">'
+        +(errs.length?errs.length+" 個錯誤":"通過")+'</span></div>';
+      h+='<div class="audit-row"><span>提醒</span><span class="badge '+(warns.length?"b-warn":"b-pass")+'">'
+        +(warns.length?warns.length+" 則":"無")+'</span></div>';
+      res.forEach(r=>{ h+='<div class="audit-msg '+(r.level==="err"?"":"muted")+'">'
+        +(r.level==="err"?"❌ ":"⚠️ ")+esc(r.msg)+'</div>'; });
+      box.innerHTML=h;
+    }
+    function renderAuditMsg(level,msg){
+      $("audit").innerHTML='<div class="audit-msg">'+(level==="err"?"❌ ":"⚠️ ")+esc(msg)+'</div>';
+    }
+    function validateAll(){
+      const idx=buildIdIndex(); const rows=[];
+      everyCard().forEach(({c,pack})=>{
+        validateCard(c,idx).filter(r=>r.level==="err").forEach(r=>rows.push(pack+"　"+(c.id||"(無 id)")+"　"+r.msg));
+      });
+      openModal("全部驗證結果",
+        rows.length ? rows.join("\n") : "全部通過："+everyCard().length+" 張卡沒有結構錯誤。",
+        "唯讀；這裡只列錯誤，提醒請看右側單張卡的驗證。", null);
+    }
+
+    /* ---------------- 新增／複製／刪除 ---------------- */
+    function targetDeck(){
+      const dk=$("deckSelector").value;
+      if(dk) return dk;
+      const decks=Object.keys((PACKS[currentPackKey]||{}).cards||{});
+      return decks[0];
+    }
+    function createNewCard(){
+      const deck=targetDeck();
+      if(!deck) return alert("這個內容包沒有牌堆可以放卡片");
+      let n=1; while(PACKS[currentPackKey] && buildIdIndex()["NEW_"+n]) n++;
+      const c={ id:"NEW_"+n, deck:deck, kind:(allCards(PACKS[currentPackKey]).filter(x=>deckOf(x)===deck)[0]||{}).kind||deck,
+        title:"新卡片", flavor:"", eduNote:"" };
+      PACKS[currentPackKey].cards[deck].push(c);
+      markDirty(); onPackChanged(); selectCard(c);
+    }
+    function cloneCurrentCard(){
+      if(!currentCard) return;
+      const c=JSON.parse(JSON.stringify(currentCard));
+      let base=c.id+"_COPY", n=1, id=base; const idx=buildIdIndex();
+      while(idx[id]) id=base+(++n);
+      c.id=id; c.title=(c.title||"")+"（複製）";
+      PACKS[currentPackKey].cards[deckOf(c)].push(c);
+      markDirty(); onPackChanged(); selectCard(c);
+    }
+    function deleteCurrentCard(){
+      if(!currentCard) return;
+      if(!confirm("刪除「"+(currentCard.title||currentCard.id)+"」？\n引擎或測試若寫死了這個 id，build 時 contentcheck 會擋下來。")) return;
+      const arr=PACKS[currentPackKey].cards[deckOf(currentCard)];
+      const i=arr.indexOf(currentCard);
+      if(i>=0) arr.splice(i,1);
+      currentCard=null; markDirty(); onPackChanged();
+    }
+
+    /* ---------------- 匯入／檢視／存檔 ---------------- */
+    let modalMode=null;
+    function openModal(title, text, hint, mode){
+      modalMode=mode;
+      $("modalTitle").textContent=title; $("jsonModalText").value=text;
+      $("modalHint").textContent=hint||"";
+      $("modalConfirmBtn").style.display = mode ? "" : "none";
+      $("jsonModal").style.display="flex";
+    }
+    function openJsonModal(mode){
+      if(mode==="export") openModal("檢視 "+currentPackKey+".json", JSON.stringify(PACKS[currentPackKey],null,2),
+        "唯讀檢視；要存檔請用右上角「💾 存成」。", null);
+      else openModal("匯入整包 JSON 覆蓋 "+currentPackKey, "", "貼上整個 pack 的 JSON，按確定後會覆蓋記憶體中的這一包。", "import");
+    }
+    function closeJsonModal(){ $("jsonModal").style.display="none"; }
+    function copyModalJson(){ const t=$("jsonModalText"); t.select(); navigator.clipboard.writeText(t.value); }
+    function confirmModalAction(){
+      if(modalMode!=="import") return closeJsonModal();
+      const text=$("jsonModalText").value.trim();
+      if(!text) return closeJsonModal();
+      try{ PACKS[currentPackKey]=JSON.parse(text); markDirty(); closeJsonModal(); onPackChanged(); }
+      catch(e){ alert("JSON 解析失敗："+e.message); }
+    }
+    async function saveCurrentPack(){
+      const name=currentPackKey+".json";
+      // 內容包的格式：2 空格縮排、UTF-8、結尾換行——與 repo 內既有檔案一致，diff 才不會整檔翻掉
+      const text=JSON.stringify(PACKS[currentPackKey],null,2)+"\n";
+      try{
+        if(window.showSaveFilePicker){
+          const h=await window.showSaveFilePicker({ suggestedName:name,
+            types:[{description:"FinFlow 內容包", accept:{"application/json":[".json"]}}] });
+          const w=await h.createWritable(); await w.write(text); await w.close();
+          dirty[currentPackKey]=false; renderDirty();
+          alert("已存檔："+name+"\n記得放回 src/data/packs/ 後跑 npm run build");
+          return;
         }
-      } else {
-        currentCard = null;
-        updatePreview();
-      }
+      }catch(e){ if(e && e.name==="AbortError") return; }
+      const blob=new Blob([text],{type:"application/json"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob); a.download=name; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+      dirty[currentPackKey]=false; renderDirty();
     }
 
-    function selectCard(card) {
-      currentCard = card;
-      // Mark active in list
-      document.querySelectorAll('.card-item').forEach(el => el.classList.remove('active'));
-      // Populate fields
-      document.getElementById('inp_id').value = card.id || '';
-      document.getElementById('inp_title').value = card.title || card.name || '';
-      document.getElementById('inp_group').value = card.group || '';
-      document.getElementById('inp_stage').value = card.stage || 'INNER';
-      document.getElementById('inp_sub').value = card.subtitle || card.description || '';
-      document.getElementById('inp_flavor').value = card.flavor || '';
-      document.getElementById('inp_assetKind').value = card.kind || 'REALESTATE';
-
-      const pl = card.payload || {};
-      document.getElementById('inp_price').value = pl.price || pl.cost || 0;
-      document.getElementById('inp_downPayment').value = pl.downPayment || 0;
-      document.getElementById('inp_monthlyIncome').value = pl.monthlyRent || pl.monthlyProfit || 0;
-      document.getElementById('inp_monthlyCost').value = pl.monthlyCost || 0;
-
-      document.getElementById('inp_mallCost').value = pl.cost || 0;
-      document.getElementById('inp_mallJoy').value = pl.joy || 0;
-      document.getElementById('inp_mallCd').value = pl.repeatCooldown !== undefined ? pl.repeatCooldown : 3;
-      document.getElementById('inp_virtue').value = pl.virtue || '';
-      document.getElementById('inp_once').value = card.oncePerGame ? 'true' : 'false';
-
-      updateCalculatedRoi();
-      updatePreview();
-      auditCard();
-    }
-
-    function onFormFieldChanged(field, val) {
-      if (!currentCard) return;
-      currentCard[field] = val;
-      updatePreview();
-      auditCard();
-    }
-
-    function onPayloadFieldChanged(field, val) {
-      if (!currentCard) return;
-      if (!currentCard.payload) currentCard.payload = {};
-      currentCard.payload[field] = val;
-      updateCalculatedRoi();
-      updatePreview();
-      auditCard();
-    }
-
-    function onPayloadIncomeChanged(val) {
-      if (!currentCard) return;
-      if (!currentCard.payload) currentCard.payload = {};
-      if (currentCard.kind === 'REALESTATE') {
-        currentCard.payload.monthlyRent = val;
-      } else {
-        currentCard.payload.monthlyProfit = val;
-      }
-      updateCalculatedRoi();
-      updatePreview();
-      auditCard();
-    }
-
-    function onMallSpecialChanged(val) {
-      if (!currentCard) return;
-      if (!currentCard.payload) currentCard.payload = {};
-      delete currentCard.payload.insurance;
-      delete currentCard.payload.propertyInsurance;
-      delete currentCard.payload.network;
-      delete currentCard.payload.reqChild;
-
-      if (val === 'insurance') currentCard.payload.insurance = true;
-      else if (val === 'propInsurance') currentCard.payload.propertyInsurance = true;
-      else if (val === 'network') currentCard.payload.network = true;
-      else if (val === 'reqChild') currentCard.payload.reqChild = true;
-
-      updatePreview();
-      auditCard();
-    }
-
-    function updateCalculatedRoi() {
-      if (!currentCard) return;
-      const pl = currentCard.payload || {};
-      const down = pl.downPayment || pl.price || pl.cost || 0;
-      const inc = (pl.monthlyRent || pl.monthlyProfit || 0) - (pl.monthlyCost || 0);
-      if (down > 0 && inc > 0) {
-        const roi = ((inc * 12) / down * 100).toFixed(1) + '%';
-        document.getElementById('inp_calcRoi').value = roi;
-      } else {
-        document.getElementById('inp_calcRoi').value = '0.0%';
-      }
-    }
-
-    function updatePreview() {
-      if (!currentCard) return;
-      const c = currentCard;
-      const pl = c.payload || {};
-
-      const widget = document.getElementById('cardPreviewWidget');
-      widget.className = 'game-card ' + (c.kind || 'OPP');
-
-      document.getElementById('prev_tag').textContent = (c.group || '一般') + ' · ' + (c.kind || '卡片');
-      document.getElementById('prev_title').textContent = c.title || c.name || c.id;
-      document.getElementById('prev_sub').textContent = c.subtitle || c.description || '無詳細說明';
-      document.getElementById('prev_flavor').textContent = c.flavor ? `「${c.flavor}」` : '（暫無風味設定）';
-
-      // Stats
-      const down = pl.downPayment || pl.cost || pl.price || 0;
-      const inc = (pl.monthlyRent || pl.monthlyProfit || 0);
-      const pr = pl.price || pl.cost || 0;
-      const roi = document.getElementById('inp_calcRoi').value;
-
-      document.getElementById('prev_down').textContent = down ? '$' + down.toLocaleString() : '$0';
-      document.getElementById('prev_income').textContent = inc ? '+$' + inc.toLocaleString() : '$0';
-      document.getElementById('prev_price').textContent = pr ? '$' + pr.toLocaleString() : '$0';
-      document.getElementById('prev_roi').textContent = roi;
-    }
-
-    function auditCard() {
-      if (!currentCard) return;
-      const c = currentCard;
-      const pl = c.payload || {};
-
-      // 1. Schema check
-      const hasId = !!c.id;
-      const hasTitle = !!(c.title || c.name);
-      document.getElementById('audit_schema').textContent = (hasId && hasTitle) ? '通過' : '缺失必填';
-      document.getElementById('audit_schema').className = 'audit-badge ' + ((hasId && hasTitle) ? 'badge-pass' : 'badge-err');
-
-      // 2. AI Safety check
-      if (c.kind === 'MALL') {
-        const cd = pl.repeatCooldown;
-        const isSafe = (cd === undefined || cd >= 1);
-        document.getElementById('audit_ai').textContent = isSafe ? '冷卻安全 (CD >= 1)' : '警告: 缺少 CD';
-        document.getElementById('audit_ai').className = 'audit-badge ' + (isSafe ? 'badge-pass' : 'badge-warn');
-      } else {
-        document.getElementById('audit_ai').textContent = '無死結風險 (非商城)';
-        document.getElementById('audit_ai').className = 'audit-badge badge-pass';
-      }
-
-      // 3. Simulated NPC score
-      let score = 0;
-      if (pl.monthlyProfit || pl.monthlyRent) {
-        score += ((pl.monthlyRent || pl.monthlyProfit) * 12) / Math.max(1, pl.downPayment || 10000) * 10;
-      }
-      if (pl.joy) score += pl.joy * 2.5;
-      document.getElementById('audit_score').textContent = '+' + score.toFixed(1);
-    }
-
-    function createNewCard() {
-      const newId = 'NEW_CARD_' + Math.floor(Math.random()*10000);
-      const newCard = {
-        id: newId,
-        kind: 'OPPORTUNITY_SMALL',
-        title: '新自訂卡片',
-        subtitle: '卡片說明描述',
-        group: '商業新創',
-        stage: 'INNER',
-        payload: { price: 200000, downPayment: 50000, monthlyProfit: 4000 }
-      };
-      const pack = PACKS[currentPackKey];
-      if (Array.isArray(pack.cards)) {
-        pack.cards.push(newCard);
-      } else if (pack.cards && typeof pack.cards === 'object') {
-        if (!pack.cards['OPPORTUNITY_SMALL']) pack.cards['OPPORTUNITY_SMALL'] = [];
-        pack.cards['OPPORTUNITY_SMALL'].push(newCard);
-      }
-      renderCardList();
-      selectCard(newCard);
-    }
-
-    function cloneCurrentCard() {
-      if (!currentCard) return;
-      const cloned = JSON.parse(JSON.stringify(currentCard));
-      cloned.id = cloned.id + '_COPY';
-      cloned.title = (cloned.title || cloned.name) + ' (複製)';
-      const pack = PACKS[currentPackKey];
-      if (Array.isArray(pack.cards)) pack.cards.push(cloned);
-      else if (pack.cards && pack.cards[cloned.deck]) pack.cards[cloned.deck].push(cloned);
-      renderCardList();
-      selectCard(cloned);
-    }
-
-    function openJsonModal(mode) {
-      const modal = document.getElementById('jsonModal');
-      const text = document.getElementById('jsonModalText');
-      const title = document.getElementById('modalTitle');
-      modal.style.display = 'flex';
-
-      if (mode === 'export') {
-        title.textContent = `匯出卡包 [${currentPackKey}.json]`;
-        text.value = JSON.stringify(PACKS[currentPackKey], null, 2);
-      } else {
-        title.textContent = `匯入 JSON 至 [${currentPackKey}]`;
-        text.value = '';
-      }
-    }
-
-    function closeJsonModal() {
-      document.getElementById('jsonModal').style.display = 'none';
-    }
-
-    function copyModalJson() {
-      const text = document.getElementById('jsonModalText');
-      text.select();
-      navigator.clipboard.writeText(text.value);
-      alert('已複製到剪貼簿！');
-    }
-
-    function confirmModalAction() {
-      const text = document.getElementById('jsonModalText').value;
-      if (text.trim()) {
-        try {
-          const parsed = JSON.parse(text);
-          PACKS[currentPackKey] = parsed;
-          alert('匯入成功！');
-          closeJsonModal();
-          renderCardList();
-        } catch(e) {
-          alert('JSON 解析失敗：' + e.message);
-        }
-      } else {
-        closeJsonModal();
-      }
-    }
-
-    function saveToMemory() {
-      alert('✓ 修改已更新至當前記憶體！您可以點選「💾 匯出目前卡包」複製 JSON，或使用 npm run build 將其編譯進遊戲中。');
-    }
-
+    window.addEventListener("beforeunload", e=>{
+      if(Object.keys(dirty).some(k=>dirty[k])){ e.preventDefault(); e.returnValue=""; }
+    });
     window.onload = init;
   </script>
 </body>

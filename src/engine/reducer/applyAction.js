@@ -2107,7 +2107,11 @@ E.resolveDecision = function(S,p,d,optionId,params){
     case "SELF_INVEST": {
       var sc=ns.content.byId[d.cardId], sop=sc.decision.options[optionId|0];
       if(sop && sop.effects.length){
-        if(sop.cost && p.cash<sop.cost){ break; } // 買不起則視同不投資
+        // S26：選項層級的先修技能——沒學會就選不了（介面會把這個選項鎖住並標「先修」，
+        // 這裡是最後一道守門，擋掉直接送 action 的路徑）。
+        if(E.optionLocked(S,p,sop)) break;
+        var sCost = E.optionCost(S,p,sop);        // S26：支援 costSalaryMult 依月薪計價
+        if(sCost && p.cash<sCost){ break; }       // 買不起則視同不投資
         E.applyEffects(S,p,sop.effects,sc.title);
         if(p.cash<0) E.enterBankruptcy(S,p);
       }
@@ -2125,7 +2129,10 @@ E.resolveDecision = function(S,p,d,optionId,params){
     case "CHOICE": {
       var cc=ns.content.byId[d.cardId], cop=cc.decision.options[optionId|0];
       if(cop){
-        if(cop.cost && p.cash<cop.cost){ break; }
+        // S26：與 SELF_INVEST 同一套規則——先修技能未達的選項不生效，成本支援依月薪計價。
+        if(E.optionLocked(S,p,cop)) break;
+        var cCost = E.optionCost(S,p,cop);
+        if(cCost && p.cash<cCost){ break; }
         E.applyEffects(S,p,cop.effects,cc.title);
         if(p.cash<0) E.enterBankruptcy(S,p);
       }
