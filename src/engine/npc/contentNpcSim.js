@@ -519,11 +519,23 @@ E.digitalPro = function(S, p, card){
   if(E.hasSkill(p, "SKL_AI_ARCH")) return true;   // S22：AI 系統架構——任何數位資產都算「有手藝」
   return !!(card && card.requires && E.hasSkill(p, card.requires));
 };
+/* S33（Brian 裁示）：長尾題材的手藝不是非黑即白。做節目、開線上課、出電子書，
+   會不會拍是加分但不是主修——攝影就是這一類「幫得上忙但不是本行」的技能。
+   卡片用 assistSkills 列出這些加分項；有加分不等於本行，只是把外行的懲罰砍一半。
+   注意順序：本行優先，已經是本行就不再看加分（不會重複計）。 */
+E.digitalAssist = function(S, p, card){
+  if(!card || !card.assistSkills || !card.assistSkills.length) return false;
+  if(E.digitalPro(S,p,card)) return false;
+  for(var i=0;i<card.assistSkills.length;i++)
+    if(E.hasSkill(p, card.assistSkills[i])) return true;
+  return false;
+};
 // 回傳這張卡對這個玩家的實際參數（UI 的對照表與引擎共用同一份計算，才不會對不上）
 E.digitalOdds = function(S, p, card){
   var pl=(card&&card.payload)||{};
   var base=Math.max(1, pl.threshold||4);
   var pro=E.digitalPro(S,p,card);
+  var assist=!pro && E.digitalAssist(S,p,card);
   var dPro=E.cfg(S,"digitalProThresholdDelta");     if(dPro===undefined) dPro=-1;
   var dAm =E.cfg(S,"digitalAmateurThresholdDelta"); if(dAm===undefined)  dAm=2;
   var flopP=E.cfg(S,"digitalFlopPct");         if(flopP===undefined) flopP=0.45;
@@ -537,12 +549,21 @@ E.digitalOdds = function(S, p, card){
   if(isFinite(pl.hitPct))  hitP =pl.hitPct;
   if(isFinite(pl.amateurFlopPct)) flopA=pl.amateurFlopPct;
   if(isFinite(pl.amateurHitPct))  hitA =pl.amateurHitPct;
-  return { pro:pro,
-           threshold: Math.max(1, base + (pro?dPro:dAm)),
-           flop: pro?flopP:flopA,
-           hit:  pro?hitP:hitA,
-           proThreshold: Math.max(1, base+dPro), amateurThreshold: Math.max(1, base+dAm),
-           proFlop:flopP, proHit:hitP, amateurFlop:flopA, amateurHit:hitA };
+  /* 加分只補一半的差距——blend 0 等於完全沒用、1 等於視同本行，預設 0.5。 */
+  var bl=E.cfg(S,"digitalAssistBlend"); if(bl===undefined) bl=0.5;
+  var mix=function(am,pr){ return am + (pr-am)*bl; };
+  var thA=Math.max(1, base+dAm), thP=Math.max(1, base+dPro);
+  var thAs=Math.max(1, Math.round(mix(thA, thP)));
+  var myTh  = pro ? thP   : (assist ? thAs        : thA);
+  var myFlop= pro ? flopP : (assist ? mix(flopA,flopP) : flopA);
+  var myHit = pro ? hitP  : (assist ? mix(hitA,hitP)   : hitA);
+  return { pro:pro, assist:assist,
+           threshold: myTh,
+           flop: util.r2(myFlop),
+           hit:  util.r2(myHit),
+           proThreshold: thP, amateurThreshold: thA, assistThreshold: thAs,
+           proFlop:flopP, proHit:hitP, amateurFlop:flopA, amateurHit:hitA,
+           assistFlop:util.r2(mix(flopA,flopP)), assistHit:util.r2(mix(hitA,hitP)) };
 };
 
 E.startDigital = function(S, p, card){
@@ -555,7 +576,7 @@ E.startDigital = function(S, p, card){
   var odds=E.digitalOdds(S,p,card);
   var d={ id:util.uid(S,"D"), cardId:card.id, name:card.title,
           progress:0, threshold:odds.threshold,
-          pro:odds.pro, flopPct:odds.flop, hitPct:odds.hit,
+          pro:odds.pro, assist:!!odds.assist, flopPct:odds.flop, hitPct:odds.hit,
           tier:null, baseIncome:util.r2((pl.baseIncome||0)*E.digitalIncomeMult(S)), monthlyCost:mc,
           // S29：長尾型態——版稅型（寫完就在那裡）與訂閱／流量型（斷更就崩）不該共用同一個衰減率。
           // 開張時鎖進這筆資產，之後調全域設定不會回頭改寫已經開張的（與 flopPct/hitPct 同一個作法）。
@@ -568,10 +589,13 @@ E.startDigital = function(S, p, card){
   // 放寬的是「開得了幾攤」，不是「不用顧」——顧不到的照樣爬不動、照樣衰減。
   p.tending = d.id;
   p.stats.digitalStarted=(p.stats.digitalStarted||0)+1;
+  /* 統計維持兩分法（本行／非本行），以免既有的結算頁與測試改變語意；
+     「略懂」另外記一格，要看細分的人看得到。 */
   if(odds.pro) p.stats.digitalPro=(p.stats.digitalPro||0)+1;
   else         p.stats.digitalAmateur=(p.stats.digitalAmateur||0)+1;
+  if(odds.assist) p.stats.digitalAssist=(p.stats.digitalAssist||0)+1;
   E.ev("DIGITAL_STARTED",{playerId:p.id, id:d.id, cardId:card.id, title:card.title,
-                          cost:cost, threshold:d.threshold, pro:!!odds.pro});
+                          cost:cost, threshold:d.threshold, pro:!!odds.pro, assist:!!odds.assist});
   if(p.cash<0) E.enterBankruptcy(S,p);
 };
 

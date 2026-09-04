@@ -4085,19 +4085,27 @@ ns.selftest = {
       assert(GATE.skillBranch.have && GATE.skillBranch.miss,"have/miss 兩分支都要有");
 
       // (a) 沒技能走 miss、有技能走 have，金額與卡面一致
+      /* S33：原本把 18／4／14 寫死在測試裡，這批調整卡面數值時就撞上了。
+         「與卡面一致」的正確驗法是從卡片資料算出期望值再比對，而不是複寫一份數字。 */
+      var sumCash=function(br){ var v=0;
+        (((br&&br.effects)||[])).forEach(function(e){ if(e.op==="CASH_DELTA") v+=(e.amount||0); });
+        return v; };
+      var expMiss=-sumCash(GATE.skillBranch.miss), expHave=-sumCash(GATE.skillBranch.have);
+      assert(expMiss>expHave,"這張卡的 miss 應該比 have 貴，否則測項本身沒意義");
       var S=mkGame(3701,mods8), p=S.players[0];
       ns.ledger.post(S,p,"補現金",[{account:"CASH",delta:500,label:"x"}],{eduTags:["setup"]});
       var c0=p.cash;
       E.resolveSkillGate(S,p,GATE);
-      assert(Math.abs((c0-p.cash)-18)<0.01,"沒技能應走 miss 分支扣 18");
+      assert(Math.abs((c0-p.cash)-expMiss)<0.01,"沒技能應走 miss 分支扣 "+expMiss);
       assert(p.stats.skillMissed===1,"應累計錯失次數");
       assert(p.stats.skillsUsed===0,"沒技能不應計入兌現");
       p.skills["SKL_PLUMB"]={learnedAt:1,decayed:false,refreshedAt:null};
       var c1=p.cash;
       E.resolveSkillGate(S,p,GATE);
-      assert(Math.abs((c1-p.cash)-4)<0.01,"有技能應走 have 分支只扣 4");
+      assert(Math.abs((c1-p.cash)-expHave)<0.01,"有技能應走 have 分支只扣 "+expHave);
       assert(p.stats.skillsUsed===1,"應累計兌現次數");
-      assert(Math.abs(p.stats.skillSavedTotal-14)<0.01,"價差應為 18−4＝14");
+      assert(Math.abs(p.stats.skillSavedTotal-(expMiss-expHave))<0.01,
+             "價差應為 "+expMiss+"−"+expHave+"＝"+(expMiss-expHave));
 
       // (b) 錯失也要推出決策卡（錯失必須被看見）
       var S2=mkGame(3702,mods8), q=S2.players[0];
@@ -4120,7 +4128,7 @@ ns.selftest = {
       ns.ledger.post(S4,r4,"補現金",[{account:"CASH",delta:500,label:"x"}],{eduTags:["setup"]});
       r4.skills["SKL_PLUMB"]={learnedAt:1,decayed:true,refreshedAt:null};
       var c4=r4.cash; E.resolveSkillGate(S4,r4,GATE);
-      assert(Math.abs((c4-r4.cash)-18)<0.01,"過時技能不應接住(走 miss)");
+      assert(Math.abs((c4-r4.cash)-expMiss)<0.01,"過時技能不應接住(走 miss，應扣 "+expMiss+")");
 
       // (e) GRANT_JOY 進幸福感
       var S5=mkGame(3705,mods8), r5=S5.players[0];

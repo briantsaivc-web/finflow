@@ -2103,14 +2103,25 @@
     },
     {
       "key": "skillGatePerGame",
-      "value": 5,
+      "value": 6,
       "min": 0,
       "max": 20,
       "step": 1,
       "group": "學習",
       "label": "每局技能情境卡張數",
-      "desc": "刻意少於技能卡數，保證「有些技能這局用不到」",
+      "desc": "S33：情境卡池 12→14（補了 AI 架構與衍生商品兩張），抽樣數同步 5→6，維持每門技能的命中機率不被新卡稀釋",
       "hot": false
+    },
+    {
+      "key": "directorAuditWarnPctBasic",
+      "value": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "group": "學習",
+      "label": "記帳級的審計預警機率",
+      "desc": "只有記帳與看財報（沒有高階審計）時，弊案爆發前一輪發現異常的機率。高階審計為 100%。S33 用來讓高階卡不再與它的先修完全重疊",
+      "hot": true
     },
     {
       "key": "skillPassiveDiscount",
@@ -2232,6 +2243,17 @@
       "label": "沒手藝的爆紅機率",
       "desc": "不夠專業，大發的機會低得多——但不是零",
       "hot": false
+    },
+    {
+      "key": "digitalAssistBlend",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "group": "數位資產",
+      "label": "加分技能補足比例",
+      "desc": "長尾卡的 assistSkills（幫得上忙但不是本行）把外行與本行的差距補掉多少：0＝完全沒用、1＝視同本行",
+      "hot": true
     },
     {
       "key": "digitalPerGame",
@@ -2374,6 +2396,17 @@
       "group": "商城",
       "label": "水電技能 DIY 省下",
       "desc": "具備基礎水電時，每次房產修繕自己動手省下的固定金額（換燈泡、耗材那個量級）",
+      "hot": true
+    },
+    {
+      "key": "skillPlumbHomeSave",
+      "value": 10,
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "group": "商城",
+      "label": "水電技能 自住維修省下",
+      "desc": "具備基礎水電時，自住類維修卡（payload.diyRepair）自己動手省下的金額。S33 補回「沒買房也用得到」的那一半",
       "hot": true
     },
     {

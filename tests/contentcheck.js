@@ -8,10 +8,11 @@
    4. 各牌堆的小孩閘門欄位名：MALL 用 payload.reqChild、LIFESTYLE/LIFE_EVENT 用 requiresChildSinceS12
    5. 機會卡數值：REALESTATE 要 price/monthlyRent/monthlyCost，BUSINESS 要 price/monthlyProfit，STARTUP 要 investAmount/equityPct/postMoney
    6. 金額量級：單筆金額 > 50000 視為疑似把「千元」寫成「元」（S21 獨董那種）
-   7. requiresSkill / requiresAnySkill / skillBranch.requires / DIGITAL.requires 指到的技能 id 必須存在
+   7. requiresSkill / requiresAnySkill / skillBranch.requires / DIGITAL.requires / DIGITAL.assistSkills 指到的技能 id 必須存在
    8. 引擎與測試裡寫死的 id 必須還在（改名或刪卡前先查這份清單）
    9b. 機率型選項：chance 落在 0～1、要有 onWin／onLose，兩個分支的 effects 一併驗 op（S27）
    9c. requiresEmploymentType 只能是 EMPLOYEE／SELF／FOUNDER（S27）
+  11. DIGITAL 的 assistSkills：非空、不得與 requires 重複、不得自我重複（S33）
   10. SKILL_GATE 分布守則：單一技能對應的情境卡不得超過總數 25%（S32 技能全開後的公平性硬規則）
    9. CHOICE 卡的第 1 個選項是「建議選項」——若第 1 個選項效果含 CASH_DELTA 正數且第 2 個含 GRANT_VIRTUE 正數，提醒順序可能反了
 
@@ -91,7 +92,7 @@ for (const { c, deck, f } of all) {
   // 7. 技能參照
   // S26：先修技能也可以掛在單一決策選項上（SI_DEBT），這裡一併驗 id 存在
   const optSkillRefs = (((c.decision || {}).options) || []).map(o => o.requiresSkill).filter(Boolean);
-  const refs = [].concat(c.requiresSkill || [], c.requiresAnySkill || [], c.requiresNotSkill || [], (c.skillBranch || {}).requires || [], optSkillRefs, deck === 'DIGITAL' ? (c.requires || []) : []);
+  const refs = [].concat(c.requiresSkill || [], c.requiresAnySkill || [], c.requiresNotSkill || [], (c.skillBranch || {}).requires || [], optSkillRefs, deck === 'DIGITAL' ? [].concat(c.requires || [], c.assistSkills || []) : []);
   for (const r of refs) if (!/^family:/.test(r) && !ids.has(r)) E(`${where} 參照不存在的技能 ${r}`);
   // S27：身分門檻的值必須是引擎認得的三種受僱型別
   if (c.requiresEmploymentType) {
@@ -105,6 +106,17 @@ for (const { c, deck, f } of all) {
     if (cashFirst && virtueSecond) W(`${where} 第 1 個選項是「拿錢」、第 2 個是「修品格」——第 1 個選項會被標成建議、NPC 也會選它，順序可能反了`);
   }
 }
+// ---- 11. DIGITAL 加分技能（S33）----
+/* assistSkills 是「幫得上忙但不是本行」。跟 requires 寫成同一個，等於白寫一格，
+   而且介面會出現「你不會 X，但你會的 X 幫得上忙」這種自相矛盾的句子。 */
+for (const { c, deck, f } of all) {
+  if (deck !== 'DIGITAL' || !c.assistSkills) continue;
+  if (!Array.isArray(c.assistSkills) || !c.assistSkills.length) { E(`${f} ${c.id} assistSkills 要是非空陣列`); continue; }
+  if (c.requires && c.assistSkills.includes(c.requires))
+    E(`${f} ${c.id} 的 assistSkills 含有它自己的 requires「${c.requires}」——本行不該同時是加分項`);
+  if (new Set(c.assistSkills).size !== c.assistSkills.length) E(`${f} ${c.id} assistSkills 有重複項`);
+}
+
 // ---- 10. SKILL_GATE 分布守則（S32）----
 /* S32 把 skillPerGame 開到全部，本局有沒有那門課不再是隨機。剩下唯一會讓
    「有沒有學」失去意義的風險，是情境卡全擠在同一門技能上——那等於變相回到

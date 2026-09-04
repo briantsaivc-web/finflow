@@ -1441,11 +1441,12 @@
         "kind": "LIFESTYLE",
         "title": "家電同時陣亡",
         "flavor": "冰箱跟冷氣講好的。",
-        "eduNote": "這就是為什麼要有緊急預備金。",
+        "eduNote": "這就是為什麼要有緊急預備金——會自己動手的人，這一筆還能再小一點。",
         "payload": {
           "cost": 38,
           "recurringMonthly": 0,
-          "optional": false
+          "optional": false,
+          "diyRepair": true
         },
         "tags": [
           "need"

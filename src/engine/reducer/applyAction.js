@@ -1815,6 +1815,22 @@ E.presentCard = function(S,p,card){
 E.payLifestyle = function(S,p,card){
   var pl=card.payload||{}, post=[];
   var cost = util.r2((pl.cost||0)*S.config.eventCardRate);
+  /* S33：基礎水電的兌現點補回「自住」這一邊。
+     S28 之後 SKL_PLUMB 只在房產修繕時折抵（applyAction 的 tickAssets），
+     於是沒買房的玩家學了等於什麼都沒有——但 Brian 當初要的本來就是
+     「換燈泡、簡單耗材更換，省下叫師傅的工錢」，那是自住不是收租。
+     卡片用 payload.diyRepair 自己表態，引擎不猜；量級走 skillPlumbHomeSave。 */
+  if(cost>0 && pl.diyRepair && E.hasSkill && E.hasSkill(p,"SKL_PLUMB")){
+    var homeSave = E.cfg(S,"skillPlumbHomeSave"); if(homeSave===undefined) homeSave = 10;
+    var savedL = util.r2(Math.min(cost, homeSave));
+    if(savedL>0){
+      cost = util.r2(cost - savedL);
+      p.stats.skillSavedTotal = util.r2((p.stats.skillSavedTotal||0) + savedL);
+      p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
+      E.ev("SKILL_APPLIED",{ playerId:p.id, skillId:"SKL_PLUMB", title:"基礎水電",
+                             saved:savedL, where:"home", assetName:card.title });
+    }
+  }
   if(cost) post.push({account:"CASH",delta:-cost,label:card.title});
   if(pl.recurringMonthly) post.push({account:"EXPENSE",delta:util.r2(pl.recurringMonthly),label:card.title+"（每月）"});
   if(post.length) ledger.post(S,p,card.title,post,{eduTags:["lifestyle"]});
@@ -1923,7 +1939,11 @@ E.resolveDecision = function(S,p,d,optionId,params){
         p.directorship = {
           companyType: comp, title: sel.title, monthlyIncome: sel.income,
           hasInsurance: sel.hasInsurance, crashTurn: crashAt, fineAmount: sel.fineAmount,
-          termTurnsLeft: sel.term, termTurns: sel.term, warned: false, resigned: false
+          termTurnsLeft: sel.term, termTurns: sel.term, warned: false, resigned: false,
+          /* S33：記帳級的預警是機率制。骰子在就任當下就擲、無條件擲一次，
+             不放在「爆雷前一輪且剛好是記帳級」的分支裡——分支式消耗亂數會讓
+             同一顆種子因為玩家技能不同而整條序列位移（鐵律三）。 */
+          auditRoll: util.rand(S)
         };
         p.stats.directorAppointed = (p.stats.directorAppointed||0) + 1;
         E.ev("DIRECTOR_APPOINTED", { playerId:p.id, company:sel.title, income:sel.income });
@@ -4364,9 +4384,26 @@ E.DIRECTOR_COMPANIES = {
   C: { title:"爭議家族小型股", income:25, term:12, hasInsurance:false, crashChance:0.8, crashMin:3, crashMax:8,  fineAmount:200,
        risk:"高", note:"沒有責任險；車馬費最高，關係人交易也最多——弊案幾乎是時間問題。" }
 };
-// 能在爆雷前看出假帳的技能（S21 用 SKL_BOOK／SKL_CPA_AUDIT；法律線只擋賠償，看不出帳）
-E.directorAuditSkill = function(p){ return E.hasSkill(p,"SKL_CPA_AUDIT") || E.hasSkill(p,"SKL_BOOK"); };
+/* 能在爆雷前看出假帳的技能（S21 用 SKL_BOOK／SKL_CPA_AUDIT；法律線只擋賠償，看不出帳）。
+
+   S33 分級：原本是 `SKL_CPA_AUDIT || SKL_BOOK`，而 SKL_BOOK 正是 SKL_CPA_AUDIT 的先修——
+   等於任何報得了名的人早就有全部能力，那張 45 塊、學 3 輪的高階卡獨佔價值是零。
+   改成兩級：記帳看得懂帳，但查弊案是另一回事，只有一定機率看得出來（directorAuditWarnPctBasic）；
+   高階審計是專業查核，必中。這樣先修仍然有用，高階才有理由存在。 */
+E.directorAuditLevel = function(p){
+  if(E.hasSkill(p,"SKL_CPA_AUDIT")) return 2;   // 專業查核：必定預警
+  if(E.hasSkill(p,"SKL_BOOK"))      return 1;   // 看得懂帳：機率預警
+  return 0;
+};
+E.directorAuditSkill = function(p){ return E.directorAuditLevel(p) > 0; };
 E.directorLegalShield = function(p){ return E.hasSkill(p,"SKL_GOV_LEGAL"); };
+/* 高風險席次「接得下」的判定。S33 一度用它把 B／C 兩個席次鎖住，但實測後拿掉了：
+   鎖住之後電腦玩家全部退回 A，300 局裡爆雷 0 次、審計預警 0 次——整條弊案劇情死掉，
+   而且「不懂帳卻去當獨董、最後賠 200」正是這張卡要教的事，鎖住等於把課本身刪掉。
+   函式保留成一個可查詢的能力判定（介面用來寫提示），但不再當成擋牌。 */
+E.directorHighRiskOk = function(p){
+  return E.directorAuditLevel(p) >= 2 || E.directorLegalShield(p);
+};
 
 E.tickDirectorship = function(S, p){
   if(!p.directorship || p.bankrupt) return;
@@ -4414,7 +4451,10 @@ E.tickDirectorship = function(S, p){
 
   // 4) 爆雷前一輪的審計預警——只有看得懂帳的人收得到
   if(crashSoon && S.turnNumber === d.crashTurn-1 && !d.warned && d.termTurnsLeft > 0){
-    if(E.directorAuditSkill(p)){
+    var lvl = E.directorAuditLevel(p);
+    var basicPct = E.cfg(S,"directorAuditWarnPctBasic"); if(basicPct===undefined) basicPct = 0.4;
+    var willWarn = (lvl>=2) || (lvl===1 && (d.auditRoll!==undefined ? d.auditRoll : 0) < basicPct);
+    if(willWarn){
       d.warned = true;
       E.pushDecision(S,p,{ kind:"RESIGN_DIRECTORSHIP", company:d.title,
         title:"⚠️ 審計警訊："+d.title+" 的帳不對",

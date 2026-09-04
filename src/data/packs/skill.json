@@ -405,13 +405,13 @@
             ]
           },
           "miss": {
-            "narrative": "叫師傅、急件加價，租客不爽，下期不續約。",
+            "narrative": "叫師傅、急件加價，租客不爽走人；空了兩個月才重新租出去，仲介費也去掉半個月。",
             "effects": [
               {
                 "op": "CASH_DELTA",
                 "target": "self",
-                "amount": -18,
-                "label": "急件修繕與空租損失"
+                "amount": -38,
+                "label": "急件修繕、空租兩個月與重新招租"
               }
             ]
           }
@@ -516,14 +516,21 @@
               {
                 "op": "CASH_DELTA",
                 "target": "self",
-                "amount": 35,
+                "amount": 45,
                 "label": "議價省下的錢"
               }
             ]
           },
           "miss": {
-            "narrative": "你照開價成交，還覺得自己賺到。",
-            "effects": []
+            "narrative": "你照開價成交，還覺得自己賺到——半年後才知道同棟另一戶便宜了一截。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -20,
+                "label": "照開價成交，多付的那一截"
+              }
+            ]
           }
         },
         "moduleReq": "M8"
@@ -617,7 +624,7 @@
               {
                 "op": "CASH_DELTA",
                 "target": "self",
-                "amount": 20,
+                "amount": 30,
                 "label": "謝禮與後續案子"
               }
             ]
@@ -753,6 +760,79 @@
             "label": "公司內訓"
           }
         ]
+      },
+      {
+        "id": "SKE_AIWAVE",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "你這一行被 AI 重新洗牌了",
+        "flavor": "主管在會議上說，明年這個部門的人力要砍一半。",
+        "eduNote": "技術變革不會問你準備好了沒。看得懂架構的人不是自動加薪，是沒有被重新定價——這已經是很大的差別了。",
+        "skillBranch": {
+          "requires": "SKL_AI_ARCH",
+          "have": {
+            "narrative": "你把整條流程重寫成自動化，部門留下來的三個人裡有你——而且是負責設計的那一個，年底還多拿了一筆專案獎金。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": 25,
+                "label": "自動化專案獎金"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你的技能一夜之間變成「可以外包的那種」，轉調到成本中心，還自費補了幾堂課。",
+            "effects": [
+              {
+                "op": "SALARY_MULT",
+                "factor": 0.9,
+                "label": "職務被重新定義"
+              },
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -20,
+                "label": "轉換期的進修與空窗"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M8"
+      },
+      {
+        "id": "SKE_MARGINCALL",
+        "deck": "LIFE_EVENT",
+        "kind": "SKILL_GATE",
+        "title": "開盤十分鐘，維持率跌破追繳線",
+        "flavor": "手機一直震，是券商的自動語音。",
+        "eduNote": "槓桿的風險不在「會不會賠」，在「來不來得及反應」。看不懂結算規則就下場，等於把命交給運氣。",
+        "skillBranch": {
+          "requires": "SKL_DERIV",
+          "have": {
+            "narrative": "你知道維持率怎麼算，當天先減碼一半、補足保證金，撐過了那一根。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -30,
+                "label": "減碼認賠與補繳保證金"
+              }
+            ]
+          },
+          "miss": {
+            "narrative": "你以為還有時間，收盤前被強制平倉——出場價是全天最低的那一段。",
+            "effects": [
+              {
+                "op": "CASH_DELTA",
+                "target": "self",
+                "amount": -140,
+                "label": "強制平倉"
+              }
+            ]
+          }
+        },
+        "moduleReq": "M9"
       }
     ],
     "MACRO_EVENT": [
@@ -843,6 +923,10 @@
         "moduleReq": "M8",
         "title": "開設線上課程：看懂一張財報",
         "requires": "SKL_BOOK",
+        "assistSkills": [
+          "SKL_PHOTO",
+          "SKL_PRESENT"
+        ],
         "flavor": "錄了十二支影片，剪到凌晨三點。",
         "eduNote": "課程上架那天不是終點，是長尾的第一天——沒人續作的課會被演算法忘記。",
         "hint": "要先看得懂財報，才教得了別人",
@@ -860,6 +944,10 @@
         "moduleReq": "M8",
         "title": "經營 YouTube 頻道：自己動手修",
         "requires": "SKL_PLUMB",
+        "assistSkills": [
+          "SKL_PHOTO",
+          "SKL_PRESENT"
+        ],
         "flavor": "手機架在水槽旁邊，一邊修一邊講。",
         "eduNote": "實作型內容的長尾最長——因為壞掉的東西每年都會壞。",
         "hint": "手上要真的有這門手藝，鏡頭騙不了人",
@@ -1042,6 +1130,9 @@
         "moduleReq": "M8",
         "title": "出版電子書，長期收版稅",
         "requires": "SKL_PRESENT",
+        "assistSkills": [
+          "SKL_PHOTO"
+        ],
         "flavor": "寫了半年，上架那天只有三個人買。第四年它還在賣。",
         "eduNote": "版稅是最純粹的長尾：寫完就在那裡，不必每天餵它，斷更也不會歸零。代價是它不會突然長大——IP 的價值靠時間累積，不靠演算法。",
         "hint": "說得清楚一件事的人寫得動",

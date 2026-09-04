@@ -70,9 +70,11 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     });
 
     /* ---------- ② 情境卡抽樣維持 5 ---------- */
-    step("skillGatePerGame 維持 5，且技能全開後「只抽有進場的」濾網自然變成 no-op",()=>{
+    /* S33：情境卡池 12→14（補了 AI 架構與衍生商品），抽樣數同步 5→6 以維持命中率。
+       這一項驗的是「濾網變成 no-op」，抽樣數本身改讀設定，不再寫死。 */
+    step("技能全開後「只抽有進場的」濾網自然變成 no-op",()=>{
       const S=fresh(3205);
-      A(E.cfg(S,"skillGatePerGame")===5,"應維持 5，實得 "+E.cfg(S,"skillGatePerGame"));
+      A(E.cfg(S,"skillGatePerGame")>=1,"抽樣數應為正，實得 "+E.cfg(S,"skillGatePerGame"));
       const idx=E.skillGateIndex(S);
       const inS={}; (S.skillSample||[]).forEach(id=>inS[id]=1);
       const fam={}; (S.skillSample||[]).forEach(id=>{ const c=ns.content.byId[id]; if(c&&c.family) fam[c.family]=1; });

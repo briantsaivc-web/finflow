@@ -2045,19 +2045,27 @@ ui.decisionCard = function(S,p,d){
     var cdA = d.cardId ? ns.content.byId[d.cardId] : null;
     card.appendChild(cardFace(cdA||{title:"獨立董事邀請"}));
     if(cdA){ var ebA=eduBox(cdA); if(ebA) card.appendChild(ebA); }
-    var canAudit = E.directorAuditSkill(p), canShield = E.directorLegalShield(p);
-    card.appendChild(el("div","flavor", canAudit
-      ? "你看得懂帳：弊案爆發前一輪會收到審計警訊，可以及時請辭。"
-      : "你沒有審計能力：帳有問題你不會提前知道，只能賭公司乾淨。"
-      + (canShield ? " 不過你有合規治理專業，真出事可免除連帶賠償（仍要停走應訴）。" : "")));
+    /* S33：審計能力分兩級——記帳看得懂帳但查弊案只有機率會發現，
+       高階審計才是必定預警。高風險席次要高階查核或法遵才接得下。 */
+    var auLv = E.directorAuditLevel(p), canShield = E.directorLegalShield(p);
+    var hiOk = E.directorHighRiskOk(p);
+    var basicPct = E.cfg(S,"directorAuditWarnPctBasic"); if(basicPct===undefined) basicPct=0.4;
+    card.appendChild(el("div","flavor",
+      (auLv>=2 ? "你有高階審計專業：弊案爆發前一輪<b class='gold'>必定</b>收到審計警訊，來得及請辭。"
+       : auLv===1 ? ("你看得懂帳，但查弊案是另一回事：爆雷前只有約 "+util.pct(basicPct,0)+" 的機會提前發現。")
+       : "你沒有審計能力：帳有問題你不會提前知道，只能賭公司乾淨。")
+      + (canShield ? " 你有合規治理專業，真出事可免除連帶賠償（仍要停走應訴）。" : "")
+      + (hiOk ? "" : " <b class='gold'>你沒有高階審計或法遵專業——有爆雷機率的席次接不接得住，只能自己判斷。</b>")));
     var oA=el("div","opts");
     ["A","B","C"].forEach(function(k){
       var co=E.DIRECTOR_COMPANIES[k];
+      var risky = (co.crashChance||0) > 0 && !hiOk;   // 只警示，不擋——課要留在原地
       // S27：爆雷改機率制之後，機率一定要明講——這是玩家評估風險溢酬的唯一依據
       var pct = (co.crashChance!==undefined) ? Math.round(co.crashChance*100) : null;
       var sub="每輪車馬費 +"+M(co.income)+"、任期 "+co.term+" 輪（一年）｜風險："+co.risk
         +(pct===null?"":"｜任內爆雷機率 "+pct+"％")
         +(co.fineAmount?"｜弊案賠償 "+M(co.fineAmount)+(co.hasInsurance?"（D&O 險承擔八成）":"（無責任險）"):"｜有 D&O 險")
+        +(risky?"｜⚠️ 你沒有高階審計或法遵專業，出事只能自己扛":"")
         +"\n"+co.note;
       oA.appendChild(optBtn(k+"．"+co.title, sub, function(){ decide("appoint",{company:k}); }, k==="A"));
     });
@@ -2323,23 +2331,26 @@ ui.decisionCard = function(S,p,d){
     var skD = (reqD && reqD.indexOf("family:")!==0) ? ns.content.byId[reqD] : null;
     var skN = skD ? skD.title
             : (reqD.indexOf("family:")===0 ? (FAMN[reqD.slice(7)]||"這門手藝") : "這門手藝");
+    /* S33：三種狀態——本行／略懂（有加分技能）／外行。略懂那一格要講清楚
+       「幫得上忙但不是本行」，不然玩家會以為學了攝影就等於會做電子書。 */
+    var asN=(dgc.assistSkills||[]).filter(function(id){ return E.hasSkill(p,id); })
+      .map(function(id){ var sc=ns.content.byId[id]; return sc?sc.title:id; }).join("、");
     var cmpD=el("div","claimBox");
     cmpD.appendChild(el("div","ttl", odD.pro
       ? "✅ 你會「"+skN+"」——這是你的本行"
-      : "⚠️ 你不會「"+skN+"」——外行人也做得起來，只是難得多"));
+      : (odD.assist
+        ? "🟡 你不會「"+skN+"」，但你會的「"+asN+"」幫得上忙——比外行順，但還不是本行"
+        : "⚠️ 你不會「"+skN+"」——外行人也做得起來，只是難得多")));
     var tbl=el("div","kv");
-    tbl.appendChild(el("div","k","爬坡輪數"));
-    tbl.appendChild(el("div","v num", odD.pro
-      ? odD.proThreshold+" 輪（外行人要 "+odD.amateurThreshold+" 輪）"
-      : odD.amateurThreshold+" 輪（本行只要 "+odD.proThreshold+" 輪）"));
-    tbl.appendChild(el("div","k","爆紅機率"));
-    tbl.appendChild(el("div","v num", odD.pro
-      ? util.pct(odD.proHit,0)+"（外行人只有 "+util.pct(odD.amateurHit,0)+"）"
-      : util.pct(odD.amateurHit,0)+"（本行有 "+util.pct(odD.proHit,0)+"）"));
-    tbl.appendChild(el("div","k","做白工機率"));
-    tbl.appendChild(el("div","v num", odD.pro
-      ? util.pct(odD.proFlop,0)+"（外行人 "+util.pct(odD.amateurFlop,0)+"）"
-      : util.pct(odD.amateurFlop,0)+"（本行 "+util.pct(odD.proFlop,0)+"）"));
+    var row=function(k, mine, proV, amV){
+      tbl.appendChild(el("div","k",k));
+      tbl.appendChild(el("div","v num", odD.pro ? (proV+"（外行人 "+amV+"）")
+        : (odD.assist ? (mine+"（本行 "+proV+"、純外行 "+amV+"）")
+                      : (amV+"（本行 "+proV+"）"))));
+    };
+    row("爬坡輪數", odD.threshold+" 輪", odD.proThreshold+" 輪", odD.amateurThreshold+" 輪");
+    row("爆紅機率", util.pct(odD.hit,0),  util.pct(odD.proHit,0),  util.pct(odD.amateurHit,0));
+    row("做白工機率", util.pct(odD.flop,0), util.pct(odD.proFlop,0), util.pct(odD.amateurFlop,0));
     cmpD.appendChild(tbl);
     card.appendChild(cmpD);
     card.appendChild(el("div","flavor",
