@@ -3853,83 +3853,103 @@
         "milestones": [
           {
             "t": "台北｜態芮 Taïrroir",
-            "img": "dream_stars/01.webp"
+            "img": "dream_stars/01.webp",
+            "stampPos": "tl"
           },
           {
             "t": "台北｜JL Studio",
-            "img": "dream_stars/02.webp"
+            "img": "dream_stars/02.webp",
+            "stampPos": "tl"
           },
           {
             "t": "東京｜鮨 さいとう",
-            "img": "dream_stars/03.webp"
+            "img": "dream_stars/03.webp",
+            "stampPos": "tr"
           },
           {
             "t": "東京｜神田 Kanda",
-            "img": "dream_stars/04.webp"
+            "img": "dream_stars/04.webp",
+            "stampPos": "tl"
           },
           {
             "t": "大阪｜Hajime",
-            "img": "dream_stars/05.webp"
+            "img": "dream_stars/05.webp",
+            "stampPos": "tl"
           },
           {
             "t": "京都｜菊乃井本店",
-            "img": "dream_stars/06.webp"
+            "img": "dream_stars/06.webp",
+            "stampPos": "tl"
           },
           {
             "t": "香港｜大班樓 The Chairman",
-            "img": "dream_stars/07.webp"
+            "img": "dream_stars/07.webp",
+            "stampPos": "tr"
           },
           {
             "t": "香港｜Amber",
-            "img": "dream_stars/08.webp"
+            "img": "dream_stars/08.webp",
+            "stampPos": "tr"
           },
           {
             "t": "新加坡｜Odette",
-            "img": "dream_stars/09.webp"
+            "img": "dream_stars/09.webp",
+            "stampPos": "bl"
           },
           {
             "t": "曼谷｜Gaggan Anand",
-            "img": "dream_stars/10.webp"
+            "img": "dream_stars/10.webp",
+            "stampPos": "tl"
           },
           {
             "t": "首爾｜Mingles",
-            "img": "dream_stars/11.webp"
+            "img": "dream_stars/11.webp",
+            "stampPos": "br"
           },
           {
             "t": "哥本哈根｜Geranium",
-            "img": "dream_stars/12.webp"
+            "img": "dream_stars/12.webp",
+            "stampPos": "tr"
           },
           {
             "t": "哥本哈根｜Alchemist",
-            "img": "dream_stars/13.webp"
+            "img": "dream_stars/13.webp",
+            "stampPos": "br"
           },
           {
             "t": "巴黎｜Arpège",
-            "img": "dream_stars/14.webp"
+            "img": "dream_stars/14.webp",
+            "stampPos": "tr"
           },
           {
             "t": "芒通｜Mirazur",
-            "img": "dream_stars/15.webp"
+            "img": "dream_stars/15.webp",
+            "stampPos": "tr"
           },
           {
             "t": "巴斯克｜Asador Etxebarri",
-            "img": "dream_stars/16.webp"
+            "img": "dream_stars/16.webp",
+            "stampPos": "tr"
           },
           {
             "t": "巴塞隆納｜Disfrutar",
-            "img": "dream_stars/17.webp"
+            "img": "dream_stars/17.webp",
+            "stampPos": "tl"
           },
           {
             "t": "紐約｜Le Bernardin",
-            "img": "dream_stars/18.webp"
+            "img": "dream_stars/18.webp",
+            "stampPos": "tr"
           },
           {
             "t": "利馬｜Central",
-            "img": "dream_stars/19.webp"
+            "img": "dream_stars/19.webp",
+            "stampPos": "tl"
           },
           {
             "t": "墨爾本｜Attica",
-            "img": "dream_stars/20.webp"
+            "img": "dream_stars/20.webp",
+            "stampPos": "tr"
           }
         ]
       },
@@ -3948,83 +3968,108 @@
         "milestones": [
           {
             "t": "基隆廟口｜天一香肉羹順",
-            "img": "dream_shops/01.webp"
+            "img": "dream_shops/01.webp",
+            "stampPos": "tr",
+            "stampBold": true
           },
           {
             "t": "台北萬華｜兩喜號魷魚羹",
-            "img": "dream_shops/02.webp"
+            "img": "dream_shops/02.webp",
+            "stampPos": "tr"
           },
           {
             "t": "台北大稻埕｜賣麵炎仔",
-            "img": "dream_shops/03.webp"
+            "img": "dream_shops/03.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "新北深坑｜廟口豆腐",
-            "img": "dream_shops/04.webp"
+            "img": "dream_shops/04.webp",
+            "stampPos": "tr",
+            "stampBold": true
           },
           {
             "t": "桃園大溪｜黃日香豆干",
-            "img": "dream_shops/05.webp"
+            "img": "dream_shops/05.webp",
+            "stampPos": "tr"
           },
           {
             "t": "新竹城隍廟｜郭家潤餅",
-            "img": "dream_shops/06.webp"
+            "img": "dream_shops/06.webp",
+            "stampPos": "tl"
           },
           {
             "t": "苗栗苑裡｜金光肉圓",
-            "img": "dream_shops/07.webp"
+            "img": "dream_shops/07.webp",
+            "stampPos": "br",
+            "stampBold": true
           },
           {
             "t": "台中第二市場｜山河魯肉飯",
-            "img": "dream_shops/08.webp"
+            "img": "dream_shops/08.webp",
+            "stampPos": "tr"
           },
           {
             "t": "彰化北斗｜肉圓生",
-            "img": "dream_shops/09.webp"
+            "img": "dream_shops/09.webp",
+            "stampPos": "tr"
           },
           {
             "t": "鹿港｜老龍師肉包",
-            "img": "dream_shops/10.webp"
+            "img": "dream_shops/10.webp",
+            "stampPos": "tl"
           },
           {
             "t": "南投埔里｜蘇媽媽湯圓",
-            "img": "dream_shops/11.webp"
+            "img": "dream_shops/11.webp",
+            "stampPos": "tr"
           },
           {
             "t": "雲林北港｜福安鴨肉飯",
-            "img": "dream_shops/12.webp"
+            "img": "dream_shops/12.webp",
+            "stampPos": "tl"
           },
           {
             "t": "嘉義｜林聰明沙鍋魚頭",
-            "img": "dream_shops/13.webp"
+            "img": "dream_shops/13.webp",
+            "stampPos": "tr"
           },
           {
             "t": "嘉義｜劉里長雞肉飯",
-            "img": "dream_shops/14.webp"
+            "img": "dream_shops/14.webp",
+            "stampPos": "tl"
           },
           {
             "t": "台南｜阿堂鹹粥",
-            "img": "dream_shops/15.webp"
+            "img": "dream_shops/15.webp",
+            "stampPos": "tr"
           },
           {
             "t": "台南｜再發號肉粽",
-            "img": "dream_shops/16.webp"
+            "img": "dream_shops/16.webp",
+            "stampPos": "tr"
           },
           {
             "t": "高雄鹽埕｜鴨肉珍",
-            "img": "dream_shops/17.webp"
+            "img": "dream_shops/17.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "屏東萬巒｜海鴻豬腳",
-            "img": "dream_shops/18.webp"
+            "img": "dream_shops/18.webp",
+            "stampPos": "tl"
           },
           {
             "t": "宜蘭｜正好鮮肉小籠包",
-            "img": "dream_shops/19.webp"
+            "img": "dream_shops/19.webp",
+            "stampPos": "tl"
           },
           {
             "t": "花蓮｜公正包子",
-            "img": "dream_shops/20.webp"
+            "img": "dream_shops/20.webp",
+            "stampPos": "tr"
           }
         ]
       },
@@ -4043,83 +4088,103 @@
         "milestones": [
           {
             "t": "玉山主峰｜3,952 公尺",
-            "img": "dream_peaks/01.webp"
+            "img": "dream_peaks/01.webp",
+            "stampPos": "tl"
           },
           {
             "t": "雪山主峰｜黑森林與圈谷",
-            "img": "dream_peaks/02.webp"
+            "img": "dream_peaks/02.webp",
+            "stampPos": "tl"
           },
           {
             "t": "大霸尖山｜世紀奇峰",
-            "img": "dream_peaks/03.webp"
+            "img": "dream_peaks/03.webp",
+            "stampPos": "tr"
           },
           {
             "t": "南湖大山｜帝王之山",
-            "img": "dream_peaks/04.webp"
+            "img": "dream_peaks/04.webp",
+            "stampPos": "tl"
           },
           {
             "t": "北大武山｜南台灣屏障",
-            "img": "dream_peaks/05.webp"
+            "img": "dream_peaks/05.webp",
+            "stampPos": "tr"
           },
           {
             "t": "秀姑巒山｜中央山脈第二高峰",
-            "img": "dream_peaks/06.webp"
+            "img": "dream_peaks/06.webp",
+            "stampPos": "tl"
           },
           {
             "t": "奇萊主峰｜黑色奇萊",
-            "img": "dream_peaks/07.webp"
+            "img": "dream_peaks/07.webp",
+            "stampPos": "tr"
           },
           {
             "t": "奇萊北峰｜險峻稜線",
-            "img": "dream_peaks/08.webp"
+            "img": "dream_peaks/08.webp",
+            "stampPos": "tl"
           },
           {
             "t": "合歡北峰｜高山草原",
-            "img": "dream_peaks/09.webp"
+            "img": "dream_peaks/09.webp",
+            "stampPos": "tr"
           },
           {
             "t": "合歡西峰｜漫長七上八下",
-            "img": "dream_peaks/10.webp"
+            "img": "dream_peaks/10.webp",
+            "stampPos": "tl"
           },
           {
             "t": "能高山｜能高安東軍縱走",
-            "img": "dream_peaks/11.webp"
+            "img": "dream_peaks/11.webp",
+            "stampPos": "tl"
           },
           {
             "t": "安東軍山｜高山湖泊群",
-            "img": "dream_peaks/12.webp"
+            "img": "dream_peaks/12.webp",
+            "stampPos": "tl"
           },
           {
             "t": "丹大山｜中央山脈深處",
-            "img": "dream_peaks/13.webp"
+            "img": "dream_peaks/13.webp",
+            "stampPos": "tl"
           },
           {
             "t": "關山｜南臺首嶽",
-            "img": "dream_peaks/14.webp"
+            "img": "dream_peaks/14.webp",
+            "stampPos": "tr"
           },
           {
             "t": "向陽山｜金色草原",
-            "img": "dream_peaks/15.webp"
+            "img": "dream_peaks/15.webp",
+            "stampPos": "tr"
           },
           {
             "t": "三叉山｜嘉明湖門戶",
-            "img": "dream_peaks/16.webp"
+            "img": "dream_peaks/16.webp",
+            "stampPos": "tl"
           },
           {
             "t": "新康山｜十峻之一",
-            "img": "dream_peaks/17.webp"
+            "img": "dream_peaks/17.webp",
+            "stampPos": "tr"
           },
           {
             "t": "馬博拉斯山｜鋸齒連峰",
-            "img": "dream_peaks/18.webp"
+            "img": "dream_peaks/18.webp",
+            "stampPos": "tr"
           },
           {
             "t": "白姑大山｜中橫四辣之首",
-            "img": "dream_peaks/19.webp"
+            "img": "dream_peaks/19.webp",
+            "stampPos": "tr"
           },
           {
             "t": "干卓萬山｜孤立山塊收官",
-            "img": "dream_peaks/20.webp"
+            "img": "dream_peaks/20.webp",
+            "stampPos": "bl"
           }
         ]
       },
@@ -4139,83 +4204,106 @@
         "milestones": [
           {
             "t": "帛琉｜Blue Corner 藍角",
-            "img": "dream_dive/01.webp"
+            "img": "dream_dive/01.webp",
+            "stampPos": "tr"
           },
           {
             "t": "帛琉｜German Channel",
-            "img": "dream_dive/02.webp"
+            "img": "dream_dive/02.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "埃及紅海｜SS Thistlegorm 沉船",
-            "img": "dream_dive/03.webp"
+            "img": "dream_dive/03.webp",
+            "stampPos": "tl"
           },
           {
             "t": "墨西哥｜Dos Ojos Cenote",
-            "img": "dream_dive/04.webp"
+            "img": "dream_dive/04.webp",
+            "stampPos": "br",
+            "stampBold": true
           },
           {
             "t": "印尼｜Raja Ampat",
-            "img": "dream_dive/05.webp"
+            "img": "dream_dive/05.webp",
+            "stampPos": "tl"
           },
           {
             "t": "印尼科摩多｜Castle Rock",
-            "img": "dream_dive/06.webp"
+            "img": "dream_dive/06.webp",
+            "stampPos": "tr"
           },
           {
             "t": "澳洲｜大堡礁 Ribbon Reefs",
-            "img": "dream_dive/07.webp"
+            "img": "dream_dive/07.webp",
+            "stampPos": "tr"
           },
           {
             "t": "馬爾地夫｜Maaya Thila",
-            "img": "dream_dive/08.webp"
+            "img": "dream_dive/08.webp",
+            "stampPos": "tl"
           },
           {
             "t": "馬來西亞詩巴丹｜Barracuda Point",
-            "img": "dream_dive/09.webp"
+            "img": "dream_dive/09.webp",
+            "stampPos": "bl"
           },
           {
             "t": "菲律賓圖巴塔哈｜Amos Rock",
-            "img": "dream_dive/10.webp"
+            "img": "dream_dive/10.webp",
+            "stampPos": "tl"
           },
           {
             "t": "日本與那國島｜海底遺跡",
-            "img": "dream_dive/11.webp"
+            "img": "dream_dive/11.webp",
+            "stampPos": "tl"
           },
           {
             "t": "日本沖繩｜慶良間群島",
-            "img": "dream_dive/12.webp"
+            "img": "dream_dive/12.webp",
+            "stampPos": "tl"
           },
           {
             "t": "貝里斯｜大藍洞",
-            "img": "dream_dive/13.webp"
+            "img": "dream_dive/13.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "厄瓜多加拉巴哥｜Darwin’s Arch",
-            "img": "dream_dive/14.webp"
+            "img": "dream_dive/14.webp",
+            "stampPos": "bl"
           },
           {
             "t": "夏威夷科納｜夜潛看鬼蝠魟",
-            "img": "dream_dive/15.webp"
+            "img": "dream_dive/15.webp",
+            "stampPos": "bl"
           },
           {
             "t": "斐濟｜Rainbow Reef",
-            "img": "dream_dive/16.webp"
+            "img": "dream_dive/16.webp",
+            "stampPos": "tl"
           },
           {
             "t": "法屬玻里尼西亞｜Fakarava South Pass",
-            "img": "dream_dive/17.webp"
+            "img": "dream_dive/17.webp",
+            "stampPos": "bl"
           },
           {
             "t": "南非｜Sardine Run",
-            "img": "dream_dive/18.webp"
+            "img": "dream_dive/18.webp",
+            "stampPos": "tl"
           },
           {
             "t": "挪威｜Orca Expedition",
-            "img": "dream_dive/19.webp"
+            "img": "dream_dive/19.webp",
+            "stampPos": "tr"
           },
           {
             "t": "台灣綠島｜石朗與大香菇",
-            "img": "dream_dive/20.webp"
+            "img": "dream_dive/20.webp",
+            "stampPos": "tr"
           }
         ]
       },
@@ -4234,83 +4322,104 @@
         "milestones": [
           {
             "t": "台灣｜環島認識自己的島",
-            "img": "dream_continent/01.webp"
+            "img": "dream_continent/01.webp",
+            "stampPos": "tr"
           },
           {
             "t": "日本｜熊野古道健行",
-            "img": "dream_continent/02.webp"
+            "img": "dream_continent/02.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "尼泊爾｜安納普納基地營",
-            "img": "dream_continent/03.webp"
+            "img": "dream_continent/03.webp",
+            "stampPos": "tl"
           },
           {
             "t": "印度｜瓦拉納西恆河日出",
-            "img": "dream_continent/04.webp"
+            "img": "dream_continent/04.webp",
+            "stampPos": "tr"
           },
           {
             "t": "冰島｜環島一號公路",
-            "img": "dream_continent/05.webp"
+            "img": "dream_continent/05.webp",
+            "stampPos": "tl"
           },
           {
             "t": "挪威｜羅弗敦群島",
-            "img": "dream_continent/06.webp"
+            "img": "dream_continent/06.webp",
+            "stampPos": "tr"
           },
           {
             "t": "義大利｜多洛米蒂健行",
-            "img": "dream_continent/07.webp"
+            "img": "dream_continent/07.webp",
+            "stampPos": "tr"
           },
           {
             "t": "西班牙｜聖雅各之路",
-            "img": "dream_continent/08.webp"
+            "img": "dream_continent/08.webp",
+            "stampPos": "tr"
           },
           {
             "t": "摩洛哥｜撒哈拉沙漠",
-            "img": "dream_continent/09.webp"
+            "img": "dream_continent/09.webp",
+            "stampPos": "tr"
           },
           {
             "t": "坦尚尼亞｜塞倫蓋提大遷徙",
-            "img": "dream_continent/10.webp"
+            "img": "dream_continent/10.webp",
+            "stampPos": "tl"
           },
           {
             "t": "南非｜桌山與好望角",
-            "img": "dream_continent/11.webp"
+            "img": "dream_continent/11.webp",
+            "stampPos": "tr"
           },
           {
             "t": "埃及｜尼羅河與路克索",
-            "img": "dream_continent/12.webp"
+            "img": "dream_continent/12.webp",
+            "stampPos": "tl"
           },
           {
             "t": "加拿大｜洛磯山脈",
-            "img": "dream_continent/13.webp"
+            "img": "dream_continent/13.webp",
+            "stampPos": "tr"
           },
           {
             "t": "美國｜大峽谷",
-            "img": "dream_continent/14.webp"
+            "img": "dream_continent/14.webp",
+            "stampPos": "tl"
           },
           {
             "t": "秘魯｜馬丘比丘",
-            "img": "dream_continent/15.webp"
+            "img": "dream_continent/15.webp",
+            "stampPos": "tl"
           },
           {
             "t": "智利阿根廷｜百內與菲茨羅伊",
-            "img": "dream_continent/16.webp"
+            "img": "dream_continent/16.webp",
+            "stampPos": "tl"
           },
           {
             "t": "澳洲｜烏魯魯",
-            "img": "dream_continent/17.webp"
+            "img": "dream_continent/17.webp",
+            "stampPos": "tr"
           },
           {
             "t": "紐西蘭｜米佛峽灣",
-            "img": "dream_continent/18.webp"
+            "img": "dream_continent/18.webp",
+            "stampPos": "tl"
           },
           {
             "t": "南極｜跨越德瑞克海峽",
-            "img": "dream_continent/19.webp"
+            "img": "dream_continent/19.webp",
+            "stampPos": "tl"
           },
           {
             "t": "南極｜登陸南極半島",
-            "img": "dream_continent/20.webp"
+            "img": "dream_continent/20.webp",
+            "stampPos": "tr"
           }
         ]
       },
@@ -4330,83 +4439,107 @@
         "milestones": [
           {
             "t": "高雄－澎湖｜第一次離岸",
-            "img": "dream_sail/01.webp"
+            "img": "dream_sail/01.webp",
+            "stampPos": "tr"
           },
           {
             "t": "澎湖－沖繩｜第一次獨自守夜",
-            "img": "dream_sail/02.webp"
+            "img": "dream_sail/02.webp",
+            "stampPos": "tr"
           },
           {
             "t": "沖繩－宮古島｜穿越黑潮",
-            "img": "dream_sail/03.webp"
+            "img": "dream_sail/03.webp",
+            "stampPos": "tl"
           },
           {
             "t": "宮古島－關島｜第一場遠洋風暴",
-            "img": "dream_sail/04.webp"
+            "img": "dream_sail/04.webp",
+            "stampPos": "tl"
           },
           {
             "t": "關島－帛琉｜珊瑚海域靠港",
-            "img": "dream_sail/05.webp"
+            "img": "dream_sail/05.webp",
+            "stampPos": "tr",
+            "stampBold": true
           },
           {
             "t": "帛琉－雅浦｜學會看星定位",
-            "img": "dream_sail/06.webp"
+            "img": "dream_sail/06.webp",
+            "stampPos": "bl",
+            "stampBold": true
           },
           {
             "t": "雅浦－關島｜逆風航行",
-            "img": "dream_sail/07.webp"
+            "img": "dream_sail/07.webp",
+            "stampPos": "tl"
           },
           {
             "t": "關島－馬紹爾群島｜無風帶三日",
-            "img": "dream_sail/08.webp"
+            "img": "dream_sail/08.webp",
+            "stampPos": "tr"
           },
           {
             "t": "馬久羅－比基尼環礁｜歷史航段",
-            "img": "dream_sail/09.webp"
+            "img": "dream_sail/09.webp",
+            "stampPos": "tr"
           },
           {
             "t": "馬紹爾－吉里巴斯｜跨越日期變更線",
-            "img": "dream_sail/10.webp"
+            "img": "dream_sail/10.webp",
+            "stampPos": "tr"
           },
           {
             "t": "吉里巴斯－大溪地｜最長無陸地航段",
-            "img": "dream_sail/11.webp"
+            "img": "dream_sail/11.webp",
+            "stampPos": "tr"
           },
           {
             "t": "大溪地－波拉波拉｜潟湖泊船",
-            "img": "dream_sail/12.webp"
+            "img": "dream_sail/12.webp",
+            "stampPos": "tr"
           },
           {
             "t": "波拉波拉－庫克群島｜信風航行",
-            "img": "dream_sail/13.webp"
+            "img": "dream_sail/13.webp",
+            "stampPos": "tl"
           },
           {
             "t": "庫克群島－東加｜遇見座頭鯨",
-            "img": "dream_sail/14.webp"
+            "img": "dream_sail/14.webp",
+            "stampPos": "tr"
           },
           {
             "t": "東加－斐濟｜島國補給",
-            "img": "dream_sail/15.webp"
+            "img": "dream_sail/15.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "斐濟－薩摩亞｜南太平洋星空",
-            "img": "dream_sail/16.webp"
+            "img": "dream_sail/16.webp",
+            "stampPos": "tr"
           },
           {
             "t": "薩摩亞－夏威夷｜赤道穿越儀式",
-            "img": "dream_sail/17.webp"
+            "img": "dream_sail/17.webp",
+            "stampPos": "tl",
+            "stampBold": true
           },
           {
             "t": "夏威夷－中途島｜北太平洋航段",
-            "img": "dream_sail/18.webp"
+            "img": "dream_sail/18.webp",
+            "stampPos": "tr"
           },
           {
             "t": "中途島－阿留申｜進入冷水海域",
-            "img": "dream_sail/19.webp"
+            "img": "dream_sail/19.webp",
+            "stampPos": "tr"
           },
           {
             "t": "夏威夷－舊金山｜橫越太平洋完成",
-            "img": "dream_sail/20.webp"
+            "img": "dream_sail/20.webp",
+            "stampPos": "tl"
           }
         ]
       },
@@ -4425,83 +4558,104 @@
         "milestones": [
           {
             "t": "寫下學校相信的十條教育原則",
-            "img": "dream_school/01.webp"
+            "img": "dream_school/01.webp",
+            "stampPos": "tl"
           },
           {
             "t": "召集第一批共同創辦教師",
-            "img": "dream_school/02.webp"
+            "img": "dream_school/02.webp",
+            "stampPos": "tr"
           },
           {
             "t": "成立家長與社區諮詢小組",
-            "img": "dream_school/03.webp"
+            "img": "dream_school/03.webp",
+            "stampPos": "tr"
           },
           {
             "t": "找到可改造的閒置校舍",
-            "img": "dream_school/04.webp"
+            "img": "dream_school/04.webp",
+            "stampPos": "tl"
           },
           {
             "t": "簽下校舍十年使用合約",
-            "img": "dream_school/05.webp"
+            "img": "dream_school/05.webp",
+            "stampPos": "tl"
           },
           {
             "t": "完成校園安全與無障礙改造",
-            "img": "dream_school/06.webp"
+            "img": "dream_school/06.webp",
+            "stampPos": "tl"
           },
           {
             "t": "設計第一版跨領域課程",
-            "img": "dream_school/07.webp"
+            "img": "dream_school/07.webp",
+            "stampPos": "tl"
           },
           {
             "t": "通過實驗教育審議",
-            "img": "dream_school/08.webp"
+            "img": "dream_school/08.webp",
+            "stampPos": "tr"
           },
           {
             "t": "建立獎助學金制度",
-            "img": "dream_school/09.webp"
+            "img": "dream_school/09.webp",
+            "stampPos": "tr"
           },
           {
             "t": "第一批十二位學生報到",
-            "img": "dream_school/10.webp"
+            "img": "dream_school/10.webp",
+            "stampPos": "tr",
+            "stampBold": true
           },
           {
             "t": "完成第一場學生自主專題展",
-            "img": "dream_school/11.webp"
+            "img": "dream_school/11.webp",
+            "stampPos": "br"
           },
           {
             "t": "建立戶外與社區學習基地",
-            "img": "dream_school/12.webp"
+            "img": "dream_school/12.webp",
+            "stampPos": "tl"
           },
           {
             "t": "第一位海外交換學生出發",
-            "img": "dream_school/13.webp"
+            "img": "dream_school/13.webp",
+            "stampPos": "tl"
           },
           {
             "t": "第一屆學生完成公共服務計畫",
-            "img": "dream_school/14.webp"
+            "img": "dream_school/14.webp",
+            "stampPos": "tl"
           },
           {
             "t": "建立教師共學與研究制度",
-            "img": "dream_school/15.webp"
+            "img": "dream_school/15.webp",
+            "stampPos": "tl"
           },
           {
             "t": "第一屆畢業生成果發表",
-            "img": "dream_school/16.webp"
+            "img": "dream_school/16.webp",
+            "stampPos": "bl"
           },
           {
             "t": "畢業生完成升學或生涯選擇",
-            "img": "dream_school/17.webp"
+            "img": "dream_school/17.webp",
+            "stampPos": "tl"
           },
           {
             "t": "課程與財務接受第三方評估",
-            "img": "dream_school/18.webp"
+            "img": "dream_school/18.webp",
+            "stampPos": "tl"
           },
           {
             "t": "學校營運達到收支平衡",
-            "img": "dream_school/19.webp"
+            "img": "dream_school/19.webp",
+            "stampPos": "tl"
           },
           {
             "t": "把辦學方法開源分享給其他學校",
-            "img": "dream_school/20.webp"
+            "img": "dream_school/20.webp",
+            "stampPos": "bl"
           }
         ]
       },
@@ -4520,83 +4674,103 @@
         "milestones": [
           {
             "t": "召開家族使命共識會議",
-            "img": "dream_found/01.webp"
+            "img": "dream_found/01.webp",
+            "stampPos": "br"
           },
           {
             "t": "完成基金會章程與治理原則",
-            "img": "dream_found/02.webp"
+            "img": "dream_found/02.webp",
+            "stampPos": "tr"
           },
           {
             "t": "設立獨立董事與利益衝突制度",
-            "img": "dream_found/03.webp"
+            "img": "dream_found/03.webp",
+            "stampPos": "tr"
           },
           {
             "t": "完成第一筆原始捐贈",
-            "img": "dream_found/04.webp"
+            "img": "dream_found/04.webp",
+            "stampPos": "tl"
           },
           {
             "t": "偏鄉課輔據點開張",
-            "img": "dream_found/05.webp"
+            "img": "dream_found/05.webp",
+            "stampPos": "tr"
           },
           {
             "t": "清寒學生獎學金首度發放",
-            "img": "dream_found/06.webp"
+            "img": "dream_found/06.webp",
+            "stampPos": "br"
           },
           {
             "t": "食物銀行與在地小農合作",
-            "img": "dream_found/07.webp"
+            "img": "dream_found/07.webp",
+            "stampPos": "tr"
           },
           {
             "t": "長者共餐據點啟用",
-            "img": "dream_found/08.webp"
+            "img": "dream_found/08.webp",
+            "stampPos": "bl"
           },
           {
             "t": "弱勢家庭急難救助計畫",
-            "img": "dream_found/09.webp"
+            "img": "dream_found/09.webp",
+            "stampPos": "bl"
           },
           {
             "t": "青年返鄉創業支持計畫",
-            "img": "dream_found/10.webp"
+            "img": "dream_found/10.webp",
+            "stampPos": "tr"
           },
           {
             "t": "身心障礙者職能培訓計畫",
-            "img": "dream_found/11.webp"
+            "img": "dream_found/11.webp",
+            "stampPos": "br"
           },
           {
             "t": "兒少心理健康支持計畫",
-            "img": "dream_found/12.webp"
+            "img": "dream_found/12.webp",
+            "stampPos": "tr"
           },
           {
             "t": "環境復育與植樹計畫",
-            "img": "dream_found/13.webp"
+            "img": "dream_found/13.webp",
+            "stampPos": "tr"
           },
           {
             "t": "災害緊急應變基金成立",
-            "img": "dream_found/14.webp"
+            "img": "dream_found/14.webp",
+            "stampPos": "tr"
           },
           {
             "t": "建立透明的年度影響力報告",
-            "img": "dream_found/15.webp"
+            "img": "dream_found/15.webp",
+            "stampPos": "bl"
           },
           {
             "t": "導入外部財務與成效稽核",
-            "img": "dream_found/16.webp"
+            "img": "dream_found/16.webp",
+            "stampPos": "tr"
           },
           {
             "t": "與其他基金會共同投資社會方案",
-            "img": "dream_found/17.webp"
+            "img": "dream_found/17.webp",
+            "stampPos": "br"
           },
           {
             "t": "培養下一代家族公益委員",
-            "img": "dream_found/18.webp"
+            "img": "dream_found/18.webp",
+            "stampPos": "tr"
           },
           {
             "t": "基金孳息可支應年度計畫",
-            "img": "dream_found/19.webp"
+            "img": "dream_found/19.webp",
+            "stampPos": "bl"
           },
           {
             "t": "基金會不依賴創辦人仍能永續運作",
-            "img": "dream_found/20.webp"
+            "img": "dream_found/20.webp",
+            "stampPos": "tr"
           }
         ]
       }

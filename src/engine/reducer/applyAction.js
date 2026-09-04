@@ -1667,6 +1667,7 @@ E.landing = function(S,p,space){
       if(dream && dream.category===space.category){
         p.atDreamSite = true;
         p.dreamProgress++; p.stats.freeProgress++;
+        E.logDreamPoint(S,p,p.dreamProgress,false);  // S31：寫進夢想相簿
         E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:false,
           milestone:E.dreamMilestone(S,p,p.dreamProgress),
           milestoneImg:E.dreamMilestoneImg(S,p,p.dreamProgress),   // S24：全服公告要配圖
@@ -3645,6 +3646,16 @@ E.dreamMilestone = function(S,p,n){ return E.msText(E.dreamMilestoneRaw(S,p,n));
    介面拿到 null 就走純文字，與 S23 之前完全一樣。 */
 E.dreamMilestoneImg = function(S,p,n){ return E.msImg(E.dreamMilestoneRaw(S,p,n)); };
 
+/* S31：把這一點記進夢想相簿。相簿要有時間軸才有紀念價值——
+   「第 34 輪，你站上了南湖大山」比單純一張圖強得多。
+   郵戳位置（stampPos）與濃印旗標（stampBold）在里程碑資料上，離線算好，執行期不分析圖片。 */
+E.logDreamPoint = function(S, p, n, paid){
+  var raw = E.dreamMilestoneRaw(S,p,n) || {};
+  if(!p.dreamLog) p.dreamLog = [];
+  p.dreamLog.push({ n:n, turn:S.turnNumber, ms:E.msText(raw)||"", img:E.msImg(raw)||null,
+                    pos:raw.stampPos||"tr", bold:!!raw.stampBold, paid:!!paid });
+};
+
 /* v0.2 §1：購點（每回合限 1 點、價格 base×n、限現金） */
 /* S28：圓夢路上的技能兌現（各一次，Brian 裁示）。
    ① 水上類夢想（帆船、潛點）＋ 水域安全技能（游泳／CPR）：抵減一次進度費用——
@@ -3701,6 +3712,7 @@ E.buyDreamProgress = function(S,p){
   E.dreamSkillPerk(S,p,base,true);            // 確定買得起才動用一次性加成
   p.dreamProgress++; p.dreamBuyCount++; p.stats.paidProgress++;
   p.boughtProgressThisTurn=true;
+  E.logDreamPoint(S,p,p.dreamProgress,true);        // S31：寫進夢想相簿
   ledger.post(S,p,"投入圓夢：買下一段進度",[{account:"CASH",delta:-price,label:"圓夢支出"}],{eduTags:["dream"]});
   E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:true,
     milestone:E.dreamMilestone(S,p,p.dreamProgress),

@@ -176,7 +176,9 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       ui.broadcast("配圖標題","配圖副標","good",99999,"dream_peaks/01.webp");
       const img=host.querySelector("img");
       A(img,"帶圖時應有 <img>");
-      A(/assets\/dreams\/dream_peaks\/01\.webp$/.test(img.getAttribute("src")),"src 應指向資料夾，實得 "+img.getAttribute("src"));
+      // S31：公告改用 720 寬的縮圖（約 35KB／張），原圖只在相簿點開放大時才載。
+      A(/assets\/dreams\/thumb\/dream_peaks\/01\.webp$/.test(img.getAttribute("src")),
+        "公告的 src 應指向縮圖資料夾，實得 "+img.getAttribute("src"));
       A(img.previousSibling===null,"圖應排在標題【上方】");
       A(/配圖標題/.test(host.textContent),"文字仍要在（圖是加分，不是取代）");
       host.innerHTML="";

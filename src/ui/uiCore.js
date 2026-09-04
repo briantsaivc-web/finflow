@@ -230,6 +230,7 @@ ui.startCore = function(seed, config, modules, players, opts){
   ui.S = E.newGame({ seed:seed, config:config, modules:modules, players:players });
   E.beginTurn(ui.S);
   $("app").classList.remove("hide");
+  if(ui.preloadDreamImgs) ui.preloadDreamImgs(ui.S);   // S31：先把本局路線的圖抓下來，公告才不會來不及出圖
   ui.render(); ui.tick();
   if(!opts.noRules) ui.showRules(true);
 };
@@ -814,6 +815,19 @@ ui.showMall = function(){
   hd.appendChild(el("b","gold","現金 "+M(p.cash)+"　本輪可買 "+left+" 項"+
     (myTurn ? "" : (offTurnOk ? "（不必等自己的回合）" : "（現在只能看——買東西要等自己的回合）"))));
   box.appendChild(hd);
+  /* S31：把進修放進商城的第一排——它是這個畫面裡最重要、也最容易被忽略的一種消費。 */
+  if(S.enabledModules.indexOf("M8")>=0 && (E.cfg(S,"skillPerGame")||0)>0){
+    var sbRow=el("div"); sbRow.style.cssText="display:flex;gap:8px;margin:6px 0 2px";
+    var sbA=el("button","act"); sbA.style.flex="1"; sbA.textContent="🎓 進修商城（學技能）";
+    sbA.onclick=function(){ ui.showSkillMenu(p); };
+    if(p.learning){ sbA.disabled=true; sbA.title="你正在進修，時間排不開"; }
+    sbRow.appendChild(sbA);
+    var sbB=el("button","act"); sbB.style.flex="1";
+    sbB.textContent="🎓 技能證書牆（"+Object.keys(p.skills||{}).length+"）";
+    sbB.onclick=function(){ ui.showSkillWall(p.id); };
+    sbRow.appendChild(sbB);
+    box.appendChild(sbRow);
+  }
   box.appendChild(el("div","sub","花錢買的不只是東西——進修、健康、保險、人情與挑戰，都會回到你的生活與帳本上。"+
     "同一件事重複做，幸福感會遞減（第二次剩一半、之後歸零），而且要隔幾輪才能再來一次。"+
     (canAct?"":"　（"+(p.bankrupt?"破產程序中":"先把手上的決策或記帳處理完")+"）")));
@@ -981,7 +995,7 @@ ui.broadcast = function(title, sub, tone, ms, imgFile){
   var im = imgFile ? ui.dreamImgEl(imgFile,
     "width:100%;aspect-ratio:16/9;max-height:38vh;object-fit:cover;"+
     "border-radius:8px;display:block;margin-bottom:8px") : null;
-  if(im) bc.appendChild(im);
+  if(im){ im.src = ui.dreamThumbSrc(imgFile) || im.src; bc.appendChild(im); }   // S31：公告用縮圖
   bc.appendChild(el("div","ttl",title));
   if(sub) bc.appendChild(el("div","sub",sub));
   host.innerHTML="";
@@ -989,7 +1003,19 @@ ui.broadcast = function(title, sub, tone, ms, imgFile){
   var kill=function(){ if(bc.parentNode) bc.parentNode.removeChild(bc); };
   bc.onclick=kill;
   clearTimeout(ui._bcT);
-  ui._bcT=setTimeout(kill, ms||5200);
+  /* S31：實測回饋——「網路慢時圖還沒出來，畫面就關了」。
+     原本是一叫就起算，完全不等圖。改成「圖載到才開始倒數」，
+     但設 2.5 秒上限：真的載不到就先用純文字版照常倒數，不讓公告卡在畫面上。 */
+  var started=false;
+  var startT=function(){ if(started) return; started=true;
+    clearTimeout(ui._bcT); ui._bcT=setTimeout(kill, ms||5200); };
+  if(im && !im.complete){
+    im.addEventListener("load", startT);
+    im.addEventListener("error", startT);
+    ui._bcT=setTimeout(startT, 2500);       // 上限：等再久也要開始跑
+  } else {
+    startT();
+  }
 };
 
 // 八期：完整系統訊息（最多 40 則）
@@ -2928,8 +2954,17 @@ ui.showPassiveBreakdown = function(p){
 ui.showSkillMenu = function(p){
   var S=ui.S;
   var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="560px";
-  box.appendChild(el("h2",null,"📖 進修（自己找資源）"));
-  box.appendChild(el("div","flavor","自己報名的課全額付費，還要多花時間找資源——但你想學什麼由自己決定。同時只能學一項。"));
+  /* S31：改名「進修商城」並搬進人生商城的動線——進修本來就是一種消費決策，
+     跟保險、健康、人情放在同一個地方，玩家才會意識到「錢要花在哪」是同一題。 */
+  var hdS=el("div"); hdS.style.cssText="display:flex;justify-content:space-between;align-items:baseline;gap:10px";
+  hdS.appendChild(el("h2",null,"🎓 進修商城"));
+  var nHave=Object.keys(p.skills||{}).length;
+  var wallBtn=el("button","mini"); wallBtn.textContent="🎓 我的技能證書牆（"+nHave+"）";
+  wallBtn.onclick=function(){ ui.showSkillWall(p.id); };
+  hdS.appendChild(wallBtn);
+  box.appendChild(hdS);
+  box.appendChild(el("div","flavor","自己報名的課全額付費，還要多花時間找資源——但你想學什麼由自己決定。同時只能學一項。"+
+    "　現金 "+M(p.cash)));
   var inSample={}; (S.skillSample||[]).forEach(function(id){ inSample[id]=1; });
   var pool=(S.skillSample||[]).map(function(id){ return ns.content.byId[id]; })
     .filter(function(c){ return c && !(p.skills[c.id] && !p.skills[c.id].decayed); });
@@ -2971,7 +3006,8 @@ ui.showSkillMenu = function(p){
     var offHd=el("div","flavor");
     offHd.style.cssText="margin-top:12px;color:var(--tx3);font-size:12px";
     offHd.textContent="這一局沒有開的課（"+offSample.length+" 門）——每局的技能牌是抽樣的，"+
-      "想學的不一定開得成，這本身就是現實的一部分。";
+      "想學的不一定開得成。這不是你做錯什麼，是機會本來就有時候不來："+
+      "有些準備這輩子用不上，也有些課你想上的時候剛好沒開。";
     box.appendChild(offHd);
     var offGrid=el("div"); offGrid.style.cssText="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px";
     offSample.forEach(function(sc){
@@ -2979,10 +3015,229 @@ ui.showSkillMenu = function(p){
       chip.style.cssText="border:1px dashed var(--line);border-radius:var(--r);padding:5px 8px;"+
         "font-size:12px;color:var(--tx3);opacity:.65";
       chip.textContent=sc.title+"（本局沒開）";
-      chip.title=(sc.hint||"")+"　學費 "+M(sc.cost||0);
+      chip.title=(sc.hint||"")+"　學費 "+M(sc.cost||0)+"　學 "+(sc.turns||0)+" 輪";
       offGrid.appendChild(chip);
     });
     box.appendChild(offGrid);
+  }
+  var o=el("div","opts"); o.style.marginTop="10px";
+  o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+
+
+/* ==================== S31：夢想相簿・郵戳・進修商城・技能牆 ==================== */
+
+/* 縮圖：公告與相簿列表用 720 寬的版本（約 35KB／張），原圖只在點開放大時才載。
+   縮圖不存在時 <img> 的 onerror 會把元素移除，介面自動退回純文字——與原本一樣。 */
+ui.dreamThumbSrc = function(file){
+  var s = ui.dreamImgSrc(file); if(!s) return null;
+  var base = ui.assetBase();
+  return (s.indexOf(base)===0) ? (base+"thumb/"+s.slice(base.length)) : s;
+};
+
+/* 開局預載：把本局每位玩家路線上的圖先抓下來（縮圖，最多 4 人 × dreamCost 張）。
+   純背景載入、不擋畫面、失敗也無所謂——目的只是讓圓夢公告一定來得及出圖。 */
+ui.preloadDreamImgs = function(S){
+  try{
+    if(!S || !S.players) return;
+    var need = (S.config && S.config.dreamCost) || 5, seen = {};
+    S.players.forEach(function(p){
+      for(var n=1; n<=need; n++){
+        var f = E.dreamMilestoneImg ? E.dreamMilestoneImg(S,p,n) : null;
+        if(!f || seen[f]) continue;
+        seen[f]=1;
+        var im=new Image(); im.decoding="async"; im.src=ui.dreamThumbSrc(f);
+      }
+    });
+  }catch(e){}
+};
+
+/* S31：郵戳。整個是 SVG——不改圖檔、解析度無限、換文案零成本。
+   紅印「已完成」帶墨色不均（feTurbulence 位移＋鏤空遮罩）；
+   金章「圓滿」是勳章質感，刻意不做墨痕。位置由里程碑資料的 stampPos 決定（離線算好）。 */
+ui._stampDefs = function(){
+  if(document.getElementById("ffStampDefs")) return;
+  var d=document.createElement("div");
+  d.id="ffStampDefs"; d.style.cssText="position:absolute;width:0;height:0;overflow:hidden";
+  d.innerHTML='<svg width="0" height="0"><defs>'
+   +'<filter id="ffInk"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" seed="11" result="n"/>'
+   +'<feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G"/></filter>'
+   +'<filter id="ffInk2"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="4" seed="29" result="n"/>'
+   +'<feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>'
+   +'<filter id="ffGrain"><feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="4" seed="5" result="t"/>'
+   +'<feColorMatrix in="t" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.25 0 0 0 -0.18" result="m"/>'
+   +'<feComposite in="SourceGraphic" in2="m" operator="in"/></filter>'
+   +'<linearGradient id="ffGold" x1="0" y1="0" x2="0.3" y2="1">'
+   +'<stop offset="0" stop-color="#f7dd8f"/><stop offset="0.42" stop-color="#e0b23f"/>'
+   +'<stop offset="0.62" stop-color="#c9962c"/><stop offset="1" stop-color="#f0cf6e"/></linearGradient>'
+   +'</defs></svg>';
+  document.body.appendChild(d);
+};
+ui._starRing = function(n, r, sz){
+  var o="";
+  for(var i=0;i<n;i++){
+    var a=(i/n)*Math.PI*2-Math.PI/2;
+    var x=(100+Math.cos(a)*r).toFixed(1), y=(100+Math.sin(a)*r).toFixed(1);
+    o+='<g transform="translate('+x+','+y+') rotate('+((i/n)*360).toFixed(1)+') scale('+sz+')">'
+     + '<path d="M0,-10 L2.9,-3.1 L10.5,-3.1 L4.4,1.2 L6.7,8.6 L0,4.1 L-6.7,8.6 L-4.4,1.2 L-10.5,-3.1 L-2.9,-3.1 Z"/></g>';
+  }
+  return o;
+};
+/* opts: {pos:"tl|tr|bl|br", bold:true, medal:true, rot:deg} */
+ui.stampEl = function(txt, opts){
+  opts=opts||{}; ui._stampDefs();
+  var medal=!!opts.medal, bold=!!opts.bold;
+  var pos = medal ? "tr" : (opts.pos||"tr");
+  var rot = (opts.rot!==undefined) ? opts.rot : (medal ? -6 : ([-13,9,-7,11,-10][(txt.length+pos.length)%5]));
+  var op  = medal ? 0.95 : (bold ? 0.90 : 0.78);
+  var ink = "#c02f22";
+  var body;
+  if(medal){
+    body='<circle cx="100" cy="100" r="95" fill="none" stroke="url(#ffGold)" stroke-width="8"/>'
+       + '<circle cx="100" cy="100" r="86" fill="none" stroke="url(#ffGold)" stroke-width="2.5" opacity=".85"/>'
+       + '<circle cx="100" cy="100" r="63" fill="none" stroke="url(#ffGold)" stroke-width="6"/>'
+       + '<g fill="url(#ffGold)">'+ui._starRing(16,79,0.92)+'</g>'
+       + '<text x="100" y="119" text-anchor="middle" font-size="47" font-weight="900" letter-spacing="2" fill="url(#ffGold)">'+txt+'</text>';
+  } else {
+    body='<g filter="url(#ffGrain)">'
+       + '<g filter="url(#ffInk)" fill="'+ink+'">'
+       + '<circle cx="100" cy="100" r="95" fill="none" stroke="'+ink+'" stroke-width="7"/>'
+       + '<circle cx="100" cy="100" r="64" fill="none" stroke="'+ink+'" stroke-width="5.5"/>'
+       + ui._starRing(14,80,0.9)+'</g>'
+       + '<g filter="url(#ffInk2)" fill="'+ink+'">'
+       + '<text x="100" y="118" text-anchor="middle" font-size="46" font-weight="900" letter-spacing="1">'+txt+'</text></g>'
+       + '</g>';
+  }
+  var w=el("div");
+  var POS={tl:"left:5%;top:8%", tr:"right:5%;top:8%", bl:"left:5%;bottom:16%", br:"right:5%;bottom:16%"};
+  w.style.cssText="position:absolute;pointer-events:none;"+(POS[pos]||POS.tr)
+    +";width:"+(medal?23:19)+"%;aspect-ratio:1;"
+    +"filter:drop-shadow(0 "+(medal?2:0)+"px "+(medal?5:2.5)+"px rgba(0,0,0,."+(medal?"6":"55")+"))";
+  w.innerHTML='<svg viewBox="0 0 200 200" style="width:100%;height:100%;transform:rotate('+rot+'deg);opacity:'+op+'">'+body+'</svg>';
+  return w;
+};
+
+/* ---------------------------- 夢想相簿 ---------------------------- */
+ui.showDreamAlbum = function(pid){
+  var S=ui.S; if(!S) return;
+  var p=S.players[pid!==undefined?pid:ui.myId()]; if(!p) return;
+  var dream=ns.content.byId[p.dreamCardId]||{};
+  var need=S.config.dreamCost||5;
+  var logByN={}; (p.dreamLog||[]).forEach(function(x){ logByN[x.n]=x; });
+
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="900px";
+  var hd=el("div"); hd.style.cssText="display:flex;justify-content:space-between;align-items:baseline;gap:10px";
+  hd.appendChild(el("h2",null,"📖 "+p.name+" 的夢想相簿"));
+  hd.appendChild(el("b","gold",(dream.name||"圓夢")+"　"+p.dreamProgress+" ／ "+need));
+  box.appendChild(hd);
+  box.appendChild(el("div","sub", p.dreamProgress>=need
+    ? "走完了。這一路上蓋的每一個章，都是你真的到過的地方。"
+    : "走到這裡。沒去成的那幾站也留著——那才是這一局真正的樣子。"));
+
+  var grid=el("div");
+  grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:10px;max-height:62vh;overflow-y:auto;padding-right:4px";
+  for(var n=1;n<=need;n++){
+    (function(n){
+      var got=logByN[n];
+      var raw=(E.dreamMilestoneRaw?E.dreamMilestoneRaw(S,p,n):null)||{};
+      var file=got?got.img:(E.msImg?E.msImg(raw):null);
+      var txt =got?got.ms :(E.msText?E.msText(raw):"");
+      var cell=el("div");
+      cell.style.cssText="position:relative;border-radius:10px;overflow:hidden;background:#0b0d11;"
+        +"border:1px solid "+(got?"rgba(201,162,77,.35)":"var(--line2)");
+      var im=file?ui.dreamImgEl(ui.dreamThumbSrc(file)===null?file:file,
+        "width:100%;display:block;aspect-ratio:16/9;object-fit:cover"+(got?"":";filter:grayscale(1) brightness(.42)")):null;
+      if(im){ im.src=ui.dreamThumbSrc(file)||im.src; cell.appendChild(im); }
+      else { var ph=el("div"); ph.style.cssText="aspect-ratio:16/9;display:flex;align-items:center;"
+             +"justify-content:center;color:var(--tx3);font-size:13px"; ph.textContent="（沒有圖）"; cell.appendChild(ph); }
+      if(got){
+        var last=(n>=need);
+        cell.appendChild(ui.stampEl(last?"圓滿":"已完成",
+          { pos:got.pos||"tr", bold:!!got.bold, medal:last }));
+      }
+      var cap=el("div");
+      cap.style.cssText="position:absolute;left:0;right:0;bottom:0;padding:7px 9px;font-size:12.5px;line-height:1.45;"
+        +"background:linear-gradient(transparent,rgba(0,0,0,.82))";
+      cap.innerHTML = got
+        ? ("<b>"+txt+"</b><br><span style='color:var(--gold)'>第 "+got.turn+" 輪"
+           + (got.paid?"　投入資金":"　踩到聖地・免費")+"</span>")
+        : ("<span style='color:var(--tx3)'>"+(txt||"—")+"</span><br><span style='color:var(--tx3)'>沒走到這裡</span>");
+      cell.appendChild(cap);
+      if(file && got){
+        cell.style.cursor="zoom-in";
+        cell.onclick=function(){ ui.showDreamPhoto(p,n,got); };
+      }
+      grid.appendChild(cell);
+    })(n);
+  }
+  box.appendChild(grid);
+  var o=el("div","opts"); o.style.marginTop="10px";
+  o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+// 點一格看原圖（大圖只在這裡才載，列表一律用縮圖）
+ui.showDreamPhoto = function(p, n, got){
+  var S=ui.S, need=S.config.dreamCost||5;
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="900px";
+  var wrap=el("div"); wrap.style.cssText="position:relative;border-radius:10px;overflow:hidden";
+  var im=ui.dreamImgEl(got.img,"width:100%;display:block;aspect-ratio:16/9;object-fit:cover");
+  if(im) wrap.appendChild(im);
+  wrap.appendChild(ui.stampEl(n>=need?"圓滿":"已完成",{pos:got.pos||"tr", bold:!!got.bold, medal:n>=need}));
+  box.appendChild(wrap);
+  box.appendChild(el("h2",null,got.ms||""));
+  box.appendChild(el("div","sub","第 "+got.turn+" 輪"+(got.paid?"　投入資金推進":"　踩到自己夢想類別的聖地，免費 +1")));
+  var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+/* ---------------------------- 技能證書牆 ---------------------------- */
+ui.showSkillWall = function(pid){
+  var S=ui.S; if(!S) return;
+  var p=S.players[pid!==undefined?pid:ui.myId()]; if(!p) return;
+  var ids=Object.keys(p.skills||{});
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="780px";
+  var hd=el("div"); hd.style.cssText="display:flex;justify-content:space-between;align-items:baseline";
+  hd.appendChild(el("h2",null,"🎓 "+p.name+" 的技能證書牆"));
+  hd.appendChild(el("b","gold", ids.length+" 張證書"));
+  box.appendChild(hd);
+  box.appendChild(el("div","sub","學過的東西不會不見。有些這一局派上了用場，有些沒有——"+
+    "但你不會事先知道哪一張會用到，那正是準備的意義。"));
+  if(!ids.length){
+    box.appendChild(el("div","edu","這一局還沒學成任何技能。"));
+  } else {
+    var g=el("div");
+    g.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px;max-height:58vh;overflow-y:auto;padding-right:4px";
+    ids.map(function(sid){ return {id:sid, c:ns.content.byId[sid]||{}, r:p.skills[sid]}; })
+       .sort(function(a,b){ return (a.r.learnedAt||0)-(b.r.learnedAt||0); })
+       .forEach(function(x){
+      var dec=!!x.r.decayed;
+      var pend=x.r.decayPendingUntil ? Math.max(0,x.r.decayPendingUntil-S.turnNumber) : 0;
+      var card=el("div");
+      card.style.cssText="position:relative;border-radius:10px;padding:12px 12px 10px;text-align:center;"
+        +"border:2px solid "+(dec?"rgba(160,150,130,.35)":"rgba(201,162,77,.55)")+";"
+        +"background:"+(dec?"rgba(120,115,105,.10)":"rgba(201,162,77,.10)")+";"
+        +(dec?"filter:sepia(.5) saturate(.6);opacity:.75;":"");
+      card.appendChild(el("div",null,dec?"📜":"🏅")).style.cssText="font-size:26px;line-height:1";
+      var t=el("div"); t.style.cssText="font-weight:800;font-size:13.5px;margin-top:5px;"
+        +(dec?"color:var(--tx2)":"color:var(--gold)");
+      t.textContent=x.c.title||x.id; card.appendChild(t);
+      var s2=el("div"); s2.style.cssText="font-size:11.5px;color:var(--tx3);margin-top:4px;line-height:1.5";
+      s2.innerHTML="第 "+(x.r.learnedAt||"?")+" 輪取得"
+        + (dec ? "<br><b style='color:var(--tx2)'>已過時（可半價更新）</b>"
+               : (pend? "<br><b style='color:var(--gold)'>"+pend+" 輪後過時</b>" : ""))
+        + (x.c.tier? "<br>"+({SMALL:"入門",MID:"中階",LARGE:"轉職型",HIGH:"高階"}[x.c.tier]||x.c.tier) : "");
+      card.appendChild(s2);
+      g.appendChild(card);
+    });
+    box.appendChild(g);
+    var used=p.stats.skillsUsed||0, missed=p.stats.skillMissed||0;
+    var ft=el("div","edu"); ft.style.marginTop="10px";
+    ft.textContent="這一局派上用場 "+used+" 次；因為沒準備而錯失 "+missed+" 次"
+      + ((p.stats.skillSavedTotal||0)>0 ? ("；技能帶來的價差 +"+M(p.stats.skillSavedTotal)) : "");
+    box.appendChild(ft);
   }
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));

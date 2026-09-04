@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.38.0-S31a", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.39.0-S31b", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -213,6 +213,7 @@ E.makePlayer = function(S, idx, pd){
     dcaPlans:[], divReinvest:{},
     baseSalary:0, salaryVolatility:prof.salaryVolatility||0,
     playerStage:"INNER", dreamCardId:pd.dreamCardId||null, dreamProgress:0, outerPos:0,
+    dreamLog:[],                 // S31：夢想相簿——每一點是第幾輪拿到的、那句話、那張圖
     graduatedAtTurn:null, freefallWarnings:0, dreamBuyCount:0, boughtProgressThisTurn:false, atDreamSite:false,
     virtues:{TEMPER:0,PRUDENCE:0,PARENTING:0,FILIAL:0}, virtueSpendTotal:0, virtueSavedTotal:0,
     professionEventDone:{}, stats:{ bkRight:0, bkWrong:0, passedOpps:0, optionalSeen:0,

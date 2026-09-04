@@ -14,3 +14,8 @@ dist/
 # 系統
 .DS_Store
 Thumbs.db
+
+# 備份副本不進版控（改檔前留的 原檔名.backup.日期）
+*.backup.*
+*.backup2.*
+*.bak.*

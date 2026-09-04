@@ -965,7 +965,19 @@ ui.showReport = function(){
   function renderDetail(p){
     detail.innerHTML="";
     // S16：實測回饋——有玩家會想回看整局。戰報每個分頁都給一個入口。
-    var rlBar=el("div"); rlBar.style.cssText="display:flex;justify-content:flex-end;margin-bottom:6px";
+    var rlBar=el("div"); rlBar.style.cssText="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-bottom:6px";
+    /* S31：回顧刻意分成三顆、不整合成一個入口——不是每個人對每一項都有興趣，
+       一目了然比多一層選單好找。 */
+    var abBtn=el("button","act"); abBtn.textContent="📖 "+p.name+" 的夢想相簿";
+    abBtn.title="這一局走過的每一站：那張圖、那句話、第幾輪到的";
+    abBtn.onclick=function(){ ui.showDreamAlbum(p.id); };
+    rlBar.appendChild(abBtn);
+    if(S.enabledModules.indexOf("M8")>=0){
+      var swBtn=el("button","act"); swBtn.textContent="🎓 技能證書牆";
+      swBtn.title="這一局學成的技能，以及有沒有派上用場";
+      swBtn.onclick=function(){ ui.showSkillWall(p.id); };
+      rlBar.appendChild(swBtn);
+    }
     var rlBtn=el("button","act"); rlBtn.textContent="📜 看 "+p.name+" 的每輪紀錄";
     rlBtn.title="這一局每一輪發生了什麼、五個科目各動了多少";
     rlBtn.onclick=function(){ ui.showRoundLog(p.id); };
