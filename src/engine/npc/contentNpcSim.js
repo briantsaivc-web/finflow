@@ -530,6 +530,13 @@ E.digitalOdds = function(S, p, card){
   var hitP =E.cfg(S,"digitalHitPct");          if(hitP===undefined)  hitP=0.15;
   var flopA=E.cfg(S,"digitalAmateurFlopPct");  if(flopA===undefined) flopA=0.6;
   var hitA =E.cfg(S,"digitalAmateurHitPct");   if(hitA===undefined)  hitA=0.05;
+  /* S29：卡片可以覆寫自己的起飛機率。理由是不同題材的分布真的不一樣——
+     AI 生成素材是「供給可以無限複製」，做白工的機率本來就該比開一門課高得多。
+     沒寫的卡完全沿用全域設定，行為與 S28 相同。 */
+  if(isFinite(pl.flopPct)) flopP=pl.flopPct;
+  if(isFinite(pl.hitPct))  hitP =pl.hitPct;
+  if(isFinite(pl.amateurFlopPct)) flopA=pl.amateurFlopPct;
+  if(isFinite(pl.amateurHitPct))  hitA =pl.amateurHitPct;
   return { pro:pro,
            threshold: Math.max(1, base + (pro?dPro:dAm)),
            flop: pro?flopP:flopA,
@@ -550,6 +557,9 @@ E.startDigital = function(S, p, card){
           progress:0, threshold:odds.threshold,
           pro:odds.pro, flopPct:odds.flop, hitPct:odds.hit,
           tier:null, baseIncome:util.r2((pl.baseIncome||0)*E.digitalIncomeMult(S)), monthlyCost:mc,
+          // S29：長尾型態——版稅型（寫完就在那裡）與訂閱／流量型（斷更就崩）不該共用同一個衰減率。
+          // 開張時鎖進這筆資產，之後調全域設定不會回頭改寫已經開張的（與 flopPct/hitPct 同一個作法）。
+          decayRate: isFinite(pl.decayRate) ? pl.decayRate : null,
           takeoffIncome:0, monthlyIncome:0, startedAt:S.turnNumber,
           lastTendTurn:S.turnNumber, assetInstanceId:null, dead:false };
   p.digitalAssets.push(d);
@@ -655,7 +665,9 @@ E.tickDigital = function(S, p){
 
     // 已起飛：停更衰減，重新經營則慢慢回升（回得來，但比當初慢得多）
     if(!tending){
-      var dr=E.cfg(S,"digitalDecayRate"); if(dr===undefined) dr=0.85;
+      var dr=(d.decayRate!==null && d.decayRate!==undefined && isFinite(d.decayRate))
+             ? d.decayRate : E.cfg(S,"digitalDecayRate");
+      if(dr===undefined || !isFinite(dr)) dr=0.85;
       var deadPct=E.cfg(S,"digitalDeadPct"); if(deadPct===undefined) deadPct=0.15;
       d.monthlyIncome=util.r2((d.monthlyIncome||0)*dr);
       if(d.monthlyIncome <= util.r2((d.takeoffIncome||0)*deadPct)){

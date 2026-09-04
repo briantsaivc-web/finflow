@@ -2244,10 +2244,26 @@ ui.decisionCard = function(S,p,d){
     kvD.appendChild(el("div","v num",odD.threshold+" 輪（要連續顧）"));
     kvD.appendChild(el("div","k","做起來的話，每月大約"));
     kvD.appendChild(el("div","v num pos","+"+M(pdg.baseIncome||0)+" 上下"));
+    /* S29：長尾型態。版稅型（寫完就在那裡）與訂閱／流量型（斷更就崩）在現實裡是兩件事，
+       而玩家最需要知道的就是「我停下來之後，這東西還在不在」。 */
+    var drD = isFinite(pdg.decayRate) ? pdg.decayRate : E.cfg(S,"digitalDecayRate");
+    if(drD===undefined || !isFinite(drD)) drD = 0.85;
+    var typeD = drD>=1 ? "📚 版稅型——停下來也不會歸零"
+              : drD>=0.9 ? "🗂 慢熱型——放著還有，只是不會長大"
+              : drD<=0.78 ? "📈 流量型——斷更掉得最快"
+                          : "🔁 訂閱型——不維護就會退訂";
+    kvD.appendChild(el("div","k","停下來之後"));
+    kvD.appendChild(el("div","v", typeD+"（每輪 ×"+drD+"）"));
     card.appendChild(kvD);
     // S9：像理賠明細那樣，把「有沒有這門手藝」的差別攤開來給玩家看
-    var skD = dgc.requires ? ns.content.byId[dgc.requires] : null;
-    var skN = skD ? skD.title : "這門手藝";
+    // S29：requires 也接受家族（family:FINANCE），要翻成看得懂的名字
+    var FAMN={FINANCE:"財務／法律類的底子", TECH:"技術類的底子", COMMUNICATION:"表達類的底子",
+              HANDS:"動手做的底子", SAFETY:"安全類的技能", CREATIVE:"創作類的底子",
+              LANGUAGE:"語言能力", MOBILITY:"機動力", CAREER:"轉職型專長", LEGAL:"法遵專業"};
+    var reqD = dgc.requires || "";
+    var skD = (reqD && reqD.indexOf("family:")!==0) ? ns.content.byId[reqD] : null;
+    var skN = skD ? skD.title
+            : (reqD.indexOf("family:")===0 ? (FAMN[reqD.slice(7)]||"這門手藝") : "這門手藝");
     var cmpD=el("div","claimBox");
     cmpD.appendChild(el("div","ttl", odD.pro
       ? "✅ 你會「"+skN+"」——這是你的本行"

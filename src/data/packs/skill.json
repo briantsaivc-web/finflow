@@ -841,7 +841,7 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "線上課程：看懂一張財報",
+        "title": "開設線上課程：看懂一張財報",
         "requires": "SKL_BOOK",
         "flavor": "錄了十二支影片，剪到凌晨三點。",
         "eduNote": "課程上架那天不是終點，是長尾的第一天——沒人續作的課會被演算法忘記。",
@@ -858,7 +858,7 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "YouTube 頻道：自己動手修",
+        "title": "經營 YouTube 頻道：自己動手修",
         "requires": "SKL_PLUMB",
         "flavor": "手機架在水槽旁邊，一邊修一邊講。",
         "eduNote": "實作型內容的長尾最長——因為壞掉的東西每年都會壞。",
@@ -875,16 +875,17 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "圖庫授權與線上攝影課",
+        "title": "經營圖庫授權與線上攝影課",
         "requires": "SKL_PHOTO",
         "flavor": "上傳了四百張，前三個月賣出兩張。",
-        "eduNote": "授權型收入前期幾乎是零，這是它勸退大多數人的方式。",
+        "eduNote": "圖庫是慢熱的版稅——上架那天不會有事發生，但三年後它還在替你收錢。",
         "hint": "要有拿得出手的作品",
         "payload": {
           "cost": 22,
           "monthlyCost": 1,
           "threshold": 6,
-          "baseIncome": 20
+          "baseIncome": 20,
+          "decayRate": 0.95
         }
       },
       {
@@ -892,7 +893,7 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "自動化小工具訂閱制",
+        "title": "開發自動化小工具，採訂閱收費",
         "requires": "SKL_CODE",
         "flavor": "本來只是自己要用，朋友問能不能也給他一份。",
         "eduNote": "訂閱制的甜蜜與詛咒是同一件事：你得一直維護它。",
@@ -901,7 +902,8 @@
           "cost": 35,
           "monthlyCost": 3,
           "threshold": 4,
-          "baseIncome": 24
+          "baseIncome": 24,
+          "decayRate": 0.8
         }
       },
       {
@@ -909,7 +911,7 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "知識型電子報訂閱制",
+        "title": "經營知識型電子報，採訂閱收費",
         "requires": "SKL_PRESENT",
         "flavor": "每週寄一封，寫的時候覺得沒人看，退訂的時候才知道有。",
         "eduNote": "訂閱制的收入看起來最像被動收入，其實最不被動——你得一直交稿。",
@@ -918,7 +920,8 @@
           "cost": 12,
           "monthlyCost": 2,
           "threshold": 5,
-          "baseIncome": 15
+          "baseIncome": 15,
+          "decayRate": 0.8
         }
       },
       {
@@ -926,9 +929,9 @@
         "deck": "DIGITAL",
         "kind": "DIGITAL",
         "moduleReq": "M8",
-        "title": "西語教學 Podcast",
+        "title": "主持第二外語教學 Podcast",
         "requires": "SKL_SPANISH",
-        "flavor": "每集十五分鐘，錄音室是你家衣櫃。",
+        "flavor": "每週一集，錄到第三十集才開始有人留言。",
         "eduNote": "語言內容的觀眾換得快，但每一批新學習者都會從第一集開始聽。",
         "hint": "要真的會講，不能只是會查",
         "payload": {
@@ -936,6 +939,138 @@
           "monthlyCost": 1,
           "threshold": 5,
           "baseIncome": 14
+        }
+      },
+      {
+        "id": "DIG_SHORTS",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "經營短影音帳號：IG 與 YouTube Shorts",
+        "requires": "SKL_PHOTO",
+        "flavor": "第一支破十萬那天，你以為找到路了。第二支只有三百。",
+        "eduNote": "流量型收入是租來的，不是你的——演算法改一次規則，收入就換一個數字。所有長尾裡，斷更掉得最快的就是這一種。",
+        "hint": "會拍會剪的人爬得快；但誰都可以開帳號",
+        "payload": {
+          "cost": 8,
+          "monthlyCost": 2,
+          "threshold": 6,
+          "baseIncome": 20,
+          "decayRate": 0.75
+        }
+      },
+      {
+        "id": "DIG_SHOP",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "經營跨境代購與自有品牌小店",
+        "requires": "SKL_NEGO",
+        "flavor": "不用囤貨，下單才叫貨。聽起來零風險。",
+        "eduNote": "一件代發把風險換成了毛利——你賺的是差價，平台抽一刀、供應商再抽一刀。營業額不等於利潤。",
+        "hint": "跟供應商殺得下價、跟客人溝通得了的人做得順",
+        "payload": {
+          "cost": 25,
+          "monthlyCost": 3,
+          "threshold": 5,
+          "baseIncome": 22
+        }
+      },
+      {
+        "id": "DIG_GPT",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "開發 AI 工具並上架 GPTs 市集",
+        "requires": "SKL_AI_ARCH",
+        "flavor": "週末兩天做出來，星期一就有人付錢。",
+        "eduNote": "AI 讓你三天做出以前三個月的東西——也讓別人三天做出一樣的東西。起飛最快的，退燒也最快。",
+        "hint": "懂架構的人做得深；不懂的人也做得出一個能動的版本",
+        "payload": {
+          "cost": 20,
+          "monthlyCost": 2,
+          "threshold": 3,
+          "baseIncome": 26,
+          "decayRate": 0.78,
+          "flopPct": 0.4,
+          "hitPct": 0.18
+        }
+      },
+      {
+        "id": "DIG_AIART",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "產出 AI 生成素材，上架圖庫市集",
+        "requires": "SKL_PHOTO",
+        "flavor": "一個下午產出四百張，上架三個月賣掉六張。",
+        "eduNote": "當供給可以無限複製，價格就會往邊際成本走。AI 素材賺的不是稀缺，是速度——而速度很快就不稀缺了。",
+        "hint": "有美感的人選得出哪張能賣",
+        "payload": {
+          "cost": 8,
+          "monthlyCost": 1,
+          "threshold": 4,
+          "baseIncome": 12,
+          "flopPct": 0.55,
+          "hitPct": 0.08,
+          "amateurFlopPct": 0.7,
+          "amateurHitPct": 0.03
+        }
+      },
+      {
+        "id": "DIG_AIAGENCY",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "用 AI 幫小店做社群經營，收月費",
+        "requires": "SKL_AI_ARCH",
+        "flavor": "三家店的貼文，你一個下午排完整個月。",
+        "eduNote": "AI 讓一個人服務得了十家店。但客戶買的是結果，不是你用什麼工具——做不出結果，月費第一個被砍。",
+        "hint": "會把工具串起來的人，一個人做得了一個團隊的事",
+        "payload": {
+          "cost": 10,
+          "monthlyCost": 2,
+          "threshold": 4,
+          "baseIncome": 20,
+          "decayRate": 0.8
+        }
+      },
+      {
+        "id": "DIG_EBOOK",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "出版電子書，長期收版稅",
+        "requires": "SKL_PRESENT",
+        "flavor": "寫了半年，上架那天只有三個人買。第四年它還在賣。",
+        "eduNote": "版稅是最純粹的長尾：寫完就在那裡，不必每天餵它，斷更也不會歸零。代價是它不會突然長大——IP 的價值靠時間累積，不靠演算法。",
+        "hint": "說得清楚一件事的人寫得動",
+        "payload": {
+          "cost": 6,
+          "monthlyCost": 0,
+          "threshold": 4,
+          "baseIncome": 10,
+          "decayRate": 1,
+          "flopPct": 0.45,
+          "hitPct": 0.1
+        }
+      },
+      {
+        "id": "DIG_CIRCLE",
+        "deck": "DIGITAL",
+        "kind": "DIGITAL",
+        "moduleReq": "M8",
+        "title": "經營付費社群，提供線上諮詢",
+        "requires": "family:FINANCE",
+        "flavor": "一開始只有七個人，其中三個是朋友。",
+        "eduNote": "專業變現最短的一條路。但一對一的天花板是你的時間——把它做成一對多，它才會變成資產。",
+        "hint": "有財務或法律底子的人，講的話有人願意付費聽",
+        "payload": {
+          "cost": 10,
+          "monthlyCost": 2,
+          "threshold": 5,
+          "baseIncome": 24,
+          "decayRate": 0.8
         }
       }
     ],

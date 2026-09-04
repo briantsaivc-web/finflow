@@ -168,7 +168,10 @@ ui.handleEvents = function(evs){
         var up=e.delta>0;
         var line4=(up?"📈 ":"📉 ")+e.assetName+" 景氣調整 "+(up?"+":"")+M(e.delta)+"／月";
         ui.lastAct[e.playerId]={turn:ui.S.turnNumber, msg:line4};
-        if(e.playerId===ui.myId()) ui.toast(line4, up?"good":"warn", 4000);
+        // S29：景氣調整是廣播型資訊、不需要你當下處理，應該收進回合彙總而不是一則一則跳。
+        // 原本漏了 topic，於是 warn 這一類就繞過了 S18 的靜音規則（S18 測試容忍 2 則，
+        // 這一版牌堆一動就冒出第 3 則，才把這個洞照出來）。
+        if(e.playerId===ui.myId()) ui.toastSys(line4, up?"good":"warn", 4000);
         break; }
       case "CREDIT_RATING_CHANGED": {
         var S9=ui.S, p9=S9.players[e.playerId];
@@ -398,7 +401,8 @@ ui.handleEvents = function(evs){
           "目標："+(odr?odr.name:"圓夢")+"　需集滿 "+ui.S.config.dreamCost+" 點夢想進度　（第 "+ui.S.turnNumber+" 輪）","good",6000);
         break; }
       case "HOLDINGS_REVALUED":
-        if(e.playerId===ui.myId()) ui.toast("本月持股評價 "+(e.delta>=0?"+":"")+M(e.delta), e.delta>=0?"good":"warn"); break;
+        // S29：持股評價同上——純資訊，收進彙總
+        if(e.playerId===ui.myId()) ui.toastSys("本月持股評價 "+(e.delta>=0?"+":"")+M(e.delta), e.delta>=0?"good":"warn"); break;
       case "DREAM_PROGRESS": {
         if(!e.progress) break;
         var dn=nm(e.playerId), dcost=ui.S.config.dreamCost;
@@ -5203,12 +5207,15 @@ ns.selftest = {
       var suBuy=0, suHeld=0, origEv=E.ev;
       E.ev=function(tp,d){ if(tp==="ASSET_BOUGHT" && d && suCards[d.cardId]) suBuy++; return origEv.apply(this,arguments); };
       try{
-        for(var g3=0;g3<12;g3++){
+        // S29：樣本由 12 局放大到 30 局。牌堆一動（這一版加了 7 張數位資產）亂數序列就位移，
+        // 12 局的樣本會讓「有沒有買到新創」變成擲硬幣——實測 60 局買進 20 次（每 12 局約 4 次），
+        // 機制是好的，是樣本太小。放大樣本而不是放寬門檻，才驗得到真正的退化。
+        for(var g3=0;g3<30;g3++){
           var Ss=ns.sim.playOne(baseCfg(),mods,(9300+g3*7919)>>>0,lineup);
           Ss.players.forEach(function(z){ if(z.assets.some(function(a){return a.kind==="STARTUP";})) suHeld++; });
         }
       } finally { E.ev=origEv; }
-      assert(suBuy>=2,"12 局內電腦玩家應買得到新創（曾買進 "+suBuy+" 次／局終持有 "+suHeld+" 人次）");
+      assert(suBuy>=4,"30 局內電腦玩家應買得到新創（曾買進 "+suBuy+" 次／局終持有 "+suHeld+" 人次）");
       assert(tp>0,"電腦玩家會停利，落袋為安的統計應累計得到（實得 "+tp+" 次）");
 
       /* (d) 徽章稀有度：每張都要有，而且相對頭銜＝傳說 */
@@ -5361,17 +5368,26 @@ ns.selftest = {
       var modsD=["M1","M2","M3","M4","M6","M8"];
       // (a) 六種題材齊全，欄位皆合法
       var digAll=(ns.content.cards.DIGITAL||[]);
-      assert(digAll.length>=6,"數位資產應有六種題材，實得 "+digAll.length);
+      assert(digAll.length>=6,"數位資產題材數不足，實得 "+digAll.length);
       var badD=[];
       digAll.forEach(function(c){
         var pl=c.payload||{};
         ["cost","monthlyCost","threshold","baseIncome"].forEach(function(k){
           if(!isFinite(pl[k])) badD.push(c.id+" "+k); });
-        if(c.requires && !ns.content.byId[c.requires]) badD.push(c.id+" requires 指向不存在的技能");
+        // S29：requires 也接受家族（family:FINANCE），與 contentcheck 的規則一致
+        if(c.requires && c.requires.indexOf("family:")!==0 && !ns.content.byId[c.requires])
+          badD.push(c.id+" requires 指向不存在的技能");
       });
       assert(!badD.length,"數位資產欄位體檢："+badD.join("; "));
-      var reqs={}; digAll.forEach(function(c){ if(c.requires) reqs[c.requires]=1; });
-      assert(Object.keys(reqs).length===digAll.length,"每種題材應對應不同的技能，才不會擠在同一門手藝上");
+      /* S29：原本要求「每種題材各對應一個不同技能」（1:1）。牌堆擴到 13 張之後這條不再成立，
+         也不該成立——現實裡攝影底子同時吃圖庫、短影音、AI 素材三種題材。
+         真正要守的是：不要全部擠在同一門手藝上，而且手藝要夠分散。 */
+      var reqs={}; digAll.forEach(function(c){ if(c.requires) reqs[c.requires]=(reqs[c.requires]||0)+1; });
+      var keysD=Object.keys(reqs);
+      var maxOne=Math.max.apply(null,keysD.map(function(k){ return reqs[k]; }));
+      assert(keysD.length>=6,"數位資產應涵蓋至少 6 種不同的手藝，實得 "+keysD.length);
+      assert(maxOne<=3,"同一門手藝不該壟斷超過 3 種題材，實得 "+maxOne+"（"
+             +keysD.filter(function(k){return reqs[k]===maxOne;}).join("、")+"）");
 
       // (b) 沒技能也做得起來，但參數確實比較差
       var Sd=mkGame(6101,modsD), pd=Sd.players[0];
