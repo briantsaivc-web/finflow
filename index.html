@@ -710,7 +710,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.37.0-S30", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.38.0-S31a", date:"2026-09-04" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -8036,11 +8036,28 @@ ui.buildGameConfig = function(preset){
   return config;
 };
 // M12：共用開局核心（players 由呼叫端決定：單機＝你+NPC；多人＝大廳座位表）
+/* S31：離開多人局的殘留清理。
+   實測回報：「多人局結束後不重整、直接開單機，電腦代跑會直接結束。」
+   根因是這裡只清了系統訊息與計時器，完全沒有碰 ui.mp——於是舊局的三樣東西活著進新局：
+     ① ui.myId() 還回傳舊座位 → 單機局那個座位是電腦，介面認為「我」是電腦
+     ② ui.dispatch 的多人包裝是看 ui.mp.mode，動作會被送去舊房間而不是套用到本機
+     ③ adapter 的 onAction 訂閱與心跳還活著 → 舊房間的動作會被灌進新局
+   正式離開多人局的 ui.mpLeaveGame 最後有 location.reload()，那條路本來就乾淨；
+   唯獨「玩完不重整就開單機」這條沒有人負責清。 */
+ui.resetMultiplayer = function(){
+  if(!ui.mp) return;
+  try{ if(ui.mp._hb) clearInterval(ui.mp._hb); }catch(e){}
+  try{ if(ui.mp.adapter && ui.mp.adapter.close) ui.mp.adapter.close(); }catch(e){}
+  ui.mp = { mode:false, seat:0, code:null, uid:null, host:false, adapter:null,
+            meta:null, setup:null, seatUid:null, presence:null, replaying:false,
+            _hb:null, _stall:0 };
+};
 ui.startCore = function(seed, config, modules, players, opts){
   opts=opts||{};
   // 八期：開新局務必清空上一局的殘留（否則系統訊息會混入上一局的輪次）
   ui.feed=[]; ui.lastAct={}; ui.viewPlayerId=null; ui._lastRoll={};
   if(ui._autoRollT){ clearInterval(ui._autoRollT); ui._autoRollT=null; }
+  if(!opts.mp) ui.resetMultiplayer();      // S31：非多人開局＝一定要回到乾淨的單機狀態
   ui.S = E.newGame({ seed:seed, config:config, modules:modules, players:players });
   E.beginTurn(ui.S);
   $("app").classList.remove("hide");
@@ -8984,6 +9001,50 @@ ui.renderSheet = function(){
       fr.appendChild(hint);
     }
   }
+  /* S31：辭職／重返固定在自由進度條底下，永遠佔位。
+     原本這一塊是 if(financiallyFree) 才建立的——被動收入一掉回門檻以下整塊就消失，
+     底下的資產細項全部往上跳。改成常駐之後還多一個好處：沒達標時也看得到「還差多少」。 */
+  if(isMe && !p.bankrupt){
+    var gz=el("div"); gz.style.cssText="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2)";
+    if(p.playerStage==="OUTER"){
+      var mult2=E.cfg(S,"returnSalaryMult"); if(mult2===undefined) mult2=0.9;
+      var rb2=el("button","bigbtn","🔙 重返職場（薪資 "+Math.round(mult2*100)+"%・停走 1 輪・進度保留）");
+      rb2.style.cssText="width:100%;padding:9px;font-size:14px";
+      rb2.disabled=!canAct;
+      rb2.onclick=function(){
+        var ov=el("div","overlay"), bx=el("div","sheetbox"); bx.style.maxWidth="420px";
+        bx.appendChild(el("h2",null,"自願重返職場？"));
+        bx.appendChild(el("div","flavor","薪資恢復為離職時的 "+Math.round(mult2*100)+"%、夢想維持費停扣、停走 1 輪。夢想進度 "+p.dreamProgress+"／"+S.config.dreamCost+" 會保留。"));
+        var oo=el("div","opts");
+        oo.appendChild(ui.optBtn("確定重返","先退一步，把引擎修好再來",function(){ ov.remove(); ui.dispatch({type:"RETURN_TO_WORK",playerId:ui.myId(),payload:null}); }));
+        oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+        bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
+      };
+      gz.appendChild(rb2);
+    } else {
+      var upk=dream?E.cfg(S,"dreamUpkeepMonthly"):0;
+      var proj=util.r2(d.passiveIncome-d.totalExpenses-upk);
+      var gapF=util.r2(d.totalExpenses-d.passiveIncome);
+      var okF=!!p.financiallyFree;
+      var gh=el("div"); gh.style.cssText="font-size:12.5px;margin-bottom:5px;"
+        + (okF?"color:var(--gold);font-weight:700":"color:var(--tx3)");
+      gh.textContent = okF
+        ? ("🎉 已財務自由　進外圈後月現金流 "+(proj>=0?"+":"")+M(proj))
+        : ("還差 "+term("PASSIVE_INCOME")+" "+M(gapF>0?gapF:0)+"／月，才能辭職追夢");
+      gz.appendChild(gh);
+      var gb=el("button","bigbtn","辭職進入自由圈");
+      gb.style.cssText="width:100%;padding:10px;font-size:15px";
+      gb.disabled = !okF || !canAct;
+      if(!okF){ gb.style.opacity=".45"; gb.style.filter="grayscale(1)";
+                gb.title="被動收入還沒蓋過每月支出"; }
+      gb.onclick=function(){
+        if(!okF){ ui.toast("被動收入還沒蓋過每月支出——還不能辭職","warn",3000); return; }
+        ui.dispatch({type:"GRADUATE_NOW",playerId:ui.myId(),payload:null});
+      };
+      gz.appendChild(gb);
+    }
+    fr.appendChild(gz);
+  }
   box.appendChild(fr);
 
   /* 數位資產：爬坡進度與長尾收入 */
@@ -9104,34 +9165,6 @@ ui.renderSheet = function(){
       }
       box.appendChild(ls);
     }
-  }
-
-  /* 畢業／重返（僅本人） */
-  if(isMe && p.playerStage==="OUTER" && !p.bankrupt){
-    var rs=el("div","sec");
-    var mult2=E.cfg(S,"returnSalaryMult"); if(mult2===undefined) mult2=0.9;
-    var rb2=el("button","act","🔙 重返職場（薪資 "+Math.round(mult2*100)+"%・停走 1 輪・進度保留）");
-    rb2.style.width="100%"; rb2.disabled=!canAct;
-    rb2.onclick=function(){
-      var ov=el("div","overlay"), bx=el("div","sheetbox"); bx.style.maxWidth="420px";
-      bx.appendChild(el("h2",null,"自願重返職場？"));
-      bx.appendChild(el("div","flavor","薪資恢復為離職時的 "+Math.round(mult2*100)+"%、夢想維持費停扣、停走 1 輪。夢想進度 "+p.dreamProgress+"／"+S.config.dreamCost+" 會保留。"));
-      var oo=el("div","opts");
-      oo.appendChild(ui.optBtn("確定重返","先退一步，把引擎修好再來",function(){ ov.remove(); ui.dispatch({type:"RETURN_TO_WORK",playerId:ui.myId(),payload:null}); }));
-      oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
-      bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
-    };
-    rs.appendChild(rb2); box.appendChild(rs);
-  }
-  if(isMe && p.playerStage==="INNER" && p.financiallyFree){
-    var gs=el("div","sec"); gs.style.background="rgba(53,196,168,.08)";
-    var upk=dream?E.cfg(S,"dreamUpkeepMonthly"):0;
-    var proj=util.r2(d.passiveIncome-d.totalExpenses-upk);
-    gs.appendChild(el("div","gold","🎉 已財務自由　進外圈後月現金流 "+(proj>=0?"+":"")+M(proj)));
-    var gb=el("button","bigbtn","辭職進入自由圈"); gb.style.cssText="width:100%;padding:10px;margin-top:6px;font-size:15px";
-    gb.disabled=!canAct;
-    gb.onclick=function(){ ui.dispatch({type:"GRADUATE_NOW",playerId:ui.myId(),payload:null}); };
-    gs.appendChild(gb); box.appendChild(gs);
   }
 
   /* 資產細項｜負債細項（行內 賣／還） */
@@ -20761,7 +20794,7 @@ function mpBeginGame(ad, code, uid, setup){
   ui.mp.replaying=true;
   ui.startCore(setup.seed, util.clone(setup.config), setup.modules, setup.players.map(function(pl){
     return { name:pl.name, isNPC:pl.isNPC, personality:pl.personality, professionId:pl.professionId, dreamCardId:pl.dreamCardId };
-  }), {noRules:false});
+  }), {noRules:false, mp:true});     // S31：宣告這是多人開局，startCore 才不會把 ui.mp 清掉
   // 追上既有動作（重連時）
   Promise.resolve(ad.readLog()).then(function(log){
     (log||[]).forEach(function(entry){ mpApplyEntry(entry); });

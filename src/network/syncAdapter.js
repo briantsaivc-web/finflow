@@ -509,7 +509,7 @@ function mpBeginGame(ad, code, uid, setup){
   ui.mp.replaying=true;
   ui.startCore(setup.seed, util.clone(setup.config), setup.modules, setup.players.map(function(pl){
     return { name:pl.name, isNPC:pl.isNPC, personality:pl.personality, professionId:pl.professionId, dreamCardId:pl.dreamCardId };
-  }), {noRules:false});
+  }), {noRules:false, mp:true});     // S31：宣告這是多人開局，startCore 才不會把 ui.mp 清掉
   // 追上既有動作（重連時）
   Promise.resolve(ad.readLog()).then(function(log){
     (log||[]).forEach(function(entry){ mpApplyEntry(entry); });
