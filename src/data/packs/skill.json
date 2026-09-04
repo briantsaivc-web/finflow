@@ -24,12 +24,12 @@
         "id": "SKL_SPANISH",
         "deck": "SKILL",
         "kind": "SKILL",
-        "title": "西班牙語進修",
+        "title": "第二外語進修（日／德／法／西）",
         "flavor": "每週兩晚，同事問你學這個要幹嘛。",
-        "eduNote": "語言打開的門，你不會事先知道門後有什麼。",
-        "hint": "語言類：可能在涉外場合派上用場",
+        "eduNote": "語言打開的門，你不會事先知道門後有什麼——但門開了，加薪的機會才輪得到你。",
+        "hint": "語言類：可能在涉外場合派上用場，也可能換到加給",
         "cost": 25,
-        "recurringMonthly": 2,
+        "recurringMonthly": 0,
         "turns": 6,
         "tier": "MID",
         "family": "LANGUAGE",
@@ -49,7 +49,7 @@
         "turns": 3,
         "tier": "SMALL",
         "family": "HANDS",
-        "decayable": true,
+        "decayable": false,
         "moduleReq": "M8"
       },
       {
@@ -137,12 +137,12 @@
         "deck": "SKILL",
         "kind": "SKILL",
         "title": "程式與自動化",
-        "flavor": "半夜自學，同事覺得你很無聊。",
-        "eduNote": "技術是最快增值、也是折舊最快的資產。",
+        "flavor": "下班後跟著線上課走，兩個月做得出第一支自動化腳本。",
+        "eduNote": "門檻降低的技能，不學的成本反而變高——因為人人都學得起，你不學就是被比下去。",
         "hint": "技術類：可能在職涯轉折時派上用場（技術會過時，需要持續更新）",
         "cost": 30,
         "recurringMonthly": 0,
-        "turns": 6,
+        "turns": 2,
         "tier": "MID",
         "family": "TECH",
         "decayable": true,
@@ -268,7 +268,7 @@
         "hint": "功能：解鎖獨立董事資格、在弊案爆發前收到審計警報並及時辭任避險。",
         "cost": 45,
         "recurringMonthly": 0,
-        "turns": 4,
+        "turns": 3,
         "tier": "HIGH",
         "family": "FINANCE",
         "decayable": false,
@@ -285,7 +285,7 @@
         "hint": "功能：解鎖獨立董事資格、免除連帶賠償、防範商業借名詐貸陷阱。",
         "cost": 40,
         "recurringMonthly": 0,
-        "turns": 4,
+        "turns": 3,
         "tier": "HIGH",
         "family": "LEGAL",
         "decayable": false,
@@ -302,7 +302,7 @@
         "hint": "功能：任何數位資產都以專業身分經營（門檻低、爆紅機率高）；科技類技能在產業變革事件中不會過時。",
         "cost": 50,
         "recurringMonthly": 0,
-        "turns": 5,
+        "turns": 3,
         "tier": "HIGH",
         "family": "TECH",
         "decayable": false,
@@ -319,7 +319,7 @@
         "hint": "功能：解鎖進階金融（期貨與虛擬貨幣）；期貨追繳線放寬（1.3 → 1.2）。",
         "cost": 45,
         "recurringMonthly": 0,
-        "turns": 4,
+        "turns": 3,
         "tier": "HIGH",
         "family": "FINANCE",
         "decayable": false,
@@ -332,23 +332,23 @@
         "id": "SKE_TEAMTRIP",
         "deck": "LIFE_EVENT",
         "kind": "SKILL_GATE",
-        "title": "部門團建要上山",
-        "flavor": "主管在群組問：誰能開車載一車人？",
+        "title": "公司要你負責招呼國外重要客戶",
+        "flavor": "客戶下週來台十天，行程排滿，主管問：誰能開車全程接送？",
         "eduNote": "機會不會等你準備好，它只會問你準備好了沒。",
         "skillBranch": {
           "requires": "SKL_DRIVE",
           "have": {
-            "narrative": "你開車，主管坐副駕。回程他說「下個案子你來帶」。",
+            "narrative": "你排開行程，十天親自接送、陪同拜訪。客戶回國前指名你當窗口，這條線從此掛你名下。",
             "effects": [
               {
                 "op": "SALARY_MULT",
                 "factor": 1.1,
-                "label": "被看見的機動力"
+                "label": "客戶窗口加給"
               }
             ]
           },
           "miss": {
-            "narrative": "你搭別人的車坐在後座，一路聽他們在前座把下一季的分工聊完了。",
+            "narrative": "公司另外找了人。那條線後來一直掛在他名下，你只在會議上聽到進度。",
             "effects": []
           }
         },
@@ -358,8 +358,8 @@
         "id": "SKE_CLIENT",
         "deck": "LIFE_EVENT",
         "kind": "SKILL_GATE",
-        "title": "南美客戶下週來訪",
-        "flavor": "老闆在會議上問：有沒有人會西班牙語？",
+        "title": "外語客戶下週來訪",
+        "flavor": "老闆在會議上問：有沒有人會他們的語言？",
         "eduNote": "語言打開的門，你不會事先知道門後有什麼。",
         "skillBranch": {
           "requires": "SKL_SPANISH",
@@ -458,13 +458,12 @@
         "skillBranch": {
           "requires": "SKL_PRESENT",
           "have": {
-            "narrative": "三頁講完，當場拍板。專案上線，年底獎金入袋。",
+            "narrative": "你把三十頁的數字講成一個故事，會議室安靜下來。散會後，總經理記住了你的名字。",
             "effects": [
               {
-                "op": "CASH_DELTA",
-                "target": "self",
-                "amount": 45,
-                "label": "專案獎金"
+                "op": "SALARY_MULT",
+                "factor": 1.05,
+                "label": "會議上被看見"
               }
             ]
           },
@@ -576,7 +575,7 @@
             "effects": [
               {
                 "op": "SALARY_MULT",
-                "factor": 1.25,
+                "factor": 1.2,
                 "label": "轉型主力"
               }
             ]
@@ -634,13 +633,13 @@
         "id": "SKE_DROWNING",
         "deck": "LIFE_EVENT",
         "kind": "SKILL_GATE",
-        "title": "海邊玩水，姪子被浪捲離岸邊",
-        "flavor": "岸上的人都在喊，但沒有人下水。",
+        "title": "社區泳池裡，鄰居的小孩沉下去了",
+        "flavor": "池邊沒有救生員，大人都在滑手機。",
         "eduNote": "有些能力一輩子只用到一次，但那一次無可取代。",
         "skillBranch": {
           "requires": "SKL_SWIM",
           "have": {
-            "narrative": "你游過去把人拖回來。上岸後你們都在發抖。",
+            "narrative": "你三秒鐘就下水，把孩子托上岸。那家人到現在還會在電梯裡跟你道謝。",
             "effects": [
               {
                 "op": "GRANT_JOY",
@@ -654,7 +653,7 @@
             ]
           },
           "miss": {
-            "narrative": "你只能在岸上大叫等救生員。那段時間長得像一輩子。",
+            "narrative": "你只能大聲喊人。等到有人跳下去，那幾十秒你這輩子都會記得。",
             "effects": []
           }
         },
@@ -777,6 +776,13 @@
             "family": "TECH",
             "warnTurns": 2,
             "label": "AI 取代基礎開發"
+          },
+          {
+            "op": "DECAY_SKILL",
+            "target": "all",
+            "skillId": "SKL_CAR_DATA",
+            "warnTurns": 2,
+            "label": "AI 內建分析取代基礎資料工作"
           }
         ]
       },
@@ -822,9 +828,9 @@
           {
             "op": "DECAY_SKILL",
             "target": "all",
-            "skillId": "SKL_PLUMB",
+            "skillId": "SKL_CAR_PLUMB",
             "warnTurns": 2,
-            "label": "舊證落日"
+            "label": "舊證落日，技術士證照要換照"
           }
         ]
       }

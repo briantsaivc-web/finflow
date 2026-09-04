@@ -1222,15 +1222,48 @@
       "hot": false
     },
     {
-      "key": "carpentryRentBonus",
-      "value": 0.08,
+      "key": "carpentrySavePerHouse",
+      "value": 1,
       "min": 0,
-      "max": 0.3,
-      "step": 0.01,
-      "group": "學習",
-      "label": "木工技能租金加成",
-      "desc": "自己裝修，物件租得掉也租得好",
+      "max": 20,
+      "step": 0.5,
+      "group": "商城",
+      "label": "木作每間房每月省下",
+      "desc": "具備木作技能時，名下每間房產每月減少的維護支出",
+      "hot": true
+    },
+    {
+      "key": "skillGateSalaryHorizon",
+      "value": 24,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "group": "商城",
+      "label": "情境卡薪資折算輪數",
+      "desc": "技能情境卡計算「有沒有準備的價差」時，把薪資倍率折算成幾輪的月薪差",
       "hot": false
+    },
+    {
+      "key": "dreamSkillDiscountPct",
+      "value": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "group": "商城",
+      "label": "水域技能圓夢折抵",
+      "desc": "水上類夢想（帆船、潛點）持有游泳／CPR 時，一次性折抵一段圓夢進度的比例",
+      "hot": true
+    },
+    {
+      "key": "dreamPhotoJoy",
+      "value": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "group": "商城",
+      "label": "攝影技能圓夢幸福加碼",
+      "desc": "旅遊類夢想持有攝影技能時，一次性加的幸福感",
+      "hot": true
     },
     {
       "key": "carpentryVacancyMult",
@@ -2037,13 +2070,13 @@
     },
     {
       "key": "npcSkillCap",
-      "value": 3,
+      "value": 0,
       "min": 0,
       "max": 8,
       "step": 1,
       "group": "學習",
       "label": "電腦玩家學習上限",
-      "desc": "只約束 NPC；真人玩家仍由時間自然限制",
+      "desc": "0＝不設上限（S28 起的預設）；設正整數才會限制電腦最多同時持有幾項有效技能",
       "hot": false
     },
     {
@@ -2311,15 +2344,15 @@
       "hot": false
     },
     {
-      "key": "skillRepairDiscount",
-      "value": 0.5,
-      "min": 0.1,
-      "max": 1,
-      "step": 0.05,
-      "group": "學習",
-      "label": "水電技能修繕折數",
-      "desc": "具備基礎水電時，房產修繕支出乘以此比例",
-      "hot": false
+      "key": "skillPlumbSaveFlat",
+      "value": 2,
+      "min": 0,
+      "max": 50,
+      "step": 0.5,
+      "group": "商城",
+      "label": "水電技能 DIY 省下",
+      "desc": "具備基礎水電時，每次房產修繕自己動手省下的固定金額（換燈泡、耗材那個量級）",
+      "hot": true
     },
     {
       "key": "skillNegoDiscount",

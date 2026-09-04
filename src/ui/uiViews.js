@@ -226,8 +226,8 @@ ui.handleEvents = function(evs){
         ui.announce(me(e.playerId)+" 的新創「"+e.name+"」撐不過寒冬，股權歸零", e.playerId); break;
       case "STARTUP_DOWNROUND":
         ui.announce(me(e.playerId)+" 的「"+e.name+"」估值下修 "+M(Math.abs(e.delta)), e.playerId); break;
-      case "CARPENTRY_APPLIED":
-        if(e.delta) ui.announce(me(e.playerId)+" 自己裝修「"+e.assetName+"」，租金 +"+M(e.delta), e.playerId); break;
+      case "CARPENTRY_APPLIED":   // S28：改成「自己維護、每月省下」，不再是租金加成
+        if(e.delta) ui.announce(me(e.playerId)+" 自己維護「"+e.assetName+"」，每月省下 "+M(e.delta), e.playerId); break;
       case "POLICY_EVENT": { var pc2=ns.content.byId[e.cardId], ex=pc2&&pc2.eduNote?("　—　"+pc2.eduNote):"";
         // 天災跟政策不是同一種東西，公告要分得出來——不然玩家會覺得「怎麼都沒遇到颱風地震」
         var kind2 = e.disaster ? "🌪 天災" : "政策事件";
@@ -453,6 +453,17 @@ ui.handleEvents = function(evs){
       // S26：法律常識／公司法規與合規治理——賠償與和解類支出，懂的人談得下來
       case "LEGAL_DISCOUNT":
         if(e.playerId===ui.myId()) ui.toast("⚖ 懂法律，這筆賠償少了 "+M(e.saved),"good",4500); break;
+      /* S28：技能真的發揮的那一刻，要讓玩家看見。引擎本來就發 SKILL_APPLIED，
+         但介面從來沒接——結果是「學了有沒有用」全靠玩家自己推敲。 */
+      case "SKILL_APPLIED": {
+        var WH={repair:"自己動手修", trade:"談判桌上", upkeep:"自己維護", dream:"圓夢路上"};
+        var wh=WH[e.where]||"";
+        var tail = e.saved ? ("省下 "+M(e.saved)) : (e.joy ? ("幸福感 +"+e.joy) : "");
+        if(!tail) break;
+        var body="🛠 「"+(e.title||"技能")+"」派上用場"+(wh?("："+wh):"")
+               + (e.assetName?("（"+e.assetName+"）"):"")+"——"+tail;
+        if(e.playerId===ui.myId()) ui.toast(body,"good",4500);
+        break; }
       // S27：報稅的列舉扣除——省下來的錢要讓玩家看見，「平常留單據」才會變成習慣
       case "TAX_DEDUCTION":
         if(e.playerId===ui.myId())
@@ -3977,8 +3988,10 @@ ns.selftest = {
 
       // (c) EXPENSE 沖回：含月費的技能，學成後支出水位必須回到原值
       var S2=mkGame(3602,mods8), q=S2.players[0];
-      var SP=ns.content.byId["SKL_SPANISH"];
-      assert((SP.recurringMonthly||0)>0,"西語卡應有月費");
+      // S28：第二外語的月費已取消（它是學成率最低的中階技能，月費是勸退主因），
+      // 這一項驗的是「含月費的技能」，改抓任何一張仍有月費的技能卡，不再釘死某一張。
+      var SP=(ns.content.cards.SKILL||[]).filter(function(c){ return (c.recurringMonthly||0)>0; })[0];
+      assert(SP,"測試前提：應至少有一張含月費的技能卡");
       ns.ledger.post(S2,q,"補現金",[{account:"CASH",delta:500,label:"x"}],{eduTags:["setup"]});
       var e0=q.derived.totalExpenses;
       E.startLearning(S2,q,SP,true);
@@ -4257,8 +4270,11 @@ ns.selftest = {
       }
       var noSk=repairCost(false), wiSk=repairCost(true);
       assert(noSk.spent>0,"測試前提：應發生修繕，實得 "+noSk.spent);
-      assert(Math.abs(wiSk.spent-util.r2(noSk.spent*0.5))<0.01,
-        "水電技能應讓修繕減半："+noSk.spent+" → "+wiSk.spent);
+      // S28：水電從「修繕費折半」改成「自己動手省下的固定一筆」——原本等於把換燈泡等級的
+      // 技能做成房產投資的成本優化器，量級不對。這裡改驗固定折抵，數值從設定讀。
+      var flatP=E.cfg(mkGame(4299,["M1","M2","M4","M6","M8"]),"skillPlumbSaveFlat");
+      assert(Math.abs(wiSk.spent-util.r2(Math.max(0,noSk.spent-flatP)))<0.01,
+        "水電技能應固定省下 "+flatP+"："+noSk.spent+" → "+wiSk.spent);
       assert(noSk.rng===wiSk.rng,"技能不得改變 RNG 序列（會破壞重放）");
 
       /* (b) 談判：成交價 −10%，買賣雙方同額（金額守恆） */
@@ -4295,27 +4311,31 @@ ns.selftest = {
       assert(Math.abs(open.income-plain.income)<0.01 && Math.abs(open.yield-plain.yield)<0.01,
         "毛數字不得被技能更動（否則沒技能的人也會被動受影響）");
       assert(open.netIncome<=open.income+0.001,"風險調整後不得高於毛現金流");
-      return "水電減半且 RNG 不變；談判折讓 "+util.pct(dN,0)+" 且金額守恆；記帳揭露 "
+      return "水電固定省 "+flatP+" 且 RNG 不變；談判折讓 "+util.pct(dN,0)+" 且金額守恆；記帳揭露 "
              + "毛 "+plain.income+" → 淨 "+open.netIncome;
     });
 
     t("T-43 過時後的回頭路：名額不被佔住、已會的不重複送", function(){
       var S=mkGame(4301,["M1","M2","M4","M6","M8"]), p=S.players[1];   // 用 NPC
       assert(p.isNPC,"測試前提：players[1] 應為 NPC");
+      /* S28（Brian 裁示）：技能不設上限，多多益善。`npcSkillCap` 0＝不設上限，
+         限制回到時間與現金。所以這一段改驗兩件事：
+         (1) 不設上限時，學得起就會繼續學（不再有「名額用滿」這回事）
+         (2) 已學會且仍有效的技能不會被重複學，過時之後才會回頭更新——這是回頭路的核心 */
       var cap=E.cfg(S,"npcSkillCap");
-      var pool=(S.skillSample||[]).slice(0,cap);
-      assert(pool.length>=1,"測試前提：本局應有技能進場");
-      pool.forEach(function(sid,i){ p.skills[sid]={learnedAt:1,decayed:(i===0),refreshedAt:null}; });
-      if(pool.length>=cap){
-        var effN=Object.keys(p.skills).filter(function(s){return !p.skills[s].decayed;}).length;
-        assert(effN<cap,"測試前提：有效技能數應少於上限");
-        ns.ledger.post(S,p,"補現金",[{account:"CASH",delta:5000,label:"x"}],{eduTags:["setup"]});
-        p.skillCooldownUntil=0; p.playerStage="INNER"; p.learning=null;
-        assert(ns.npc.skillToLearn(S,p),"有效技能未達上限時，電腦仍應願意去進修（含更新已過時者）");
-        // 對照：把過時那項改成有效 → 名額用滿，就不該再學
-        p.skills[pool[0]].decayed=false;
-        assert(!ns.npc.skillToLearn(S,p),"名額用滿時不該再學");
-      }
+      assert(cap===0,"S28 起預設不設上限，實得 "+cap);
+      var pool=(S.skillSample||[]).slice();
+      assert(pool.length>=2,"測試前提：本局應有至少兩張技能進場，實得 "+pool.length);
+      ns.ledger.post(S,p,"補現金",[{account:"CASH",delta:5000,label:"x"}],{eduTags:["setup"]});
+      p.skillCooldownUntil=0; p.playerStage="INNER"; p.learning=null;
+      // 全部學會且全部有效 → 沒有東西可學（不是因為名額，是因為沒有還沒學的）
+      pool.forEach(function(sid){ p.skills[sid]={learnedAt:1,decayed:false,refreshedAt:null}; });
+      assert(!ns.npc.skillToLearn(S,p),"全部學會且有效時，沒有東西可學");
+      // 其中一項過時 → 應該回頭去更新它
+      p.skills[pool[0]].decayed=true;
+      var back=ns.npc.skillToLearn(S,p);
+      assert(back && back.payload && back.payload.skillId===pool[0],
+        "過時的那一項應該被挑回來更新，實得 "+(back&&back.payload&&back.payload.skillId));
       // 已會的技能不再被內訓卡送一次
       var TR=ns.content.byId["SKE_INTRAIN"];
       assert(TR && TR.requiresNotSkill==="SKL_BOOK","內訓卡應標記 requiresNotSkill");
@@ -4325,7 +4345,7 @@ ns.selftest = {
       assert(!E.cardUsable(S,q,TR),"已會記帳時不得再抽到內訓卡");
       q.skills["SKL_BOOK"].decayed=true;
       assert(E.cardUsable(S,q,TR),"已過時時應可再度抽到——這就是回頭路");
-      return "過時不佔名額、電腦會回頭更新；內訓卡不重複送、過時後可再取得";
+      return "不設上限、學得起就學；過時會回頭更新；內訓卡不重複送、過時後可再取得";
     });
 
     t("T-44 面板不得出現字面 HTML 標籤，也不得放行可執行標記", function(){
@@ -5033,37 +5053,43 @@ ns.selftest = {
       E.startupWinter(S5,"BOOM");
       assert(t5.assets[t5.assets.length-1].marketValue===500,"景氣變好不該下修");
 
-      /* ---- (c) 木工技能：租金 +8%、空租減半、只加成一次 ---- */
+      /* ---- (c) 木工技能：S28 改成「自己維護，每間房每月省下一筆」 ----
+         原本是租金 +8%，但那教的是「裝修可以拉高租金」，跟這張卡的本意
+         （自己動手、省下請人的錢）對不上；而且租金加成完全沒有事件、玩家看不到。 */
       var CARP=ns.content.byId["SKL_CARPENTRY"];
       assert(CARP && CARP.family==="HANDS","應有木工技能");
       var S6=mkGame(5706,mods), u=S6.players[0];
-      var bonus=E.cfg(S6,"carpentryRentBonus");
+      var savePer=E.cfg(S6,"carpentrySavePerHouse");
+      assert(savePer>0,"應有每間房省下的設定");
       u.assets.push({instanceId:"A_RE",cardId:null,kind:"REALESTATE",name:"測試套房",units:1,
         costBasis:1000,marketValue:1000,monthlyIncome:20,baseMonthlyIncome:20,
         linkedLiabilityId:null,flags:{}});
-      ns.ledger.post(S6,u,"建立部位",[{account:"ASSET",delta:1000,refId:"A_RE",label:"x"},
-        {account:"INCOME_PASSIVE",delta:20,refId:"A_RE",label:"租金"}],{eduTags:["setup"]});
-      var pas0=u.derived.passiveIncome;
+      u.assets.push({instanceId:"A_RE2",cardId:null,kind:"REALESTATE",name:"測試套房二",units:1,
+        costBasis:1000,marketValue:1000,monthlyIncome:20,baseMonthlyIncome:20,
+        linkedLiabilityId:null,flags:{}});
+      ns.ledger.post(S6,u,"建立部位",[{account:"ASSET",delta:2000,refId:"A_RE",label:"x"},
+        {account:"INCOME_PASSIVE",delta:40,refId:"A_RE",label:"租金"}],{eduTags:["setup"]});
+      var exp0=u.derived.totalExpenses, pas0=u.derived.passiveIncome;
       E.applyCarpentry(S6,u);
-      assert(Math.abs(u.derived.passiveIncome-pas0)<0.01,"沒學技能時不得加成");
+      assert(Math.abs(u.derived.totalExpenses-exp0)<0.01,"沒學技能時不得省");
       u.skills["SKL_CARPENTRY"]={learnedAt:1,decayed:false,refreshedAt:null};
       E.applyCarpentry(S6,u);
-      var want=util.r2(20*(1+bonus));
-      var a6=u.assets.filter(function(a){return a.instanceId==="A_RE";})[0];
-      assert(Math.abs(a6.monthlyIncome-want)<0.01,"租金應為 "+want+"，實得 "+a6.monthlyIncome);
-      assert(Math.abs(u.derived.passiveIncome-(pas0+util.r2(20*bonus)))<0.01,"被動收入應同步上升");
-      // 冪等：再呼叫幾次都不得重複加成
+      assert(Math.abs(u.derived.totalExpenses-(exp0-savePer*2))<0.01,
+        "兩間房應每月共省 "+(savePer*2)+"，實得 "+util.r2(exp0-u.derived.totalExpenses));
+      assert(Math.abs(u.derived.passiveIncome-pas0)<0.01,"S28 起不再動租金");
+      // 冪等：再呼叫幾次都不得重複省
       E.applyCarpentry(S6,u); E.applyCarpentry(S6,u);
-      assert(Math.abs(a6.monthlyIncome-want)<0.01,"重複呼叫不得重複加成（冪等）");
-      // 空租中的物件加在 vacantIncome 上
+      assert(Math.abs(u.derived.totalExpenses-(exp0-savePer*2))<0.01,"重複呼叫不得重複省（冪等）");
+      // 空租中的物件照樣要省——維護費不會因為沒租出去就不用付
       var S7=mkGame(5707,mods), v=S7.players[0];
       v.skills["SKL_CARPENTRY"]={learnedAt:1,decayed:false,refreshedAt:null};
       v.assets.push({instanceId:"A_V",cardId:null,kind:"REALESTATE",name:"空租中",units:1,
         costBasis:1000,marketValue:1000,monthlyIncome:0,vacantIncome:30,
         vacantUntilTurn:S7.turnNumber+2,linkedLiabilityId:null,flags:{}});
+      var vExp0=v.derived.totalExpenses;
       E.applyCarpentry(S7,v);
       var av=v.assets[v.assets.length-1];
-      assert(Math.abs(av.vacantIncome-util.r2(30*(1+bonus)))<0.01,"空租中應加在復租後的租金上");
+      assert(Math.abs(v.derived.totalExpenses-(vExp0-savePer))<0.01,"空租中一樣要省下維護費");
       assert(av.monthlyIncome===0,"空租中當下收入仍為 0");
       // 空租機率減半：只縮放機率，不改變 RNG 呼叫次數
       var cfgV=baseCfg();
@@ -5096,7 +5122,7 @@ ns.selftest = {
 
       return "下市：警示→緩衝→歸零且融資債留存、可解除、可停損、可關閉；"+
              "新創寒冬 40 次中陣亡 "+dead+" 次、下修 "+down+" 次；"+
-             "木工租金 +"+util.pct(bonus,0)+" 冪等、空租率 "+util.pct(rate,0)+"（原 100%）、決定論";
+             "木工每間房每月省 "+savePer+" 冪等、空租率 "+util.pct(rate,0)+"（原 100%）、決定論";
     });
 
     t("T-58 衝擊分級、電腦玩家進場股市與新創、徽章稀有度、每輪紀錄", function(){
@@ -5856,6 +5882,9 @@ ns.selftest = {
           if(!KID.some(function(k){ return t.indexOf(k)>=0; })) return;
           // 教養軸的百態卡由既有規則擋下（virtueAxis==="PARENTING"），不必重複宣告
           if(c.kind==="TAPESTRY" && c.virtueAxis==="PARENTING") return;
+          // S28：標題明講是「別人家的」小孩（鄰居／同事／朋友的孩子），
+          // 那不是玩家的育兒支出，掛小孩閘門反而是錯的。
+          if(/鄰居|同事|朋友|別人/.test(t)) return;
           var gated = c.requiresChild===true || c.requiresChildSinceS12===true
                       || ((c.payload||{}).reqChild===true);
           if(!gated) leak.push(c.id+"「"+t+"」");

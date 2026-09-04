@@ -4133,7 +4133,8 @@
         "flavor": "海面下沒有時間。",
         "upkeepMonthly": 15,
         "tags": [
-          "outdoor"
+          "outdoor",
+          "water"
         ],
         "milestones": [
           {
@@ -4323,7 +4324,8 @@
         "flavor": "風會告訴你今天要去哪裡。",
         "upkeepMonthly": 15,
         "tags": [
-          "travel"
+          "travel",
+          "water"
         ],
         "milestones": [
           {

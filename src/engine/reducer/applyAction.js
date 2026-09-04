@@ -1488,12 +1488,15 @@ E.opsRisk = function(S, p){
     if(rent>0 && util.rand(S) < rChance){
       var months = E.randInt(S, rMin, rMax);
       var cost = util.r2(rent*months);
-      // M8 S3：基礎水電——自己拆開來修，只付材料錢。
-      // 注意：折扣只動金額、不動 RNG 呼叫順序，關閉 M8 時序列與基線一致。
+      /* M8 S3：基礎水電——自己拆開來修。
+         S28（Brian 裁示）：原本是「修繕費折半」，等於把一個換燈泡等級的技能，
+         做成房產投資的成本優化器——量級完全不對（500 局累計折抵 22,541，全場最高）。
+         改成固定折抵一筆「自己動手省下的師傅工錢」，日常 DIY 該是什麼量級就是什麼量級。
+         注意：折扣只動金額、不動 RNG 呼叫順序，關閉 M8 時序列與基線一致。 */
       if(E.hasSkill && E.hasSkill(p,"SKL_PLUMB")){
-        var hf = E.cfg(S,"skillRepairDiscount"); if(hf===undefined) hf = 0.5;
-        var savedH = util.r2(cost*(1-hf));
-        cost = util.r2(cost*hf);
+        var flat = E.cfg(S,"skillPlumbSaveFlat"); if(flat===undefined) flat = 2;
+        var savedH = util.r2(Math.min(cost, flat));
+        cost = util.r2(cost - savedH);
         if(savedH>0){
           p.stats.skillSavedTotal = util.r2((p.stats.skillSavedTotal||0) + savedH);
           p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
@@ -1799,12 +1802,20 @@ E.resolveSkillGate = function(S, p, card){
   if(!b){ E.pushDecision(S,p,{kind:"ACK", cardId:card.id}); return; }
   var have = E.hasSkill(p, b.requires);
   var br = have ? b.have : b.miss;
-  // 兩個分支的現金差額＝這張卡因為「有沒有準備」而產生的價差
-  var cashOf = function(x){
-    return util.sum(((x&&x.effects)||[]).filter(function(e){ return e.op==="CASH_DELTA"; }),
-      function(e){ return (e.amount||0); });
+  /* 兩個分支的價差＝這張卡因為「有沒有準備」而產生的差額。
+     S28：原本只算 CASH_DELTA，於是用薪資倍率兌現的三張（駕照、外語、程式）算出來
+     永遠是 0——而 SKE_AILAYOFF 的薪資擺盪其實是全牌堆最重的一筆。
+     薪資倍率折算成「月薪差 × 折算輪數」，讓 skillSavedTotal 這個給玩家看的數字誠實。 */
+  var salHorizon = E.cfg(S,"skillGateSalaryHorizon"); if(salHorizon===undefined) salHorizon = 24;
+  var valueOf = function(x){
+    var v = 0;
+    (((x&&x.effects)||[])).forEach(function(e){
+      if(e.op==="CASH_DELTA") v += (e.amount||0);
+      else if(e.op==="SALARY_MULT") v += (p.derived.salaryIncome||0)*((e.factor||1)-1)*salHorizon;
+    });
+    return v;
   };
-  var gap = util.r2(cashOf(b.have) - cashOf(b.miss));
+  var gap = util.r2(valueOf(b.have) - valueOf(b.miss));
   if(have){
     p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
     if(gap > 0) p.stats.skillSavedTotal = util.r2((p.stats.skillSavedTotal||0) + gap);
@@ -3183,27 +3194,21 @@ E.mallCost = function(S, it, p){
    實作用資產上的 carpentry 旗標保證只加成一次（學技能與新買房都會呼叫，冪等）。 */
 E.applyCarpentry = function(S, p){
   if(!E.hasSkill(p,"SKL_CARPENTRY")) return;
-  var bonus=E.cfg(S,"carpentryRentBonus"); if(bonus===undefined) bonus=0.08;
-  if(!(bonus>0)) return;
+  var save=E.cfg(S,"carpentrySavePerHouse"); if(save===undefined) save=1;
+  if(!(save>0)) return;
   p.assets.forEach(function(a){
     if(a.kind!=="REALESTATE") return;
     a.flags=a.flags||{};
-    if(a.flags.carpentry) return;
+    if(a.flags.carpentry) return;                       // 冪等：學技能與新買房都會呼叫
     a.flags.carpentry=true;
-    // 空租中的物件：現在收入是 0，要加在「復租後會恢復的那個數字」上
-    if(a.vacantUntilTurn!==undefined && a.vacantIncome!==undefined){
-      a.vacantIncome=util.r2(a.vacantIncome*(1+bonus));
-      E.ev("CARPENTRY_APPLIED",{playerId:p.id, assetName:a.name, delta:0, vacant:true});
-      return;
-    }
-    var d=util.r2((a.monthlyIncome||0)*bonus);
-    if(!d) return;
-    a.monthlyIncome=util.r2(a.monthlyIncome+d);
-    if(a.baseMonthlyIncome!==undefined) a.baseMonthlyIncome=util.r2(a.baseMonthlyIncome*(1+bonus));
-    ledger.post(S,p,"自己裝修，租金拉起來："+a.name,
-      [{account:"INCOME_PASSIVE",delta:d,refId:a.instanceId,label:a.name+" 租金加成"}],
+    ledger.post(S,p,"自己動手維護："+a.name,
+      [{account:"EXPENSE",delta:-save,label:a.name+" 自己維護，每月省下"}],
       {eduTags:["cashflow"], srcTitle:"木作與居家修繕"});
-    E.ev("CARPENTRY_APPLIED",{playerId:p.id, assetName:a.name, delta:d});
+    p.stats.skillSavedTotal = util.r2((p.stats.skillSavedTotal||0) + save);
+    p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
+    E.ev("CARPENTRY_APPLIED",{playerId:p.id, assetName:a.name, delta:save});
+    E.ev("SKILL_APPLIED",{ playerId:p.id, skillId:"SKL_CARPENTRY", title:"木作與居家修繕",
+                           saved:save, where:"upkeep", assetName:a.name });
   });
 };
 
@@ -3589,9 +3594,59 @@ E.dreamMilestone = function(S,p,n){ return E.msText(E.dreamMilestoneRaw(S,p,n));
 E.dreamMilestoneImg = function(S,p,n){ return E.msImg(E.dreamMilestoneRaw(S,p,n)); };
 
 /* v0.2 §1：購點（每回合限 1 點、價格 base×n、限現金） */
+/* S28：圓夢路上的技能兌現（各一次，Brian 裁示）。
+   ① 水上類夢想（帆船、潛點）＋ 水域安全技能（游泳／CPR）：抵減一次進度費用——
+      會游泳的人自己下水，省掉一整套教練與保全的錢。
+   ② 旅遊類夢想（travel／outdoor）＋ 攝影：幸福感加碼一次——同一趟旅程，
+      帶得回來的東西不一樣。
+   兩者都只作用一次（旗標控管），不做成每次都吃得到的永久折扣。 */
+E.dreamSkillPerk = function(S, p, price, commit){
+  var dream = ns.content.byId[p.dreamCardId] || {};
+  var tags = dream.tags || [];
+  var out = { discount:0, joy:0 };
+  if(!p.flags) p.flags = {};
+  if(tags.indexOf("water")>=0 && !p.flags.dreamWaterPerk && E.hasSkill && E.hasSkill(p,"family:SAFETY")){
+    var pct = E.cfg(S,"dreamSkillDiscountPct"); if(pct===undefined) pct = 0.5;
+    out.discount = util.r2(price*pct);
+  }
+  if((tags.indexOf("travel")>=0 || tags.indexOf("outdoor")>=0)
+     && !p.flags.dreamPhotoPerk && E.hasSkill && E.hasSkill(p,"SKL_PHOTO")){
+    var jy = E.cfg(S,"dreamPhotoJoy"); if(jy===undefined) jy = 2;
+    out.joy = jy;
+  }
+  if(!commit) return out;                       // 試算：只回傳金額，不落旗標、不發事件
+  if(out.discount>0){
+    p.flags.dreamWaterPerk = true;
+    p.stats.skillSavedTotal = util.r2((p.stats.skillSavedTotal||0) + out.discount);
+    p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
+    var sid = E.hasSkill(p,"SKL_SWIM") ? "SKL_SWIM" : "SKL_CPR";   // 標實際持有的那一張
+    var sc0 = ns.content.byId[sid] || {};
+    E.ev("SKILL_APPLIED",{ playerId:p.id, skillId:sid, title:sc0.title||"水域安全",
+                           saved:out.discount, where:"dream", assetName:dream.name||"" });
+  }
+  if(out.joy>0){
+    p.flags.dreamPhotoPerk = true;
+    p.stats.skillJoy = (p.stats.skillJoy||0) + out.joy;
+    p.stats.skillsUsed = (p.stats.skillsUsed||0) + 1;
+    E.ev("SKILL_APPLIED",{ playerId:p.id, skillId:"SKL_PHOTO", title:"攝影",
+                           joy:out.joy, where:"dream", assetName:dream.name||"" });
+  }
+  return out;
+};
+/* 這一段進度「實際要付多少」——介面詢價與引擎扣款共用同一份，才不會出現
+   卡面寫一個價、帳上扣另一個價。 */
+E.dreamProgressPrice = function(S,p){
+  var base = util.r2(S.config.dreamProgressBasePrice*(p.dreamProgress+1));
+  var peek = E.dreamSkillPerk(S,p,base,false);
+  return util.r2(base - peek.discount);
+};
+
 E.buyDreamProgress = function(S,p){
-  var price = util.r2(S.config.dreamProgressBasePrice*(p.dreamProgress+1));
+  var base = util.r2(S.config.dreamProgressBasePrice*(p.dreamProgress+1));
+  var peek = E.dreamSkillPerk(S,p,base,false);
+  var price = util.r2(base - peek.discount);
   if(p.cash<price || p.boughtProgressThisTurn) return false;
+  E.dreamSkillPerk(S,p,base,true);            // 確定買得起才動用一次性加成
   p.dreamProgress++; p.dreamBuyCount++; p.stats.paidProgress++;
   p.boughtProgressThisTurn=true;
   ledger.post(S,p,"投入圓夢：買下一段進度",[{account:"CASH",delta:-price,label:"圓夢支出"}],{eduTags:["dream"]});
@@ -3607,7 +3662,7 @@ E.offerDreamProgress = function(S,p){
   if(S.over || p.bankrupt || p.playerStage!=="OUTER") return;
   if(p.boughtProgressThisTurn) return;
   if(p.dreamProgress >= S.config.dreamCost) return;
-  var price = util.r2(S.config.dreamProgressBasePrice*(p.dreamProgress+1));
+  var price = E.dreamProgressPrice(S,p);       // S28：含技能一次性折抵，與扣款同一份
   if(p.cash < price) return;
   E.pushDecision(S,p,{kind:"BUY_PROGRESS", price:price});
 };

@@ -414,6 +414,8 @@ E.skillTurns = function(S, p, card){
 
 // 完成一項學習後的休息輪數
 E.skillCooldown = function(S, card){
+  // S28（Brian 裁示）：轉職型技能不設冷卻——會去學就代表市場有需求，沒有等待的道理。
+  if(card && card.secondCareer) return 0;
   var k = (card && card.tier==="SMALL") ? "skillCooldownSmall"
         : (card && card.tier==="LARGE") ? "skillCooldownLarge" : "skillCooldownMid";
   var v = E.cfg(S,k);
@@ -859,11 +861,16 @@ npc.skillToLearn = function(S,p){
     var td0=(p.digitalAssets||[]).filter(function(x){ return x.id===p.tending; })[0];
     if(td0 && !td0.dead && td0.tier===null) return null;
   }
-  var cap = E.cfg(S,"npcSkillCap"); if(cap===undefined) cap = 3;
-  // M8 S3：只算「還有效」的技能——已過時的不該永久佔住名額，
-  // 否則電腦玩家一旦被產業變革掃到，就再也不會回頭去進修更新。
-  var effN = Object.keys(p.skills||{}).filter(function(sid){ return !p.skills[sid].decayed; }).length;
-  if(effN >= cap) return null;
+  /* S28（Brian 裁示）：技能不設上限，多多益善——學得起就去學。
+     `npcSkillCap` 保留成旋鈕，**0 代表不設上限**（預設值已改成 0）。
+     真正的限制回到時間與現金：學習要輪數、冷卻要輪數、學費要留現金水位。 */
+  var cap = E.cfg(S,"npcSkillCap"); if(cap===undefined) cap = 0;
+  if(cap > 0){
+    // 只算「還有效」的技能——已過時的不該永久佔住名額，
+    // 否則電腦玩家一旦被產業變革掃到，就再也不會回頭去進修更新。
+    var effN = Object.keys(p.skills||{}).filter(function(sid){ return !p.skills[sid].decayed; }).length;
+    if(effN >= cap) return null;
+  }
   var w = ns.content.personalityById[p.npcPersonality].weights;
   var floor = (w.cashReserveFloor||3) * Math.max(1, p.derived.totalExpenses);
   var pool = (S.skillSample||[]).map(function(id){ return ns.content.byId[id]; })
