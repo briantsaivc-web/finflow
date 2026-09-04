@@ -768,6 +768,10 @@ E.apply = function(state, action, opts){
     if(S.enabledModules.indexOf("M8") < 0) return reject("M8_OFF");
     if(S.phase!=="ROLL" && S.phase!=="READY_END") return reject("WRONG_PHASE");
     if(p.bankrupt) return reject("BANKRUPT");
+    /* S30：外圈不再進修。原本引擎沒擋，但 npc.skillToLearn 擋了——真人學得到、電腦學不到，
+       兩邊行為不一致。外圈抽不到 SELF_INVEST、數位資產、獨董邀請，語彙一路都是「專心圓夢」；
+       而且這個遊戲的主題就是「準備要在事前做」，補在結算的時候不該還來得及。 */
+    if(p.playerStage!=="INNER") return reject("NOT_INNER");
     if((S.skillSample||[]).indexOf(sk.id) < 0) return reject("NOT_AVAILABLE");
     if(sk.requiresSkill && (!p.skills || !p.skills[sk.requiresSkill] || p.skills[sk.requiresSkill].decayed))
       return reject("PREREQUISITE_REQUIRED");
@@ -785,6 +789,8 @@ E.apply = function(state, action, opts){
     if(S.phase!=="ROLL" && S.phase!=="READY_END") return reject("WRONG_PHASE");
     if(p.bankrupt) return reject("BANKRUPT");
     if(!E.digitalOn(S)) return reject("DIGITAL_OFF");
+    // S30：外圈已起飛的長尾本來就不衰減，不需要顧；還沒起飛的在辭職時已經收掉了。
+    if(p.playerStage!=="INNER") return reject("NOT_INNER");
     var tid=(action.payload||{}).digitalId || null;
     if(tid!==null){
       if(p.learning) return reject("LEARNING");             // 學習中沒有時間經營
@@ -794,6 +800,24 @@ E.apply = function(state, action, opts){
     accept();
     p.tending = tid;
     E.ev("DIGITAL_TENDING",{playerId:p.id, digitalId:tid});
+    E.syncPhase(S);
+    break; }
+
+  /* S30：請一個人／外包——起飛之後才開放。
+     這是一人公司真正的轉折點：你是在經營一份工作，還是在經營一個資產？ */
+  case "STAFF_DIGITAL": {
+    if(S.phase!=="ROLL" && S.phase!=="READY_END") return reject("WRONG_PHASE");
+    if(p.bankrupt) return reject("BANKRUPT");
+    if(!E.digitalOn(S)) return reject("DIGITAL_OFF");
+    if(p.playerStage!=="INNER") return reject("NOT_INNER");
+    var sdId=(action.payload||{}).digitalId;
+    var sdOn=!!(action.payload||{}).on;
+    var sdD=(p.digitalAssets||[]).filter(function(x){ return x.id===sdId && !x.dead; })[0];
+    if(!sdD) return reject("NO_ASSET");
+    if(sdD.tier===null) return reject("NOT_TAKEN_OFF");
+    if(sdOn && !sdD.staffed && p.cash < E.digitalStaffCost(S,p)) return reject("NO_CASH");
+    accept();
+    E.setDigitalStaff(S,p,sdD,sdOn);
     E.syncPhase(S);
     break; }
 
@@ -1936,7 +1960,14 @@ E.resolveDecision = function(S,p,d,optionId,params){
       break;   // hold：什麼都不做，賭下一輪
     }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT":
-    case "DIGITAL_RESULT": break;   // 起飛結果已於 tickDigital 結算，此處純揭曉
+    case "DIGITAL_RESULT": {       // 起飛結果已於 tickDigital 結算；S30 起順便問「要不要請人」
+      if(optionId!=="staff") break;
+      var drD=(p.digitalAssets||[]).filter(function(x){ return x.id===d.digitalId && !x.dead; })[0];
+      if(!drD || drD.tier===null) break;
+      if(p.playerStage!=="INNER") break;
+      if(p.cash < E.digitalStaffCost(S,p)) break;      // 請不起就是請不起
+      E.setDigitalStaff(S,p,drD,true);
+      break; }
 
     // S7b：下市警示——現在停損，還是賭它撐過去
     case "DELIST_WARN": {
@@ -3447,14 +3478,23 @@ E.enterOuterCircle = function(S,p){
   E.dropSideJob(S,p,"辭職圓夢");   // 副業的時間成本必須一起停，否則進外圈後會憑空多一筆支出
   // 數位資產同理：維護費必須跟著停，收入也不再屬於「工作」——但長尾收入保留，
   // 這正是它與副業的差別（做出來的東西會繼續替你賺錢）。這裡只停維護、不停收入。
-  (p.digitalAssets||[]).forEach(function(dg){
+  (p.digitalAssets||[]).slice().forEach(function(dg){
     if(dg.dead) return;
-    if(dg.monthlyCost>0){
-      ledger.post(S,p,"辭職圓夢：停止投入「"+dg.name+"」",
-        [{account:"EXPENSE",delta:util.r2(-dg.monthlyCost),label:dg.name+" 維護費終止"}],
-        {eduTags:["digital"]});
-      dg.monthlyCost=0;
+    // S30：還沒起飛的東西，辭職就沒了——跟副業同一個道理，做到一半的不會自己長出來。
+    // （原本外圈仍可繼續推爬坡，與「外圈專心圓夢」的設計語彙不一致。）
+    if(dg.tier===null){ E.dropDigital(S,p,dg,"辭職圓夢"); return; }
+    /* S30：維護費與外包費是「暫停」不是「歸零」。原本直接把 monthlyCost 設成 0，
+       跌回內圈時沒有任何地方還原 → 畢業再自願跌回，長尾維護費就永久消失了。 */
+    var pausedM=util.r2(dg.monthlyCost||0), pausedS=util.r2(dg.staffed?(dg.staffCost||0):0);
+    if(pausedM>0 || pausedS>0){
+      var postD=[];
+      if(pausedM>0) postD.push({account:"EXPENSE",delta:-pausedM,label:dg.name+" 維護費終止"});
+      if(pausedS>0) postD.push({account:"EXPENSE",delta:-pausedS,label:dg.name+" 外包終止"});
+      ledger.post(S,p,"辭職圓夢：停止投入「"+dg.name+"」",postD,{eduTags:["digital"]});
     }
+    dg.pausedCost={ monthly:pausedM, staff:pausedS };
+    dg.monthlyCost=0;
+    if(dg.staffed){ dg.staffed=false; dg.staffCost=0; }
   });
   p.tending=null;
   var post=[{account:"INCOME_ACTIVE",delta:-p.derived.salaryIncome,label:"辭去工作"}];
@@ -3482,6 +3522,18 @@ E.freefall = function(S,p,opts){
   p.skippedTurns+=1; p.financiallyFree=false;
   p.skipReason=(opts.voluntary?"自願重返職場，交接一輪":"現金撐不住跌回內圈，重整一輪");
   p.stats.freefalls=(p.stats.freefalls||0)+1;
+  /* S30：回到內圈就要重新扛起長尾的維護費與外包月薪——辭職時是「暫停」不是「一筆勾銷」。
+     原本沒有這一段，於是「畢業→自願跌回」等於永久免除維護費。 */
+  (p.digitalAssets||[]).forEach(function(dg){
+    if(dg.dead || !dg.pausedCost) return;
+    var pc=dg.pausedCost, postR=[];
+    if(pc.monthly>0){ dg.monthlyCost=pc.monthly;
+      postR.push({account:"EXPENSE",delta:pc.monthly,label:dg.name+" 維護費恢復"}); }
+    if(pc.staff>0){ dg.staffed=true; dg.staffCost=pc.staff;
+      postR.push({account:"EXPENSE",delta:pc.staff,label:dg.name+" 外包恢復"}); }
+    if(postR.length) ledger.post(S,p,"重回內圈：「"+dg.name+"」恢復投入",postR,{eduTags:["digital"]});
+    dg.pausedCost=null;
+  });
   ns.modules.onStageTransition(S,p,"OUTER","INNER");
   E.ev("FREEFALL",{playerId:p.id, voluntary:!!opts.voluntary, salary:newSalary,
                    progressKept:p.dreamProgress});

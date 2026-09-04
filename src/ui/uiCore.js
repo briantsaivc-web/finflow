@@ -2341,8 +2341,28 @@ ui.decisionCard = function(S,p,d){
     if(dgR){ kvR.appendChild(el("div","k","投入了")); kvR.appendChild(el("div","v num",(S.turnNumber-dgR.startedAt)+" 輪")); }
     card.appendChild(kvR);
     card.appendChild(el("div","edu",tR.n+"　停更會衰減——長尾屬於持續的人，不屬於做過的人。"));
+    /* S30：起飛的那一刻問一次「要不要請一個人」。
+       這是一人公司真正的轉折：付固定月薪換到不用親自顧，時間槽空出來去做下一個——
+       但小的請不起、大的不請就會掉。決策卡上把兩邊的月淨額直接算給玩家看。 */
+    var stC=d.staffCost||0, incR=d.income||0;
+    var canStaff = stC>0 && p.playerStage==="INNER";
     var oR=el("div","opts");
-    oR.appendChild(optBtn("知道了",null,function(){ decide("ok"); }, true));
+    if(canStaff){
+      var netStaff=util.r2(incR-stC), afford=p.cash>=stC;
+      var subStaff="每月付 "+M(stC)+" → 這個資產淨賺 "+M(netStaff)
+                 + "；不用再親自顧，也不會因為停更而掉，時間空出來做下一個"
+                 + (afford?"":"（現金不足，需 "+M(stC)+"）");
+      var bS=optBtn("👥 請一個人接手", subStaff, function(){
+        if(!afford){ ui.toast("現金不足","warn"); return; }
+        decide("staff");
+      }, netStaff>0 && afford);
+      if(!afford){ bS.disabled=true; bS.style.opacity=".5"; }
+      oR.appendChild(bS);
+      oR.appendChild(optBtn("🙋 自己顧", "每月淨賺 "+M(incR)+"，但要占著唯一的時間槽——"
+                 + "不顧就會開始掉", function(){ decide("ok"); }, netStaff<=0));
+    } else {
+      oR.appendChild(optBtn("知道了",null,function(){ decide("ok"); }, true));
+    }
     card.appendChild(oR); c.appendChild(card); return;
   }
 

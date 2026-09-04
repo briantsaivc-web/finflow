@@ -2234,6 +2234,17 @@
       "hot": true
     },
     {
+      "key": "digitalStaffSalary",
+      "value": 12,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "group": "商城",
+      "label": "長尾外包／請人月薪",
+      "desc": "起飛後請一個人接手的固定月薪。刻意用固定額不用抽成——小的請不起、大的一定要請，規模化才長得出來",
+      "hot": true
+    },
+    {
       "key": "digitalFlopPct",
       "value": 0.33,
       "min": 0,

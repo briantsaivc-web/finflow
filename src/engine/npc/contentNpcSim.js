@@ -560,6 +560,7 @@ E.startDigital = function(S, p, card){
           // S29：長尾型態——版稅型（寫完就在那裡）與訂閱／流量型（斷更就崩）不該共用同一個衰減率。
           // 開張時鎖進這筆資產，之後調全域設定不會回頭改寫已經開張的（與 flopPct/hitPct 同一個作法）。
           decayRate: isFinite(pl.decayRate) ? pl.decayRate : null,
+          staffed:false, staffCost:0,        // S30：起飛之後才開放「請一個人／外包」
           takeoffIncome:0, monthlyIncome:0, startedAt:S.turnNumber,
           lastTendTurn:S.turnNumber, assetInstanceId:null, dead:false };
   p.digitalAssets.push(d);
@@ -651,7 +652,9 @@ E.tickDigital = function(S, p){
       p.stats["digital"+tier]=(p.stats["digital"+tier]||0)+1;
       E.syncDigitalAsset(S,p,d);
       E.pushDecision(S,p,{ kind:"DIGITAL_RESULT", digitalId:d.id, cardId:d.cardId,
-                           tier:tier, income:d.monthlyIncome });
+                           tier:tier, income:d.monthlyIncome,
+                           // S30：起飛的那一刻就問——你要繼續自己顧，還是請一個人把它變成資產？
+                           staffCost:E.digitalStaffCost(S,p) });
       E.ev("DIGITAL_TAKEOFF",{playerId:p.id, id:d.id, title:d.name, tier:tier,
                               income:d.monthlyIncome});
       continue;
@@ -663,8 +666,11 @@ E.tickDigital = function(S, p){
     // 作品做出來就在那裡；停止投入的懲罰屬於還在內圈的人。
     if(p.playerStage==="OUTER" && d.tier!==null) continue;
 
-    // 已起飛：停更衰減，重新經營則慢慢回升（回得來，但比當初慢得多）
-    if(!tending){
+    /* 已起飛：停更衰減，重新經營則慢慢回升（回得來，但比當初慢得多）。
+       S30：外包＝有人在顧。付固定月薪換到「不用親自顧也不會掉」，時間槽空出來去顧別的。
+       爬坡期刻意不開放外包——那個階段做的是你自己的東西，外包做不出來。 */
+    var kept = tending || d.staffed;
+    if(!kept){
       var dr=(d.decayRate!==null && d.decayRate!==undefined && isFinite(d.decayRate))
              ? d.decayRate : E.cfg(S,"digitalDecayRate");
       if(dr===undefined || !isFinite(dr)) dr=0.85;
@@ -691,11 +697,45 @@ E.tickDigital = function(S, p){
   }
 };
 
+/* S30：請一個人／外包。
+   固定月薪（不是抽成）——請一個人就是那個價，不管你賺多少。所以小的請不起、大的一定要請，
+   「規模化」這件事就長在機制裡：一個人做得完的時候不必請人，做不完的時候不請就會掉。
+   真正被交換掉的不只是錢，是時間槽：一次只顧得了一個，外包才騰得出手去顧下一個。 */
+E.digitalStaffCost = function(S, p){
+  var c = E.cfg(S,"digitalStaffSalary"); if(c===undefined) c = 12;
+  return util.r2(c);
+};
+E.setDigitalStaff = function(S, p, d, on){
+  if(!d || d.dead) return false;
+  if(d.tier===null) return false;                       // 還沒起飛不能外包
+  if(!!d.staffed === !!on) return true;                 // 已經是那個狀態
+  var cost = E.digitalStaffCost(S,p);
+  if(on){
+    d.staffed = true; d.staffCost = cost;
+    ledger.post(S,p,"請人接手："+d.name,
+      [{account:"EXPENSE",delta:cost,label:d.name+" 外包／人力月費"}],{eduTags:["digital","scale"]});
+    if(p.tending===d.id) p.tending=null;                // 時間槽空出來
+    p.stats.digitalStaffed=(p.stats.digitalStaffed||0)+1;
+  } else {
+    ledger.post(S,p,"收回自己顧："+d.name,
+      [{account:"EXPENSE",delta:util.r2(-(d.staffCost||cost)),label:d.name+" 外包終止"}],{eduTags:["digital"]});
+    d.staffed = false; d.staffCost = 0;
+  }
+  E.ev("DIGITAL_STAFFED",{playerId:p.id, id:d.id, title:d.name, on:!!on,
+                          cost:cost, income:d.monthlyIncome});
+  return true;
+};
+
 // 收掉一個數位資產（辭職圓夢、主動關閉）
 E.dropDigital = function(S, p, d, why){
   if(!d || d.dead) return;
   d.dead=true; d.monthlyIncome=0;
   E.syncDigitalAsset(S,p,d);
+  if(d.staffed && d.staffCost>0){                        // S30：人也要一起結束，否則留下孤兒支出
+    ledger.post(S,p,"結束外包："+d.name+"（"+why+"）",
+      [{account:"EXPENSE",delta:util.r2(-d.staffCost),label:d.name+" 外包終止"}],{eduTags:["digital"]});
+    d.staffed=false; d.staffCost=0;
+  }
   if(d.monthlyCost>0) ledger.post(S,p,"收掉數位資產："+d.name+"（"+why+"）",
     [{account:"EXPENSE",delta:util.r2(-d.monthlyCost),label:d.name+" 維護費終止"}],
     {eduTags:["digital"]});
@@ -1078,6 +1118,15 @@ npc.decide = function(S,p,d){
       return A("appoint", { company: ap>=1 ? "C" : (ap>=0.5 ? "B" : "A") });
     }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT": return A("ok");   // 盲盒自動開盒
+    /* S30：起飛之後要不要請人。決定論門檻：月收入至少是月薪的兩倍才請——
+       請一個人是固定成本，收入不夠就是把自己的利潤請掉。這是保守基準線，不是最佳解。 */
+    case "DIGITAL_RESULT": {
+      var stC=E.digitalStaffCost(S,p);
+      var dgR=(p.digitalAssets||[]).filter(function(x){ return x.id===d.digitalId && !x.dead; })[0];
+      if(!dgR || dgR.tier===null) return A("ok");
+      var floorD=(w.cashReserveFloor||3)*Math.max(1,p.derived.totalExpenses);
+      if(p.cash-stC < floorD) return A("ok");
+      return A((dgR.monthlyIncome||0) >= stC*2 ? "staff" : "ok"); }
 
     // M8 S1：NPC 學習判斷——決定論評估（付得起且現金留有水位），刻意不使用 RNG
     case "LEARN_SKILL": {

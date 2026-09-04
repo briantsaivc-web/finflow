@@ -229,6 +229,18 @@ ui.handleEvents = function(evs){
         ui.announce(me(e.playerId)+" 的新創「"+e.name+"」撐不過寒冬，股權歸零", e.playerId); break;
       case "STARTUP_DOWNROUND":
         ui.announce(me(e.playerId)+" 的「"+e.name+"」估值下修 "+M(Math.abs(e.delta)), e.playerId); break;
+      // S30：請人／收回自己顧——這是一人公司的轉折點，值得全場看到
+      case "DIGITAL_STAFFED": {
+        if(e.on){
+          ui.announce("👥 "+me(e.playerId)+" 請人接手「"+e.title+"」（每月 "+M(e.cost)+"）——"
+                    + "從自己做，變成有系統", e.playerId);
+          if(e.playerId===ui.myId())
+            ui.toast("👥 「"+e.title+"」交給別人顧了：每月 −"+M(e.cost)
+                   + "，換到不用親自顧、也不會停更就掉","good",5000);
+        } else if(e.playerId===ui.myId()){
+          ui.toast("🙋 「"+e.title+"」收回自己顧：省下每月 "+M(e.cost)+"，但要重新占時間槽","warn",4500);
+        }
+        break; }
       case "CARPENTRY_APPLIED":   // S28：改成「自己維護、每月省下」，不再是租金加成
         if(e.delta) ui.announce(me(e.playerId)+" 自己維護「"+e.assetName+"」，每月省下 "+M(e.delta), e.playerId); break;
       case "POLICY_EVENT": { var pc2=ns.content.byId[e.cardId], ex=pc2&&pc2.eduNote?("　—　"+pc2.eduNote):"";
