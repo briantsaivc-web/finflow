@@ -2963,12 +2963,12 @@ ui.showSkillMenu = function(p){
   wallBtn.onclick=function(){ ui.showSkillWall(p.id); };
   hdS.appendChild(wallBtn);
   box.appendChild(hdS);
-  box.appendChild(el("div","flavor","自己報名的課全額付費，還要多花時間找資源——但你想學什麼由自己決定。同時只能學一項。"+
-    "　現金 "+M(p.cash)));
+  box.appendChild(el("div","flavor","想學什麼由自己決定，課永遠開得成——真正稀缺的是時間跟現金。"+
+    "自己報名要全額付費，而且同時只能學一項。　現金 "+M(p.cash)));
   var inSample={}; (S.skillSample||[]).forEach(function(id){ inSample[id]=1; });
   var pool=(S.skillSample||[]).map(function(id){ return ns.content.byId[id]; })
     .filter(function(c){ return c && !(p.skills[c.id] && !p.skills[c.id].decayed); });
-  // 這一局沒開的課也要列出來——不然玩家想學財務卻找不到，會以為是壞掉了
+  // 保留：skillPerGame 調小、或技能所屬模組沒開時，這裡才會有東西
   var offSample=(ns.content.cards.SKILL||[]).filter(function(c){
     return c && !inSample[c.id] && !(p.skills[c.id] && !p.skills[c.id].decayed);
   }).sort(function(a,b){ return (a.cost||0)-(b.cost||0) || (a.id<b.id?-1:1); });
@@ -2976,8 +2976,9 @@ ui.showSkillMenu = function(p){
     box.appendChild(el("div","edu","這一局沒有更多可學的技能了。"));
   } else {
     var extraT=E.cfg(S,"skillActiveExtraTurns"); if(extraT===undefined) extraT=1;
-    var grid=el("div"); grid.style.cssText="display:flex;flex-direction:column;gap:6px;margin-top:8px";
-    pool.forEach(function(sc){
+    /* S32：技能全開之後一次會列近二十門，平鋪過去太難挑。改成依「投入量級」分組，
+       組內再依學費由低到高——玩家在這個畫面上找的，多半是「我現在付得起哪一檔」。 */
+    var mkBtn=function(sc){
       var price=E.skillPrice(S,sc,false,p), afford=p.cash>=price;
       var isRf=E.skillIsRefresh(p,sc);
       var b=el("button","opt");
@@ -2998,23 +2999,48 @@ ui.showSkillMenu = function(p){
       b.disabled=!afford || !preOk;
       if(!preOk) b.title="要先學會先修技能"; else if(!afford) b.title="現金不足";
       b.onclick=function(){ ov.remove(); ui.dispatch({type:"START_SKILL",playerId:ui.myId(),payload:{skillId:sc.id}}); };
-      grid.appendChild(b);
+      return b;
+    };
+    var groups=[
+      { tier:"SMALL", name:"入門・小額",    note:"幾輪就學完，省的是日常小錢與意外" },
+      { tier:"MID",   name:"進階・專業",    note:"中等投入，多半靠情境卡或加薪兌現" },
+      { tier:"LARGE", name:"轉職學程",      note:"最貴也最久，換的是整條職業曲線" },
+      { tier:"HIGH",  name:"高階・需先修",  note:"要先學會基礎那一門才報得了名" }
+    ];
+    var bucket={}, known={};
+    groups.forEach(function(g){ known[g.tier]=1; });
+    pool.forEach(function(sc){ var t=(sc.tier&&known[sc.tier])?sc.tier:"_OTHER"; (bucket[t]=bucket[t]||[]).push(sc); });
+    var byCost=function(a,b){ return (a.cost||0)-(b.cost||0) || (a.id<b.id?-1:1); };
+    var grid=el("div"); grid.style.cssText="display:flex;flex-direction:column;gap:6px;margin-top:8px";
+    var addGroup=function(name, note, arr){
+      arr.sort(byCost);
+      var hd=el("div");
+      hd.style.cssText="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"+
+        "margin-top:8px;padding-bottom:3px;border-bottom:1px solid var(--line)";
+      hd.appendChild(el("b",null,name+"（"+arr.length+"）"));
+      if(note){ var nt=el("span"); nt.style.cssText="font-size:12px;color:var(--tx3);text-align:right";
+        nt.textContent=note; hd.appendChild(nt); }
+      grid.appendChild(hd);
+      arr.forEach(function(sc){ grid.appendChild(mkBtn(sc)); });
+    };
+    groups.forEach(function(g){
+      var arr=bucket[g.tier]; if(arr && arr.length) addGroup(g.name, g.note, arr);
     });
+    // 資料若出現預期外的 tier，仍要列得出來——寧可版面難看，也不能讓一張卡靜默消失
+    if(bucket._OTHER && bucket._OTHER.length) addGroup("其他", "", bucket._OTHER);
     box.appendChild(grid);
   }
   if(offSample.length){
     var offHd=el("div","flavor");
     offHd.style.cssText="margin-top:12px;color:var(--tx3);font-size:12px";
-    offHd.textContent="這一局沒有開的課（"+offSample.length+" 門）——每局的技能牌是抽樣的，"+
-      "想學的不一定開得成。這不是你做錯什麼，是機會本來就有時候不來："+
-      "有些準備這輩子用不上，也有些課你想上的時候剛好沒開。";
+    offHd.textContent="本局未開放（"+offSample.length+" 門）——這些課要開對應的模組，或把技能抽樣上限調高才會出現。";
     box.appendChild(offHd);
     var offGrid=el("div"); offGrid.style.cssText="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px";
     offSample.forEach(function(sc){
       var chip=el("div");
       chip.style.cssText="border:1px dashed var(--line);border-radius:var(--r);padding:5px 8px;"+
         "font-size:12px;color:var(--tx3);opacity:.65";
-      chip.textContent=sc.title+"（本局沒開）";
+      chip.textContent=sc.title+"（本局未開放）";
       chip.title=(sc.hint||"")+"　學費 "+M(sc.cost||0)+"　學 "+(sc.turns||0)+" 輪";
       offGrid.appendChild(chip);
     });

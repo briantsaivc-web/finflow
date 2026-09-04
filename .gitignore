@@ -19,3 +19,6 @@ Thumbs.db
 *.backup.*
 *.backup2.*
 *.bak.*
+
+# 一次性的改檔腳本
+apply_edits*.py

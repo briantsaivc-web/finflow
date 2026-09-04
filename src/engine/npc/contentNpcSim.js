@@ -901,6 +901,53 @@ npc.digitalToTend = function(S,p){
   return { type:"TEND_DIGITAL", playerId:p.id, payload:{ digitalId: pick.id } };
 };
 
+/* S32：技能的「期望回收」——只算資料算得出來的部分：對應的情境卡價差 × 出現機率。
+   引擎內建的折抵（水電修繕、談判折讓、法律賠償、報稅、獨董、期貨、圓夢加成）
+   與數位資產加成都**沒有**計入，所以這是保守下限。
+   回傳 null＝這張技能在資料上估不出價值（兌現點只在引擎裡），呼叫端就不要用它來否決。 */
+/* 快取放在模組層、不放在 S 上——S 會被 JSON 序列化進存檔與多人同步封包，
+   把一份卡片物件陣列掛上去等於每回合廣播都多背幾十 KB。內容是靜態的，
+   只跟「本局開了哪些模組」有關，所以用模組字串當鍵就夠。 */
+var _gateIdxCache = null, _gateIdxKey = null;
+E.skillGateIndex = function(S){
+  var key=(S.enabledModules||[]).slice().sort().join(",");
+  if(_gateIdxCache && _gateIdxKey===key) return _gateIdxCache;
+  var idx={ list:[], bySkill:{} };
+  (ns.content.cards.LIFE_EVENT||[]).forEach(function(c){
+    if(c.kind!=="SKILL_GATE") return;
+    if(c.moduleReq && (S.enabledModules||[]).indexOf(c.moduleReq)<0) return;
+    var rq=(c.skillBranch&&c.skillBranch.requires)||"";
+    if(!rq) return;
+    idx.list.push(c);
+    (idx.bySkill[rq]=idx.bySkill[rq]||[]).push(c);
+  });
+  _gateIdxCache=idx; _gateIdxKey=key; return idx;
+};
+E.skillExpectedGain = function(S, p, sc){
+  if(!sc) return null;
+  var idx=E.skillGateIndex(S);
+  if(!idx.list.length) return null;
+  var mine=(idx.bySkill[sc.id]||[]).concat(sc.family ? (idx.bySkill["family:"+sc.family]||[]) : []);
+  if(!mine.length) return null;                       // 兌現點只在引擎裡 → 不評估
+  var nGate=E.cfg(S,"skillGatePerGame"); if(nGate===undefined) nGate=8;
+  var prob=Math.min(1, nGate/Math.max(1, idx.list.length));
+  var hz=E.cfg(S,"skillGateSalaryHorizon"); if(hz===undefined) hz=24;
+  var valOf=function(br){
+    var v=0;
+    (((br&&br.effects)||[])).forEach(function(e){
+      if(e.op==="CASH_DELTA") v+=(e.amount||0);
+      else if(e.op==="SALARY_MULT") v+=(p.derived.salaryIncome||0)*((e.factor||1)-1)*hz;
+    });
+    return v;
+  };
+  var sum=0;
+  mine.forEach(function(c){
+    var b=c.skillBranch||{};
+    sum += Math.max(0, valOf(b.have)-valOf(b.miss));
+  });
+  return util.r2(sum*prob);
+};
+
 npc.skillToLearn = function(S,p){
   if(S.enabledModules.indexOf("M8")<0) return null;
   var n = E.cfg(S,"skillPerGame"); if(n===undefined) n=12;
@@ -925,19 +972,33 @@ npc.skillToLearn = function(S,p){
   }
   var w = ns.content.personalityById[p.npcPersonality].weights;
   var floor = (w.cashReserveFloor||3) * Math.max(1, p.derived.totalExpenses);
-  var pool = (S.skillSample||[]).map(function(id){ return ns.content.byId[id]; })
-    .filter(function(sc){
-      if(!sc || sc.kind!=="SKILL") return false;
-      if(p.skills[sc.id] && !p.skills[sc.id].decayed) return false;
-      return p.cash - E.skillPrice(S,sc,false,p) >= floor;   // 不動用保留水位
-    })
-    .sort(function(a,b){
-      var ca=(a.cost||0), cb=(b.cost||0);
-      if(ca!==cb) return ca-cb;                            // 先學便宜的
-      var ta=(a.turns||0), tb=(b.turns||0);
-      if(ta!==tb) return ta-tb;                            // 同價先學快的
-      return a.id<b.id?-1:1;                               // 決定論穩定排序
-    });
+  /* S32：技能全開（19 張都進場）之後，「學得起就學、由便宜排到貴」會讓電腦
+     把錢全押在學費上，而且不看回報。改成先估期望回收：
+       ① 估得出來且回收 < 學費 × npcSkillRoiMin 的，不學
+       ② 排序改成「淨期望回收由高到低」，而不是「由便宜到貴」
+     估不出來的（兌現點只在引擎裡，例如木作、轉職型、高階四張）維持原本行為，
+     不因為「資料上看不到價值」就被排除——那會是回歸，不是改進。 */
+  var roiMin=E.cfg(S,"npcSkillRoiMin"); if(roiMin===undefined) roiMin=1;
+  var scored=[];
+  (S.skillSample||[]).forEach(function(id){
+    var sc=ns.content.byId[id];
+    if(!sc || sc.kind!=="SKILL") return;
+    if(p.skills[sc.id] && !p.skills[sc.id].decayed) return;
+    var price=E.skillPrice(S,sc,false,p);
+    if(p.cash - price < floor) return;                     // 不動用保留水位
+    var gain=E.skillExpectedGain(S,p,sc);
+    if(gain!==null && gain < price*roiMin) return;         // 估得出來、且划不來 → 不學
+    scored.push({ sc:sc, price:price, net:(gain===null?0:util.r2(gain-price)) });
+  });
+  scored.sort(function(a,b){
+    if(a.net!==b.net) return b.net-a.net;                  // 先學回收最高的
+    var ca=(a.sc.cost||0), cb=(b.sc.cost||0);
+    if(ca!==cb) return ca-cb;                              // 同回收先學便宜的
+    var ta=(a.sc.turns||0), tb=(b.sc.turns||0);
+    if(ta!==tb) return ta-tb;                              // 同價先學快的
+    return a.sc.id<b.sc.id?-1:1;                           // 決定論穩定排序
+  });
+  var pool=scored.map(function(x){ return x.sc; });
   if(!pool.length) return null;
   return { type:"START_SKILL", playerId:p.id, payload:{ skillId: pool[0].id } };
 };

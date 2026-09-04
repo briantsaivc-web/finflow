@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
      ① 公告的圖一定要來得及出——預載＋等載入才倒數，還要有 2.5 秒上限不讓它卡住
      ② 相簿要有時間軸（第幾輪拿到的），沒圓夢的人也要有相簿
      ③ 郵戳位置離線算好寫在資料上，執行期不分析圖片；最後一張是金勳章不是紅印
-     ④ 進修商城要分「這一局開的課」與「這一局沒開的課」，後者要說清楚不是玩家的錯
+     ④ 進修商城的內容（S32 起改為依投入量級分組；原本的「這一局沒開的課」那一區已移除）
    用法（repo 根目錄）： node tests/s31btest.js */
 const __path = require('path');
 const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'index.html'));
@@ -126,16 +126,20 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     });
 
     /* ---------- ③ 進修商城與技能牆 ---------- */
-    step("進修商城：分「這一局開的課」與「這一局沒開的課」兩區",()=>{
+    /* S32 改版：技能全開之後「這一局沒開的課」那一區在正常局不再出現，
+       改驗「依投入量級分組」——原本的兩區斷言換成分組斷言，不是刪掉不驗。 */
+    step("進修商城：依投入量級分組列出，不再有「這一局沒開的課」",()=>{
       const S=fresh(3158), p=S.players[0];
       cashTo(S,p,900);
       close(); ui.showSkillMenu(p);
       const ov=document.querySelector('#overlays .overlay');
       A(/進修商城/.test(ov.textContent),"標題應為進修商城");
-      A(/這一局沒有開的課/.test(ov.textContent),"要有沒開的課那一區");
-      A(/不是你做錯什麼/.test(ov.textContent),"要講清楚這不是玩家的錯（機會本來就有時候不來）");
+      A(/入門・小額/.test(ov.textContent),"缺分組：入門・小額");
+      A(/進階・專業/.test(ov.textContent),"缺分組：進階・專業");
+      A(/轉職學程/.test(ov.textContent),"缺分組：轉職學程");
+      A(!/這一局沒有開的課|不是你做錯什麼/.test(ov.textContent),"技能全開後不該再有「沒開的課」那套說詞");
       close();
-      return "兩區都在，且有解釋";
+      return "分組標題到齊，舊區塊已移除";
     });
     step("技能證書牆：像徽章牆，已過時的做成泛黃的證書",()=>{
       const S=fresh(3159), p=S.players[0];

@@ -12,6 +12,7 @@
    8. 引擎與測試裡寫死的 id 必須還在（改名或刪卡前先查這份清單）
    9b. 機率型選項：chance 落在 0～1、要有 onWin／onLose，兩個分支的 effects 一併驗 op（S27）
    9c. requiresEmploymentType 只能是 EMPLOYEE／SELF／FOUNDER（S27）
+  10. SKILL_GATE 分布守則：單一技能對應的情境卡不得超過總數 25%（S32 技能全開後的公平性硬規則）
    9. CHOICE 卡的第 1 個選項是「建議選項」——若第 1 個選項效果含 CASH_DELTA 正數且第 2 個含 GRANT_VIRTUE 正數，提醒順序可能反了
 
    用法（repo 根目錄）：node tests/contentcheck.js        非 0 結束碼＝有錯 */
@@ -104,6 +105,39 @@ for (const { c, deck, f } of all) {
     if (cashFirst && virtueSecond) W(`${where} 第 1 個選項是「拿錢」、第 2 個是「修品格」——第 1 個選項會被標成建議、NPC 也會選它，順序可能反了`);
   }
 }
+// ---- 10. SKILL_GATE 分布守則（S32）----
+/* S32 把 skillPerGame 開到全部，本局有沒有那門課不再是隨機。剩下唯一會讓
+   「有沒有學」失去意義的風險，是情境卡全擠在同一門技能上——那等於變相回到
+   「只有一門課有用」。牌堆會愈長愈大，所以把它變成每次 build 都跑的硬規則。
+   family:X 當成獨立一鍵計算（它只覆蓋該家族，仍是集中度的一種）。 */
+{
+  const gates = all.filter(x => x.c.kind === 'SKILL_GATE');
+  const byReq = new Map();
+  for (const g of gates) {
+    const rq = (g.c.skillBranch && g.c.skillBranch.requires) || '';
+    if (!rq) { E(`${g.f} ${g.c.id} 是 SKILL_GATE 卻沒有 skillBranch.requires`); continue; }
+    byReq.set(rq, (byReq.get(rq) || 0) + 1);
+  }
+  const tot = gates.length, CAP = 0.25;
+  if (tot >= 8) {
+    for (const [rq, n] of [...byReq].sort((a, b) => b[1] - a[1])) {
+      if (n / tot > CAP)
+        E(`情境卡集中度超標：「${rq}」佔 ${n}/${tot}（${(n / tot * 100).toFixed(1)}%），上限 ${CAP * 100}%——` +
+          `技能全開之後，情境卡若擠在同一門技能上，等於只有那一門課值得學`);
+    }
+  }
+  // 反向：有技能卻一張情境卡都沒有——不是錯，但要看得見缺口
+  const skillIds = all.filter(x => x.c.kind === 'SKILL').map(x => x.c.id);
+  const famCovered = new Set();
+  for (const rq of byReq.keys()) if (rq.indexOf('family:') === 0) famCovered.add(rq.slice(7));
+  const naked = skillIds.filter(id => {
+    if (byReq.has(id)) return false;
+    const card = all.find(x => x.c.id === id).c;
+    return !(card.family && famCovered.has(card.family));
+  });
+  if (naked.length) W(`這些技能沒有任何 SKILL_GATE 情境卡，兌現只能靠引擎折抵或轉職：${naked.join('、')}`);
+}
+
 // ---- 8. 程式碼與測試裡寫死的 id ----
 const codeSrc = engineSrc + ['ui/uiCore.js', 'ui/uiViews.js', 'ui/tutorial.js', 'network/syncAdapter.js'].map(x => fs.readFileSync(path.join(ROOT, 'src', x), 'utf8')).join('\n');
 const testSrc = fs.readdirSync(__dirname).filter(x => x.endsWith('.js') && !/test_engine|contentcheck/.test(x)).map(x => fs.readFileSync(path.join(__dirname, x), 'utf8')).join('\n');
