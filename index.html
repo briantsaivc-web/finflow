@@ -725,7 +725,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.49.0-S41", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.50.0-S42", date:"2026-09-06" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -839,7 +839,11 @@ E.newGame = function(opts){
 };
 
 E.makePlayer = function(S, idx, pd){
-  var prof = ns.content.professionById[pd.professionId];
+  var prof = pd ? ns.content.professionById[pd.professionId] : null;
+  if(!prof){   // S42：壞的職業代號（舊存檔、房間 meta 損毀）不再讓開局白屏；退回第一個職業並留事件，不靜默
+    prof = ns.content.professions[0];
+    E.ev("PROFESSION_FALLBACK",{playerId:idx, badId:(pd&&pd.professionId)||null, fallbackId:prof.id});
+  }
   var p = { id:idx, name:pd.name, isNPC:!!pd.isNPC, npcPersonality:pd.personality||null,
     professionId:prof.id, retiredProfessionId:null, position:0, cash:0, ledger:[],
     assets:[], liabilities:[], derived:{}, childrenCount:0, bankrupt:false,
@@ -3342,7 +3346,11 @@ E.apply = function(state, action, opts){
     var l = actor.liabilities.filter(function(x){return x.instanceId===action.payload.liabilityId;})[0];
     if(!l) return reject("NO_LIABILITY");
     if(l.kind==="P2P") return reject("P2P_NO_PREPAY");   // V3：民間借貸按期攤還給對方，不走銀行提前還本
-    var amt = Math.min(action.payload.amount, l.principal, actor.cash);
+    // S42：金額必須是有限正數。NaN／undefined（JSON 丟欄位）會讓 Math.min 回 NaN、
+    // 繞過 <=0 守門，現金與本金從此全是 NaN。
+    var reqAmt = action.payload ? action.payload.amount : undefined;
+    if(typeof reqAmt!=="number" || !isFinite(reqAmt) || reqAmt<=0) return reject("BAD_AMOUNT");
+    var amt = Math.min(reqAmt, l.principal, actor.cash);
     if(amt<=0) return reject("NO_CASH");
     accept(); E.repay(S,actor,l,amt);
     if(!isMyTurnAction) E.markOffTurnLedger(actor);      // 非回合做的帳，輪到自己時仍要記
@@ -3356,7 +3364,9 @@ E.apply = function(state, action, opts){
     if(!E.canUseLoan(S) && S.phase!=="BANKRUPTCY") return reject("DEPTH_LOCKED");
     var isRescue = (S.phase==="BANKRUPTCY" && lp===p);   // 紓困只在自己的破產程序中
     var cap = isRescue ? E.rescueCap(S,lp) : E.creditCapacity(S,lp);
-    var amt2 = Math.min(action.payload.amount, cap);
+    var reqAmt2 = action.payload ? action.payload.amount : undefined;   // S42：同 REPAY_LOAN
+    if(typeof reqAmt2!=="number" || !isFinite(reqAmt2) || reqAmt2<=0) return reject("BAD_AMOUNT");
+    var amt2 = Math.min(reqAmt2, cap);
     if(amt2<=0) return reject("NO_CAPACITY");
     accept();
     var lname = isRescue ? "紓困貸款" : "信用貸款";
@@ -3410,6 +3420,7 @@ E.apply = function(state, action, opts){
     if(p.playerStage!=="OUTER") return reject("NOT_OUTER");
     if(p.boughtProgressThisTurn) return reject("ALREADY_BOUGHT");   // v0.2：每回合限購 1 點
     if(E.freeProgressThisTurn(S,p)) return reject("FREE_THIS_TURN"); // S40：踩到聖地那一輪不再賣
+    if(p.cash < E.dreamProgressPrice(S,p)) return reject("NO_CASH");  // S42：先驗資再 accept，不留無效紀錄（價格含技能折抵，與扣款同一份）
     accept();
     E.buyDreamProgress(S,p);
     E.syncPhase(S);
@@ -4370,7 +4381,7 @@ E.buyAsset = function(S,p,card,optionId,params){
 
   if(card.kind==="REALESTATE"){
     var useLoan = optionId==="loan" && E.canUseLoan(S);
-    var ltv = useLoan ? Math.min(params.ltv!==undefined?params.ltv:(1-pl.downPayment/pl.price), E.effMaxLTV(S,card)) : 0;
+    var ltv = useLoan ? Math.min(params.ltv!==undefined?params.ltv:(1-(pl.downPayment||0)/(pl.price||1)), E.effMaxLTV(S,card)) : 0;   // S42：對齊 engineCore E.oppCompare 的除零防禦
     var loan = util.r2(pl.price*ltv), down = util.r2(pl.price-loan);
     if(p.cash<down) return;
     var rent=util.r2((pl.monthlyRent||0)*im), cost=util.r2(pl.monthlyCost||0);   // V4：缺欄位防 NaN
@@ -5522,6 +5533,12 @@ E.trackLeverage = function(p){
 
 /* ============================ 破產與勝利 ================================= */
 E.enterBankruptcy = function(S,p){
+  /* S42：引擎不變式「待決策一定屬於當前玩家」（見 2730／2925 註解）。期貨逐輪結算、
+     下市歸零都跑在別人的回合、遍歷全體玩家——非回合真人在這裡被推進破產（或外圈跌落）
+     決策，會被 S14a-2 白名單擋住急售／紓困（NOT_YOUR_TURN），當前玩家也擲不了骰、
+     結束不了回合，只剩「退出這一局」。與 queueFutNotice／markDelistWarn 同一紀律：
+     先記在玩家身上，等 E.beginTurn 輪到他再推。電腦玩家走 npcRescue 當場處理，不受影響。 */
+  if(!p.isNPC && !p.bankrupt && p!==E.activePlayer(S)){ p.pendingBankruptcy=true; return; }
   if(p.playerStage==="OUTER"){ E.outerCrisis(S,p); return; }   // v0.2：外圈先走跌落程序，不直接破產
   if(p.isNPC){ E.npcRescue(S,p); return; }
   S.decisionQueue = S.decisionQueue.filter(function(d){ return d.kind!=="ACK"; });
@@ -6151,10 +6168,13 @@ E.beginTurn = function(S){
   E.tickFutCall(S,p);                // S23b：期貨追繳（在自己的回合才跳卡）
   E.tickDirectorship(S,p);           // S21/S22：獨立董事車馬費、審計警訊與弊案結算
   E.tickScamInvestments(S,p);        // S21/S22：偽裝高息投資到期引爆
+  // S42：別人回合裡被期貨強平／下市打到現金負的真人，破產程序遞延到這裡才推（見 enterBankruptcy）。
+  // 發薪與上面幾個結算跑完若已回正，就不推了（現金 >= 0 不是破產）。
+  if(p.pendingBankruptcy){ delete p.pendingBankruptcy; if(p.cash<0 && !p.bankrupt) E.enterBankruptcy(S,p); }
   // S22：上面兩個結算可能把人打到現金負——電腦玩家走 npcRescue 失敗就地破產、真人則排入破產決策。
   // 與 S14b 發薪那段同一個洞：破產已成定局卻停在 ROLL，誰都推不動。這裡照同一套收尾。
   if(p.bankrupt){ S.turnResolved=true; return E.endTurn(S); }
-  if((S.decisionQueue||[]).some(function(d){ return d.kind==="BANKRUPTCY"; })){ E.syncPhase(S); return; }
+  if((S.decisionQueue||[]).some(function(d){ return d.kind==="BANKRUPTCY" || d.kind==="FREEFALL_RESCUE"; })){ E.syncPhase(S); return; }
   E.ev("TURN_START",{playerId:p.id, turn:S.turnNumber});
 };
 

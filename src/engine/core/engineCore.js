@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.49.0-S41", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.50.0-S42", date:"2026-09-06" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -202,7 +202,11 @@ E.newGame = function(opts){
 };
 
 E.makePlayer = function(S, idx, pd){
-  var prof = ns.content.professionById[pd.professionId];
+  var prof = pd ? ns.content.professionById[pd.professionId] : null;
+  if(!prof){   // S42：壞的職業代號（舊存檔、房間 meta 損毀）不再讓開局白屏；退回第一個職業並留事件，不靜默
+    prof = ns.content.professions[0];
+    E.ev("PROFESSION_FALLBACK",{playerId:idx, badId:(pd&&pd.professionId)||null, fallbackId:prof.id});
+  }
   var p = { id:idx, name:pd.name, isNPC:!!pd.isNPC, npcPersonality:pd.personality||null,
     professionId:prof.id, retiredProfessionId:null, position:0, cash:0, ledger:[],
     assets:[], liabilities:[], derived:{}, childrenCount:0, bankrupt:false,
