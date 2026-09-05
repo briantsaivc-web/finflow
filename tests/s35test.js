@@ -256,19 +256,20 @@ function play(arg){
       close(); ui._sumAlways=false;
       return "0.3× 不彈／1.2× 彈／轉介彈／always 彈";
     });
-    step("彙總畫面與設定面板都有三段切換（只在大事／每輪／關）",()=>{
+    step("彙總畫面右上角可關（S40）；設定面板仍有三段切換（只在大事／每輪／關）",()=>{
       const S=fresh(3510), p=S.players[0];
       ui._sumAlways=true; ui._sumMark={}; ui.markTurnSummary(0);
       ns.ledger.post(S,p,"x",[{account:"CASH",delta:-1,label:"x"}],{eduTags:["test"]});
       close(); ui.showTurnSummary(0);
       const ov=document.querySelector('#overlays .sheetbox'); A(ov,"彙總應開得起來");
-      const btn=[].slice.call(ov.querySelectorAll('button')).filter(b=>/顯示：/.test(b.textContent))[0];
-      A(btn,"彙總畫面要有顯示模式切換");
+      A(![].slice.call(ov.querySelectorAll('button')).some(b=>/顯示：|朕知道了/.test(b.textContent)),"S40：彙總畫面底下三顆鈕應已拿掉");
+      const btn=[].slice.call(ov.querySelectorAll('button')).filter(b=>/不再顯示/.test(b.textContent))[0];
+      A(btn,"S40：彙總畫面右上角要有『不再顯示』");
       close(); ui._sumAlways=false;
       ns.devpanel.build();
       const dv=document.getElementById("devbody");
       A(dv && /通知方式/.test(dv.textContent) && /只在大事才顯示/.test(dv.textContent),"調參面板要有通知方式與三段切換");
-      return "兩處都有";
+      return "彙總右上可關；設定面板三段切換仍在";
     });
 
     /* ---------- ③ 訊息欄篩選與新訊息 ---------- */

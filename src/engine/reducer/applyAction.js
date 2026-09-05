@@ -1411,6 +1411,7 @@ E.apply = function(state, action, opts){
   case "BUY_DREAM_PROGRESS": {
     if(p.playerStage!=="OUTER") return reject("NOT_OUTER");
     if(p.boughtProgressThisTurn) return reject("ALREADY_BOUGHT");   // v0.2：每回合限購 1 點
+    if(E.freeProgressThisTurn(S,p)) return reject("FREE_THIS_TURN"); // S40：踩到聖地那一輪不再賣
     accept();
     E.buyDreamProgress(S,p);
     E.syncPhase(S);
@@ -1741,6 +1742,7 @@ E.landing = function(S,p,space){
       }
       if(dream && dream.category===space.category){
         p.atDreamSite = true;
+        p.freeProgressTurn = S.turnNumber;      // S40（Brian）：踩到聖地免費 +1 的那一輪，不能再用錢買——同一輪不得兩點
         p.dreamProgress++; p.stats.freeProgress++;
         E.logDreamPoint(S,p,p.dreamProgress,false);  // S31：寫進夢想相簿
         E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:false,
@@ -3829,6 +3831,7 @@ E.buyDreamProgress = function(S,p){
   var peek = E.dreamSkillPerk(S,p,base,false);
   var price = util.r2(base - peek.discount);
   if(p.cash<price || p.boughtProgressThisTurn) return false;
+  if(E.freeProgressThisTurn(S,p)) return false;   // S40：踩到聖地那一輪不賣（決策路徑與直呼都擋）
   E.dreamSkillPerk(S,p,base,true);            // 確定買得起才動用一次性加成
   p.dreamProgress++; p.dreamBuyCount++; p.stats.paidProgress++;
   p.boughtProgressThisTurn=true;
@@ -3842,9 +3845,17 @@ E.buyDreamProgress = function(S,p){
   return true;
 };
 // 落地處理完畢後統一詢問（任何外圈格；本命聖地免費+1 後仍可再購 1＝幸運雙倍）
+/* S40（Brian）：v0.2 的「本命聖地免費 +1 後同回合仍可再購 1＝幸運雙倍」拿掉——
+   踩到聖地那一輪不能再用錢買，一輪最多一點。dreamFreeThenBuy=1 回到 v0.2 行為。 */
+E.freeProgressThisTurn = function(S,p){
+  var on=E.cfg(S,"dreamFreeThenBuy"); if(on===undefined) on=0;
+  if(on) return false;
+  return p.freeProgressTurn===S.turnNumber;
+};
 E.offerDreamProgress = function(S,p){
   if(S.over || p.bankrupt || p.playerStage!=="OUTER") return;
   if(p.boughtProgressThisTurn) return;
+  if(E.freeProgressThisTurn(S,p)) return;          // S40：這一輪已經免費拿到一點
   if(p.dreamProgress >= S.config.dreamCost) return;
   var price = E.dreamProgressPrice(S,p);       // S28：含技能一次性折抵，與扣款同一份
   if(p.cash < price) return;

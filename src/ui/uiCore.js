@@ -3551,7 +3551,13 @@ ui.showTurnSummary = function(pid, why){
 
   var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="760px";
   var hd=el("div","panelTop");
-  hd.appendChild(el("h2",null,"🧾 第 "+S.turnNumber+" 輪　你的結算"));
+  hd.appendChild(el("h2",null,"🧾 第 "+S.turnNumber+" 輪　你的結算（亦可在你的每輪紀錄查看）"));
+  // S40（Brian）：右上角「不再顯示」＋「關閉」；底下的朕知道了／自動關閉／顯示模式三顆鈕拿掉（設定面板仍可調）
+  var offTop=el("button","act","不再顯示"); offTop.title="以後回合結束不再彈這個畫面；每輪紀錄隨時看得到；調參面板「畫面」區可以再打開";
+  offTop.onclick=function(){ ui._sumOff=true; ui._sumAlways=false;
+    try{ localStorage.setItem("finflow.sumOff","1"); localStorage.setItem("finflow.sumAlways","0"); }catch(e){}
+    close(); ui.hint("已關閉回合結算畫面（每輪紀錄仍看得到）","good",3000); };
+  hd.appendChild(offTop);
   var xb=el("button","act","✕ 關閉"); xb.onclick=function(){ close(); };
   hd.appendChild(xb); box.appendChild(hd);
 
@@ -3605,42 +3611,12 @@ ui.showTurnSummary = function(pid, why){
   r2("淨現金流", M(d.netCashflow), d.netCashflow>=0?"pos":"neg");
   box.appendChild(kv);
 
+  // S40：底部只留自動關閉的倒數（若設定面板有開），不再放按鈕
   var timer=null, left=ui._sumAutoSec;
-  var okBtn=el("button","opt primary");
-  function label(){ okBtn.textContent = left>0 ? ("朕知道了（"+left+"）") : "朕知道了"; }
+  var cd=el("div","sub"); cd.style.cssText="text-align:right;color:var(--tx3);font-size:12px;margin-top:6px";
+  function label(){ cd.textContent = left>0 ? (left+" 秒後自動關閉") : ""; }
   function close(){ if(timer) clearInterval(timer); timer=null; ov.remove(); }
-  label();
-  okBtn.onclick=close;
-
-  var o=el("div","opts"); o.appendChild(okBtn);
-  // 自動關閉：本機偏好，切換不影響遊戲狀態與決定論
-  var auto=el("button","opt");
-  function autoLabel(){ auto.textContent = ui._sumAutoSec>0 ? ("自動關閉："+ui._sumAutoSec+" 秒（點擊改）") : "自動關閉：關（點擊開）"; }
-  autoLabel();
-  auto.onclick=function(){
-    var STEPS=[0,2,3,5,10];
-    ui._sumAutoSec = STEPS[(STEPS.indexOf(ui._sumAutoSec)+1)%STEPS.length];
-    try{ localStorage.setItem("finflow.sumAutoSec", String(ui._sumAutoSec)); }catch(e){}
-    autoLabel();
-    if(timer){ clearInterval(timer); timer=null; }
-    left=ui._sumAutoSec; label();
-    if(left>0) start();
-  };
-  o.appendChild(auto);
-  // S35：三段切換——只在大事（預設）／每輪都顯示／不顯示
-  var modeBtn=el("button","opt");
-  function modeLabel(){ var m=ui.sumMode(); modeBtn.textContent = m==="always" ? "顯示：每輪（點擊改）" : m==="auto" ? "顯示：只在大事（點擊改）" : "顯示：關"; }
-  modeLabel();
-  modeBtn.onclick=function(){
-    var m=ui.sumMode();
-    if(m==="auto"){ ui._sumAlways=true; } else if(m==="always"){ ui._sumAlways=false; ui._sumOff=true; } else { ui._sumOff=false; ui._sumAlways=false; }
-    try{ localStorage.setItem("finflow.sumAlways", ui._sumAlways?"1":"0"); localStorage.setItem("finflow.sumOff", ui._sumOff?"1":"0"); }catch(e){}
-    modeLabel();
-    if(ui.sumMode()==="off"){ ui.hint("已關閉回合結算畫面（設定面板可再打開）","good"); close(); }
-  };
-  o.appendChild(modeBtn);
-  box.appendChild(o);
-
+  label(); box.appendChild(cd);
   // 被靜音的小通知列在最後，一則都不漏——同樣分三類
   var mts=(ui._mutedToasts||[]).slice(-24);
   if(mts.length){

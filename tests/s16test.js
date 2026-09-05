@@ -71,7 +71,7 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       return r.note;
     });
 
-    step("回合結算彙總：出得來、有五欄、有朕知道了",()=>{
+    step("回合結算彙總：出得來、有五欄、右上角不再顯示（S40 改）",()=>{
       close();
       ui._sumOff=false; ui._sumMark={}; ui._sumAutoSec=0;
       ui.markTurnSummary(0);
@@ -82,8 +82,9 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       A(box,"結算畫面沒出來");
       const t=box.textContent;
       A(/你的結算/.test(t),"標題不對");
-      A(/朕知道了/.test(t),"缺少『朕知道了』");
-      A(/自動關閉/.test(t),"缺少自動關閉選項");
+      A(!/朕知道了/.test(t),"S40：底下的『朕知道了』應已拿掉");
+      A(/不再顯示/.test(t),"S40：右上角要有『不再顯示』");
+      A(/亦可在你的每輪紀錄查看/.test(t),"S40：標題要寫『亦可在你的每輪紀錄查看』");
       A(/本輪合計/.test(t),"缺少本輪合計");
       ["現金","資產","負債","收入","支出"].forEach(c=>A(t.indexOf(c)>=0,"缺欄位 "+c));
       A(/這一輪的事件/.test(t),"應列出該筆事件");

@@ -612,9 +612,18 @@ ui.handleEvents = function(evs){
   });
 };
 
+ui._payslipOff = false;     // S40：本機偏好——不再顯示薪資單（收支明細與每輪紀錄都查得到）
 ui.showPayslip = function(d){
-  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="420px";
-  box.appendChild(el("h2",null,T("pay.title")));
+  if(ui._payslipOff) return;
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="440px";
+  // S40（Brian）：標題註明還有哪裡看得到；右上角一顆「不再顯示」
+  var hdP=el("div","panelTop");
+  hdP.appendChild(el("h2",null,T("pay.title")+"（亦可在收支明細查看）"));
+  var offP=el("button","act","不再顯示"); offP.title="以後發薪不再彈這張單；調參面板「畫面」區可以再打開";
+  offP.onclick=function(ev){ ev.stopPropagation(); ui._payslipOff=true;
+    try{ localStorage.setItem("finflow.payslipOff","1"); }catch(e){}
+    ov.remove(); ui.hint("已關閉薪資單（收支明細與每輪紀錄仍看得到）","good",3000); };
+  hdP.appendChild(offP); box.appendChild(hdP);
   box.appendChild(el("div","sub","第 "+d.turn+" 輪"));
   var kv=el("div","kv");
   function r(k,v,c){ kv.appendChild(el("div","k",k)); kv.appendChild(el("div","v num"+(c?" "+c:""),v)); }
@@ -1245,6 +1254,18 @@ ns.devpanel = {
     sl.appendChild(sb); sr.appendChild(sl);
     sr.appendChild(el("div","d","「只在大事」＝本輪現金變動達一個月支出、或有其他玩家引發的帳才彈；其餘輪次看左欄「系統訊息」或「每輪紀錄」。"));
     sd.appendChild(sr);
+    // S40：薪資單
+    var pr0=el("div","cfrow");
+    var pl0=el("div","l"); pl0.appendChild(el("span",null,"發薪時的薪資單"));
+    var pb0=el("button","act");
+    function pbl(){ pb0.textContent = ui._payslipOff ? "已關閉" : "顯示"; }
+    pbl();
+    pb0.onclick=function(){ ui._payslipOff=!ui._payslipOff;
+      try{ localStorage.setItem("finflow.payslipOff", ui._payslipOff?"1":"0"); }catch(e){}
+      pbl(); };
+    pl0.appendChild(pb0); pr0.appendChild(pl0);
+    pr0.appendChild(el("div","d","關掉之後發薪只記在收支明細與每輪紀錄，不再彈單。"));
+    sd.appendChild(pr0);
     // S35：通知模式（精簡／舊制）
     var nr=el("div","cfrow");
     var nl=el("div","l"); nl.appendChild(el("span",null,"通知方式"));
@@ -3076,7 +3097,7 @@ ns.selftest = {
       E.offerDreamProgress(S3,r);
       assert(!S3.decisionQueue.some(function(d){return d.kind==="BUY_PROGRESS";}),"現金不足不應供應");
 
-      // (c) 本命聖地：免費+1 後同回合仍可購 1（幸運雙倍）
+      // (c) 本命聖地：S40（Brian）免費+1 的那一輪不再供應購點（一輪最多一點）；dreamFreeThenBuy=1 回到 v0.2 幸運雙倍
       var S4=mkOuter(7704, 5000), u=S4.players[0];
       var dream=ns.content.byId[u.dreamCardId];
       var ownIdx=-1; ns.content.boardLayoutOuter.forEach(function(sp,i){
@@ -3086,9 +3107,14 @@ ns.selftest = {
       E.landing(S4,u,ns.content.boardLayoutOuter[ownIdx]);
       assert(u.dreamProgress===p0+1,"踩本命聖地應免費+1");
       E.offerDreamProgress(S4,u);
+      assert(!S4.decisionQueue.some(function(d){return d.kind==="BUY_PROGRESS";}),"S40：免費+1 的那一輪不應再供應購點");
+      assert(E.buyDreamProgress(S4,u)===false,"S40：免費+1 的那一輪直呼購點也要擋");
+      S4.config.dreamFreeThenBuy=1;
+      E.offerDreamProgress(S4,u);
       var dOff=S4.decisionQueue.filter(function(d){return d.kind==="BUY_PROGRESS";})[0];
-      assert(dOff,"免費+1 後同回合應仍可購 1");
+      assert(dOff,"dreamFreeThenBuy=1：同回合應仍可購 1（v0.2 幸運雙倍）");
       assert(Math.abs(dOff.price-BASE*(u.dreamProgress+1))<0.02,"報價應為 base×(進度+1)");
+      S4.config.dreamFreeThenBuy=0;
 
       // (d) V11：集滿 5 點還要幸福感達門檻才算獲勝
       var S5=mkOuter(7705, 5000), v=S5.players[0];
@@ -7258,6 +7284,7 @@ ns.boot = function(){
     // S35：本機偏好——每輪都彈／通知模式／訊息欄篩選
     if(localStorage.getItem("finflow.sumAlways")==="1") ui._sumAlways=true;
     var nmode=localStorage.getItem("finflow.notifyMode"); if(nmode==="S18") ui.notifyMode="S18";
+    if(localStorage.getItem("finflow.payslipOff")==="1") ui._payslipOff=true;   // S40
     var ff=localStorage.getItem("finflow.feedFilter"); if(ff && /^(ALL|SYS|MINE|OTHERS)$/.test(ff)) ui._feedFilter=ff;
   }catch(e){}
   $("btnSim").onclick=function(){ ns.simui.show(); };   // 八期：三顆圖示鈕已移入中欄操作區（id 不變）

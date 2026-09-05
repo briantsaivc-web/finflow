@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.47.0-S39", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.48.0-S40", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -497,12 +497,35 @@ E.oppCompare = function(S, card, viewer){
       if(expRepair>0) risks.push("修繕期望每月 −"+expRepair);
       if(expVac>0) risks.push("空租期望每月 −"+expVac);
     }
-    if(pl.volatileProfit) risks.push("分紅會隨景氣大幅波動，這個數字不是保證");
+    /* S40（Brian：「報酬率跟風險調整後一樣，合理？」）：事業原本只有一句文字、數字不動。
+       現在把兩件引擎真的會發生的事算進去：
+       ① 景氣係數——事業分紅跟著四個景氣階段走（bizMult），拿四階段平均與 1 的差當期望折減；
+       ② 標了獲利波動的卡再折 riskVolatileDragPct。
+       吸金盤：懂帳的人看到的是「本金會歸零」——風險調整後年化直接寫 −100%。 */
+    if(card.kind==="BUSINESS"){
+      var stages=["RECOVERY","BOOM","RECESSION","DEPRESSION"], sumM=0;
+      stages.forEach(function(st){ var v=E.cfg(S,"bizMult_"+st); sumM += (v===undefined?1:v); });
+      var avgM = sumM/stages.length;
+      var macroDrag = util.r2(Math.max(0, income*(1-avgM)));
+      if(macroDrag>0){ drag=util.r2(drag+macroDrag); risks.push("景氣循環期望每月 −"+macroDrag); }
+      if(pl.volatileProfit){
+        var vd=E.cfg(S,"riskVolatileDragPct"); if(vd===undefined) vd=0.15;
+        var volDrag=util.r2(income*vd);
+        if(volDrag>0){ drag=util.r2(drag+volDrag); risks.push("獲利波動再折 "+Math.round(vd*100)+"%（每月 −"+volDrag+"）"); }
+      }
+    }
     if(card.kind==="STARTUP") risks.push("沒有月現金流，全押在退出價差上");
     out.disclosed = true;
     out.riskDrag  = drag;
     out.netIncome = util.r2(income - drag);
     out.netYield  = entry>0 ? out.netIncome*12/entry : 0;
+    if(pl.isScam){
+      out.scam = true;
+      out.netIncome = 0;
+      out.netYield  = -1;
+      var swA = (card.scamWarning && typeof card.scamWarning==="object" && card.scamWarning.audit) || null;
+      risks = [ swA || "現金流撐不起這個配息——保本＋高息在財務上不成立，本金會歸零" ];
+    }
     out.riskNote  = risks.join("；");
   }
   return out;

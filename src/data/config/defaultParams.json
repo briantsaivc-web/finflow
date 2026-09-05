@@ -518,6 +518,17 @@
       "hot": true
     },
     {
+      "key": "riskVolatileDragPct",
+      "value": 0.15,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.05,
+      "group": "營運",
+      "label": "獲利波動的風險折減",
+      "desc": "S40：有「記帳與看財報」的人在比較機會時，標了獲利波動的事業，月現金流再折這個比例當風險調整（帳面數字不動，只有懂帳的人看得到）",
+      "hot": true
+    },
+    {
       "key": "creditReviewWithRate",
       "value": 1,
       "min": 0,
@@ -1846,6 +1857,17 @@
       "group": "自由圈",
       "label": "圓夢所需點數",
       "desc": "整局長度收斂值",
+      "hot": true
+    },
+    {
+      "key": "dreamFreeThenBuy",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "自由圈",
+      "label": "踩到聖地同輪可再購點",
+      "desc": "S40 預設 0：踩到本命聖地免費 +1 的那一輪不能再用錢買（一輪最多一點）。1＝v0.2 的「幸運雙倍」行為",
       "hot": true
     },
     {
