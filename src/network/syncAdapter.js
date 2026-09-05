@@ -785,6 +785,15 @@ function mpPendingBar(){
     else if(pf.fromId===me)
       mk("⏳ 轉介邀約已送出","等待 "+S.players[pf.toId].name+" 回應…",null);
   }
+  // S39：集資
+  var psN=S.pendingSyndicate;
+  if(psN){
+    var meS=S.players[me], remN=E.syndicateRemaining(psN);
+    if(psN.fromId===me)
+      mk("⏳ 集資進行中：「"+psN.title+"」","剩 "+Math.round(remN*100)+"%，下一次輪到你之前沒湊滿就流標",null);
+    else if(meS && !meS.isNPC && !meS.bankrupt && psN.shares[me]===undefined && !(psN.declined&&psN.declined[me]) && remN>1e-9)
+      mk("📢 "+S.players[psN.fromId].name+" 發起集資「"+psN.title+"」","剩 "+Math.round(remN*100)+"%，點這裡認購",function(){ ui.showSyndicateOffer(psN); });
+  }
   var pj=S.pendingJV;
   if(pj){
     var meP2=S.players[me];

@@ -723,7 +723,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.46.0-S38", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.47.0-S39", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -788,7 +788,7 @@ E.newGame = function(opts){
     config: opts.config, enabledModules: opts.modules.slice(),
     turnNumber:1, phase:"ROLL", activePlayerIdx:0, players:[], macro:null,
     decks:{}, activeGlobalEvents:[], eventSeq:0, actionLog:[], decisionQueue:[],
-    pendingDecision:null, winner:null, uidSeq:0, log:[], bookkeeping:null, pendingTrade:null, pendingP2P:null, pendingAuction:null, pendingReferral:null, pendingJV:null, pendingShock:null,
+    pendingDecision:null, winner:null, uidSeq:0, log:[], bookkeeping:null, pendingTrade:null, pendingP2P:null, pendingAuction:null, pendingReferral:null, pendingJV:null, pendingSyndicate:null, pendingShock:null,
     stockPrices:{}, dividendBonus:{}, spaceMult:{}, tapestrySample:[], over:false
   };
   S.macro = { stage:"RECOVERY", baseRate:S.config.rate_RECOVERY, targetRate:S.config.rate_RECOVERY,
@@ -2061,6 +2061,7 @@ E.offTurnSelfOk = function(S, type){
   return false;
 };
 E.OFF_TURN_RESPOND = { RESPOND_TRADE:1, RESPOND_REFERRAL:1, RESPOND_P2P:1, RESPOND_JV:1,
+                       JOIN_SYNDICATE:1, DECLINE_SYNDICATE:1,
                        PLACE_BID:1, PROPOSE_P2P:1, TOP_UP_MARGIN:1,
                        PLAYER_LEAVE:1, PLAYER_RETURN:1, END_GAME:1, EXTEND_GAME:1,
                        CONFIG_PATCH:1, CLEAR_TRADE:1 };
@@ -3080,6 +3081,67 @@ E.apply = function(state, action, opts){
       var stillJ=S.players.filter(function(h){ return !h.isNPC && h.id!==pj.fromId && !h.bankrupt && !pj.declined[h.id]; });
       if(!stillJ.length){ S.pendingJV=null; E.jvPollNPC(S,frmJ,cardJ,pj.myShare); }
     }
+    E.syncPhase(S);
+    break; }
+
+
+  /* ===================== S39：多玩家集資（Brian 裁示：一輪內湊不滿就流標） =====================
+     發起人在 BUY 決策上設自己的持份，剩餘持份廣播；真人（含非回合）與電腦都可認購，先到先得，
+     湊滿即成交；發起人下一次回合開始前還沒湊滿 → 流標，機會回到發起人手上（可自己買或放棄）。
+     每人一份獨立資產（持份等比例，與雙人合資同一套 jvGroupId／sharePct）。 */
+  case "PROPOSE_SYNDICATE": {
+    var dS=S.pendingDecision;
+    if(!dS || dS.kind!=="BUY" || dS.playerId!==p.id) return reject("NO_OPP");
+    if(action.payload.cardId && action.payload.cardId!==dS.cardId) return reject("STALE_CARD");
+    var sCard=ns.content.byId[dS.cardId]; if(!sCard) return reject("NO_CARD");
+    if(sCard.kind!=="REALESTATE" && sCard.kind!=="BUSINESS") return reject("BAD_KIND");
+    if(!(E.oppIncome(S,sCard)>0)) return reject("BAD_KIND");
+    if(S.pendingSyndicate) return reject("SYNDICATE_PENDING");
+    if(S.pendingJV && S.pendingJV.cardId===sCard.id) return reject("JV_PENDING");
+    var minSS=E.cfg(S,"jvMinShare"); if(minSS===undefined) minSS=0.2;
+    var myS=util.r2(action.payload.myShare);
+    if(!(myS>=minSS-1e-9 && myS<=1-minSS+1e-9)) return reject("BAD_SHARE");
+    if(p.cash < E.syndicateNeed(S,p,sCard,myS)) return reject("NO_CASH");
+    accept();
+    S.decisionQueue.shift();
+    var shares={}; shares[p.id]=myS;
+    S.pendingSyndicate={ id:util.uid(S,"SY"), cardId:sCard.id, title:sCard.title, fromId:p.id,
+      openedTurn:S.turnNumber, minShare:minSS, shares:shares, declined:{},
+      entry:E.oppEntry(S,sCard), income:E.oppIncome(S,sCard) };
+    E.ev("SYNDICATE_OPENED",{id:S.pendingSyndicate.id, cardId:sCard.id, title:sCard.title, fromId:p.id,
+      myShare:myS, remaining:util.r2(1-myS), entry:S.pendingSyndicate.entry, income:S.pendingSyndicate.income,
+      minShare:minSS});
+    E.afterResolve(S,p);
+    break; }
+
+  case "JOIN_SYNDICATE": {
+    var ps=S.pendingSyndicate; if(!ps) return reject("NO_SYNDICATE");
+    var jp=S.players[action.playerId];
+    if(!jp || jp.bankrupt || jp.playerStage!=="INNER") return reject("BAD_PARTY");
+    if(jp.id===ps.fromId || ps.shares[jp.id]!==undefined) return reject("ALREADY_IN");
+    var remJ=E.syndicateRemaining(ps);
+    if(remJ<=1e-9) return reject("FULL");
+    var shJ=util.r2(action.payload.share);
+    var floorJ=Math.min(ps.minShare, remJ);
+    if(!(shJ>=floorJ-1e-9 && shJ<=remJ+1e-9)) return reject("BAD_SHARE");
+    if(shJ>remJ) shJ=remJ;
+    var cardJ2=ns.content.byId[ps.cardId]; if(!cardJ2) return reject("NO_CARD");
+    if(jp.cash < E.syndicateNeed(S,jp,cardJ2,shJ)) return reject("NO_CASH");
+    accept();
+    ps.shares[jp.id]=shJ; delete ps.declined[jp.id];
+    E.ev("SYNDICATE_JOINED",{id:ps.id, cardId:ps.cardId, title:ps.title, playerId:jp.id, share:shJ,
+      remaining:E.syndicateRemaining(ps)});
+    if(E.syndicateRemaining(ps)<=1e-9) E.settleSyndicate(S,"filled");
+    E.syncPhase(S);
+    break; }
+
+  case "DECLINE_SYNDICATE": {
+    var ps2=S.pendingSyndicate; if(!ps2) return reject("NO_SYNDICATE");
+    var dp2=S.players[action.playerId]; if(!dp2) return reject("BAD_PARTY");
+    if(dp2.id===ps2.fromId || ps2.shares[dp2.id]!==undefined) return reject("ALREADY_IN");
+    accept();
+    ps2.declined[dp2.id]=1;
+    E.ev("SYNDICATE_DECLINED",{id:ps2.id, title:ps2.title, playerId:dp2.id});
     E.syncPhase(S);
     break; }
 
@@ -6014,6 +6076,15 @@ E.beginTurn = function(S){
   E.recheckDreamWin(S);              // V11：幸福感事後補到門檻也算圓夢
   if(S.over) return;
   ns.modules.onTurnStart(S,p);
+  /* S39：集資的期限＝發起人下一次回合開始（一輪）。輪到發起人就結算；
+     發起人已經不在（破產／自由圈）而輪次又過了一整輪，也在任何人的回合開始結算，不讓它掛著。 */
+  if(S.pendingSyndicate){
+    var psT=S.pendingSyndicate;
+    var fromT=S.players[psT.fromId];
+    var due = (p.id===psT.fromId && S.turnNumber>psT.openedTurn)
+           || (!fromT || fromT.bankrupt || fromT.playerStage!=="INNER") && S.turnNumber>psT.openedTurn+1;
+    if(due) E.settleSyndicate(S,"due");
+  }
   if(p.skippedTurns>0){
     p.skippedTurns--;
     // S13.1 §7：只丟一句「這回合停走」看不出為什麼。把原因與還剩幾輪一起帶給 UI。
@@ -6225,6 +6296,117 @@ E.jvPollNPC = function(S, p, jCard, myShare){
   }
   E.ev("JV_REJECTED",{cardId:jCard.id, title:jCard.title, partnerId:null, reason:"nobody"});
   return false;
+};
+
+
+/* ===================== S39：集資的引擎函式 ===================== */
+// 這一份持份要付多少現金（依各人的預設買法：不動產走貸款、事業現金不夠才信貸）
+E.syndicateNeed = function(S, who, card, share){
+  var pl0=card.payload||{}, sub={};
+  if(card.kind==="REALESTATE"){
+    ["price","downPayment","monthlyRent","monthlyCost"].forEach(function(k){ sub[k]=util.r2((pl0[k]||0)*share); });
+    ["mortgageRate","isFloating","exitMultipliers"].forEach(function(k){ sub[k]=pl0[k]; });
+  } else {
+    ["price","monthlyProfit"].forEach(function(k){ sub[k]=util.r2((pl0[k]||0)*share); });
+  }
+  var cd={id:card.id, kind:card.kind, title:card.title, deck:card.deck, payload:sub};
+  var o=E.oppDefaultOption(S,who,cd), pp=cd.payload;
+  if(cd.kind==="REALESTATE" && o.optionId==="loan"){
+    var ltv=Math.min(1-(pp.downPayment||0)/Math.max(1,pp.price), E.effMaxLTV(S,card));
+    if(!(ltv>0)) ltv=0;
+    return util.r2(pp.price-util.r2(pp.price*ltv));
+  }
+  if(cd.kind==="BUSINESS" && o.optionId==="loan"){
+    var cap=E.creditCapacity(S,who);
+    var loanB=util.r2(Math.max(0,Math.min(Math.max(0,pp.price-who.cash), cap, pp.price)));
+    return util.r2(pp.price-loanB);
+  }
+  return pp.price;
+};
+E.syndicateRemaining = function(ps){
+  var t=0; Object.keys(ps.shares||{}).forEach(function(k){ t+=ps.shares[k]; });
+  return util.r2(Math.max(0, 1-t));
+};
+// 電腦認購：座位序輪詢，每位在「出完不跌破保留水位」的前提下拿走它出得起的最大持份（0.1 為一格，至少最低持份）
+E.syndicatePollNPC = function(S, ps){
+  var card=ns.content.byId[ps.cardId]; if(!card) return;
+  var npcs=S.players.filter(function(x){ return x.isNPC && !x.bankrupt && x.playerStage==="INNER"
+                                         && x.id!==ps.fromId && ps.shares[x.id]===undefined; });
+  for(var i=0;i<npcs.length;i++){
+    var rem=E.syndicateRemaining(ps); if(rem<=1e-9) break;
+    var q=npcs[i], w=ns.content.personalityById[q.npcPersonality].weights;
+    var reserve=w.cashReserveFloor*q.derived.totalExpenses;
+    var floorQ=Math.min(ps.minShare, rem), take=0;
+    for(var sh=Math.floor(rem*10)/10; sh>=floorQ-1e-9; sh=util.r2(sh-0.1)){
+      var need=E.syndicateNeed(S,q,card,sh);
+      if(q.cash-need >= reserve){ take=sh; break; }
+    }
+    if(take<=0 && floorQ<0.1){ var needF=E.syndicateNeed(S,q,card,floorQ); if(q.cash-needF>=reserve) take=floorQ; }
+    if(take>0){
+      if(take>rem) take=rem;
+      ps.shares[q.id]=util.r2(take);
+      E.ev("SYNDICATE_JOINED",{id:ps.id, cardId:ps.cardId, title:ps.title, playerId:q.id, share:ps.shares[q.id],
+        remaining:E.syndicateRemaining(ps), npc:true});
+    }
+  }
+};
+// 成交：每位參與者各買一份（持份等比例；尾差歸發起人）。回傳 null＝成立，否則失敗原因
+E.execSyndicate = function(S, ps){
+  var card=ns.content.byId[ps.cardId]; if(!card) return "card";
+  var ids=Object.keys(ps.shares).map(Number).sort(function(a,b){ return a-b; });
+  var pl0=card.payload||{}, keys = card.kind==="REALESTATE" ? ["price","downPayment","monthlyRent","monthlyCost"] : ["price","monthlyProfit"];
+  var parts={}, used={}; keys.forEach(function(k){ used[k]=0; });
+  ids.forEach(function(pid){
+    var sub={};
+    if(pid===ps.fromId){ keys.forEach(function(k){ sub[k]=null; }); }   // 發起人拿尾差，最後算
+    else keys.forEach(function(k){ sub[k]=util.r2((pl0[k]||0)*ps.shares[pid]); used[k]=util.r2(used[k]+sub[k]); });
+    parts[pid]=sub;
+  });
+  keys.forEach(function(k){ parts[ps.fromId][k]=util.r2((pl0[k]||0)-used[k]); });
+  var cards={}, opts={};
+  for(var i=0;i<ids.length;i++){
+    var pid=ids[i], who=S.players[pid];
+    if(!who || who.bankrupt) return "party";
+    var sub=parts[pid];
+    if(card.kind==="REALESTATE"){ ["mortgageRate","isFloating","exitMultipliers"].forEach(function(k){ sub[k]=pl0[k]; }); }
+    else if(pl0.volatileProfit) sub.volatileProfit=true;
+    cards[pid]={id:card.id, kind:card.kind, title:card.title, deck:card.deck, payload:sub};
+    opts[pid]=E.oppDefaultOption(S,who,cards[pid]);
+    if(who.cash < E.syndicateNeed(S,who,card,ps.shares[pid])) return "afford:"+pid;
+  }
+  var jvId=util.uid(S,"JV"), members=[];
+  for(var j=0;j<ids.length;j++){
+    var pid2=ids[j], who2=S.players[pid2], before=who2.assets.length;
+    E.buyAsset(S,who2,cards[pid2],opts[pid2].optionId,opts[pid2].params);
+    if(who2.assets.length<=before) return "buy-fail:"+pid2;
+    var a=who2.assets[who2.assets.length-1];
+    a.name=card.title+"（持份 "+Math.round(ps.shares[pid2]*100)+"%）";
+    a.jvGroupId=jvId; a.sharePct=ps.shares[pid2]; a.syndicate=true;
+    members.push({id:pid2, share:ps.shares[pid2]});
+  }
+  var fromP=S.players[ps.fromId]; if(fromP) fromP.stats.syndicatesLed=(fromP.stats.syndicatesLed||0)+1;
+  E.ev("SYNDICATE_FORMED",{id:ps.id, cardId:card.id, title:card.title, fromId:ps.fromId, members:members, jvGroupId:jvId});
+  return null;
+};
+// 結算：先讓電腦補位，湊滿就成交；否則流標——機會回到發起人手上（重新給 BUY 決策）
+E.settleSyndicate = function(S, why){
+  var ps=S.pendingSyndicate; if(!ps) return;
+  if(E.syndicateRemaining(ps)>1e-9) E.syndicatePollNPC(S,ps);
+  var fromP=S.players[ps.fromId];
+  S.pendingSyndicate=null;
+  var rem=E.syndicateRemaining(ps);
+  if(rem<=1e-9){
+    var err=E.execSyndicate(S,ps);
+    if(!err) return;
+    E.ev("SYNDICATE_FAILED",{id:ps.id, cardId:ps.cardId, title:ps.title, fromId:ps.fromId, reason:err, remaining:rem});
+  } else {
+    E.ev("SYNDICATE_FAILED",{id:ps.id, cardId:ps.cardId, title:ps.title, fromId:ps.fromId, reason:"unfilled", remaining:rem,
+      joined:Object.keys(ps.shares).length-1});
+  }
+  // 機會回到發起人手上：只在他還在內圈、還沒破產、且正是他的回合開始時才重新給決策
+  if(fromP && !fromP.bankrupt && fromP.playerStage==="INNER" && S.activePlayerIdx===fromP.id && !S.over){
+    E.pushDecision(S,fromP,{ kind:"BUY", cardId:ps.cardId, fromSyndicate:true });
+  }
 };
 
 // V3：廣播借款輪詢電腦放款人——水位夠且利率達其動態下限的第一位 NPC 放款；全滅＝沒人肯借
@@ -8986,6 +9168,21 @@ ui.renderFinBoard = function(){
     wl.textContent="⏳ "+(KN2[wq2.kind]||wq2.kind)+"進行中"+(wq2.title?("："+wq2.title):"")+
       "　等待 "+wq2.waiting.map(function(id){return (S.players[id]&&S.players[id].name)||("玩家"+id);}).join("、");
     pw.appendChild(wl);
+  }
+  // S39：進行中的集資——每個人都看得到、沒認購的可以從這裡進去
+  var psX=S.pendingSyndicate;
+  if(psX){
+    any=true;
+    var remX=E.syndicateRemaining(psX);
+    var takenX=Object.keys(psX.shares).map(function(k){ return (S.players[k]?S.players[k].name:"?")+" "+Math.round(psX.shares[k]*100)+"%"; }).join("、");
+    var sl=el("div","gold");
+    sl.textContent="📢 集資進行中：「"+psX.title+"」　已認 "+takenX+"　剩 "+Math.round(remX*100)+"%";
+    var meX=S.players[ui.myId()];
+    if(meX && !meX.isNPC && meX.id!==psX.fromId && psX.shares[meX.id]===undefined && remX>1e-9){
+      sl.style.cursor="pointer"; sl.title="點這裡認購";
+      sl.onclick=function(){ ui.showSyndicateOffer(psX); };
+    }
+    pw.appendChild(sl);
   }
   if(!any) pw.appendChild(el("div",null,"（沒有進行中的 P2P／合資）"));
   s4.appendChild(pw);
@@ -12422,6 +12619,9 @@ ui.oppDealBtns = function(cd){
     ui.dispatch({type:"START_OPP_AUCTION",playerId:S.activePlayerIdx,payload:{cardId:cd.id}});
   }));
   if(ui.showJvPanel) out.push(optBtn("找人合資","選一位夥伴按出資比共同持有，各自持份獨立",function(){ ui.showJvPanel(cd); }));
+  // S39：多玩家集資——自己出一部分，剩下的廣播給所有人認購；一輪內湊不滿就流標
+  if(ui.showSyndicatePanel && !S.pendingSyndicate)
+    out.push(optBtn("發起集資","設定自己的持份，剩餘廣播給所有人認購（先到先得）；一輪內湊不滿就流標，機會回到你手上",function(){ ui.showSyndicatePanel(cd); }));
   // V10：吃不下就轉介出去，收 1–2 個月現金流的介紹費
   var fee=E.referralFee(S,cd);
   if(fee>0) out.push(optBtn("轉介給他人（收介紹費 "+M(fee)+"）",
@@ -12487,6 +12687,84 @@ ui.showJvPanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+/* ===================== S39：集資 ===================== */
+ui.showSyndicatePanel = function(cd){
+  var S=ui.S, me=S.players[S.activePlayerIdx];
+  var minS=E.cfg(S,"jvMinShare"); if(minS===undefined) minS=0.2;
+  var entry=E.oppEntry(S,cd), inc=E.oppIncome(S,cd);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="500px";
+  box.appendChild(el("h2",null,"📢 發起集資：「"+cd.title+"」"));
+  box.appendChild(el("div","flavor","你先決定自己出多少，剩下的持份廣播給所有人（真人與電腦）認購，先到先得、湊滿即成交。"+
+    "<b>下一次輪到你之前還沒湊滿就流標</b>，這張機會會回到你手上，可以自己買或放棄。成交後每人一份獨立資產（持份等比例）。"));
+  var slid=el("div","slider"), rng=el("input"); rng.type="range";
+  var cap=1-minS, lo=minS;
+  // 自己那一份要付得起：往下找付得起的最大持份
+  var shareCap=cap; while(shareCap>=lo-1e-9 && me.cash<E.syndicateNeed(S,me,cd,shareCap)) shareCap=util.r2(shareCap-0.1);
+  var canS = shareCap>=lo-1e-9;
+  rng.min=Math.round(lo*100); rng.max=Math.round((canS?shareCap:lo)*100); rng.step=10;
+  rng.value=Math.min(Math.round((canS?shareCap:lo)*100), 40);
+  var myShare=(+rng.value)/100;
+  var lbl=el("div"); lbl.style.cssText="font-size:12px;color:var(--tx2)";
+  slid.appendChild(lbl); slid.appendChild(rng); box.appendChild(slid);
+  if(!canS) box.appendChild(el("div","flavor","⚠ 你的現金連最低持份（"+Math.round(lo*100)+"%）都出不起——先累積現金再發起。"));
+  var pv=el("div","preview"); box.appendChild(pv);
+  var o=el("div","opts");
+  var goBtn=optBtn("發起集資","",function(){
+    if(!canS){ ui.hint("現金不足最低持份，無法發起集資","warn"); return; }
+    ov.remove();
+    ui.dispatch({type:"PROPOSE_SYNDICATE",playerId:S.activePlayerIdx,payload:{cardId:cd.id, myShare:myShare}}); },true);
+  function refresh(){
+    var need=E.syndicateNeed(S,me,cd,myShare), myI=util.r2(inc*myShare);
+    lbl.textContent="你的持份 "+Math.round(myShare*100)+"%（開放認購 "+Math.round((1-myShare)*100)+"%）";
+    pv.innerHTML="你這一份要付 <b class='num"+(need>me.cash?" neg":"")+"'>"+M(need)+"</b>（月現金流約 <b class='num pos'>+"+M(myI)+"</b>）"+
+      "<br><span style='color:var(--tx3)'>整筆入手 "+M(entry)+"、月現金流 "+M(inc)+"；認購的人各自付自己那份、各自貸款。電腦會在結算時依現金水位補位。</span>";
+    var sm=goBtn.querySelector("small"); if(sm) sm.textContent="自己 "+Math.round(myShare*100)+"%，廣播 "+Math.round((1-myShare)*100)+"%";
+  }
+  rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
+  o.appendChild(goBtn);
+  o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+ui.showSyndicateOffer = function(ps){
+  if(!ps || !ui.S) return;
+  var S=ui.S, me=S.players[ui.myId()];
+  if(!me || me.isNPC || me.bankrupt || me.playerStage!=="INNER") return;
+  if(me.id===ps.fromId || ps.shares[me.id]!==undefined || (ps.declined&&ps.declined[me.id])) return;
+  var rem=E.syndicateRemaining(ps); if(rem<=1e-9) return;
+  var frm=S.players[ps.fromId], card=ns.content.byId[ps.cardId];
+  var lo=Math.min(ps.minShare, rem);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="560px";
+  box.appendChild(el("h2",null,"📢 "+frm.name+" 發起集資「"+ps.title+"」"));
+  var takenTxt=Object.keys(ps.shares).map(function(k){ return (S.players[k]?S.players[k].name:"?")+" "+Math.round(ps.shares[k]*100)+"%"; }).join("、");
+  box.appendChild(el("div","sub","已認購："+takenTxt+"　·　還剩 <b>"+Math.round(rem*100)+"%</b>。先到先得，湊滿即成交；"+frm.name+"下一次回合前沒湊滿就流標。你的現金 "+M(me.cash)+"。"));
+  box.appendChild(cardFace(card));
+  var slid=el("div","slider"), rng=el("input"); rng.type="range";
+  rng.min=Math.round(lo*100); rng.max=Math.round(rem*100); rng.step=(rem*100)%10===0 && lo*100%10===0 ? 10 : 1;
+  rng.value=rng.max; var share=(+rng.value)/100;
+  var lbl=el("div"); lbl.style.cssText="font-size:12px;color:var(--tx2)";
+  slid.appendChild(lbl); slid.appendChild(rng); box.appendChild(slid);
+  var facts=el("div"); box.appendChild(facts);
+  var fbWrap=el("div"); box.appendChild(fbWrap);
+  var o=el("div","opts");
+  var joinBtn=optBtn("認購","依你的預設買法買入自己那份",function(){
+    if(me.cash<E.syndicateNeed(S,me,card,share)){ ui.hint("現金不足，付不起這一份","warn"); return; }
+    ov.remove(); ui.dispatch({type:"JOIN_SYNDICATE",playerId:ui.myId(),payload:{share:share}}); },true);
+  function refresh(){
+    lbl.textContent="認購 "+Math.round(share*100)+"%";
+    facts.innerHTML=""; facts.appendChild(ui.oppFacts(S, card, me, share));
+    fbWrap.innerHTML=""; var fb=ui.offerFundingBox(S, me, E.syndicateNeed(S,me,card,share)); if(fb) fbWrap.appendChild(fb);
+    // 月現金流以上面的明細表（已扣貸款月付）為準，按鈕只寫要拿出多少現金，不再另算一個對不上的數
+    var sm=joinBtn.querySelector("small"); if(sm) sm.textContent="出 "+M(E.syndicateNeed(S,me,card,share))+"（持份 "+Math.round(share*100)+"%）";
+  }
+  rng.oninput=function(){ share=(+rng.value)/100; refresh(); }; refresh();
+  if(eduBox(card)) box.appendChild(eduBox(card));
+  o.appendChild(joinBtn);
+  o.appendChild(optBtn("婉拒","不參與這一筆（之後不再提醒）",function(){ ov.remove();
+    ui.dispatch({type:"DECLINE_SYNDICATE",playerId:ui.myId(),payload:null}); }));
+  o.appendChild(optBtn("先看看","關掉，之後從交易所再進來",function(){ ov.remove(); }));
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13698,6 +13976,34 @@ ui.handleEvents = function(evs){
              afford:"有一方付不起實際自備款","buy-fail":"買入未成立",
              nobody:"廣播後沒有玩家或電腦願意合資",income:"這張卡沒有月現金流，不適合合資"}[e.reason]||"未成立";
         ui.toast("🤝 合資未成立："+why+"（機會回到你手上）","warn",4500);
+        break; }
+      /* S39：多玩家集資 */
+      case "SYNDICATE_OPENED": {
+        var rem0=Math.round(e.remaining*100);
+        ui.announce("📢 "+me(e.fromId)+" 發起集資「"+e.title+"」：自己出 "+Math.round(e.myShare*100)+"%，剩 "+rem0+"% 開放認購（一輪內湊不滿就流標）", e.fromId);
+        ui.lastAct[e.fromId]={turn:ui.S.turnNumber, msg:"📢 發起集資「"+e.title+"」"};
+        if(e.fromId===ui.myId()) ui.toast("📢 集資已廣播：剩 "+rem0+"% 等人認購——下一次輪到你之前沒湊滿就流標","good",5000,"POP");
+        else ui.toast("📢 "+nm(e.fromId)+" 發起集資「"+e.title+"」，剩 "+rem0+"% 可認購","good",5000,"POP");
+        setTimeout(function(){ if(ui.showSyndicateOffer) ui.showSyndicateOffer(ui.S.pendingSyndicate); }, 250);
+        break; }
+      case "SYNDICATE_JOINED": {
+        var remJ=Math.round(e.remaining*100);
+        ui.announce("🤝 "+me(e.playerId)+" 認購「"+e.title+"」"+Math.round(e.share*100)+"%"+(remJ>0?("，還剩 "+remJ+"%"):"，湊滿了"), e.playerId);
+        if(e.playerId===ui.myId()) ui.toast("🤝 已認購 "+Math.round(e.share*100)+"%"+(remJ>0?("，還剩 "+remJ+"% 等其他人"):"，湊滿成交"),"good",4000,"POP");
+        break; }
+      case "SYNDICATE_DECLINED":
+        ui.announce(me(e.playerId)+" 婉拒了集資「"+e.title+"」", e.playerId); break;
+      case "SYNDICATE_FORMED": {
+        var msJ=(e.members||[]).map(function(m){ return nm(m.id)+" "+Math.round(m.share*100)+"%"; }).join("、");
+        var lineS="🤝 集資成交：「"+e.title+"」　"+msJ;
+        ui.announce(lineS, e.fromId);
+        (e.members||[]).forEach(function(m){ ui.lastAct[m.id]={turn:ui.S.turnNumber, msg:"🤝 集資持份 "+Math.round(m.share*100)+"%「"+e.title+"」"}; });
+        if((e.members||[]).some(function(m){ return m.id===ui.myId(); })) ui.toast(lineS,"good",6000,"POP");
+        break; }
+      case "SYNDICATE_FAILED": {
+        var whyS = e.reason==="unfilled" ? ("一輪內只湊到 "+Math.round((1-e.remaining)*100)+"%，流標") : ("結算時有人出不起（"+e.reason+"），流標");
+        ui.announce("📢 集資「"+e.title+"」"+whyS+(e.fromId===ui.myId()?"——機會回到你手上":""), e.fromId);
+        if(e.fromId===ui.myId()) ui.toast("📢 集資流標："+whyS+"。這張機會回到你手上，可以自己買或放棄","warn",6500,"POP");
         break; }
       case "JV_OFFERED":
         if(e.fromId===ui.myId()) ui.toast("🤝 合資邀約已送出，等待回應","good",3000);
@@ -20775,7 +21081,7 @@ tut.STEPS = [
   { n:17, zone:"子面板", layer:2, title:"記帳盤面",
     what:"把這回合的錢分到資產／負債／收入／支出四格。",
     when:"每回合結束前，標準難度以上都要做。",
-    warn:"整筆全對連續 5 次才解鎖自動記帳，錯一格整筆歸零。",
+    warn:"整筆全對連續 3 次就自動接手記帳，錯一格整筆歸零。",
     open:function(){ var S=ui.S, p=S.players[0];
       E.buildBookkeeping(S,p); S.phase="BOOKKEEPING";
       ui.modalOn(true); ui.renderBookkeeping(S,p); },
@@ -21942,6 +22248,15 @@ function mpPendingBar(){
       mk("🤝 "+S.players[pf.fromId].name+" 轉介機會給你","點這裡查看卡片並回應",function(){ ui.showReferralOffer(pf); });
     else if(pf.fromId===me)
       mk("⏳ 轉介邀約已送出","等待 "+S.players[pf.toId].name+" 回應…",null);
+  }
+  // S39：集資
+  var psN=S.pendingSyndicate;
+  if(psN){
+    var meS=S.players[me], remN=E.syndicateRemaining(psN);
+    if(psN.fromId===me)
+      mk("⏳ 集資進行中：「"+psN.title+"」","剩 "+Math.round(remN*100)+"%，下一次輪到你之前沒湊滿就流標",null);
+    else if(meS && !meS.isNPC && !meS.bankrupt && psN.shares[me]===undefined && !(psN.declined&&psN.declined[me]) && remN>1e-9)
+      mk("📢 "+S.players[psN.fromId].name+" 發起集資「"+psN.title+"」","剩 "+Math.round(remN*100)+"%，點這裡認購",function(){ ui.showSyndicateOffer(psN); });
   }
   var pj=S.pendingJV;
   if(pj){

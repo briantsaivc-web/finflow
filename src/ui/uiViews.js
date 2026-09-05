@@ -349,6 +349,34 @@ ui.handleEvents = function(evs){
              nobody:"廣播後沒有玩家或電腦願意合資",income:"這張卡沒有月現金流，不適合合資"}[e.reason]||"未成立";
         ui.toast("🤝 合資未成立："+why+"（機會回到你手上）","warn",4500);
         break; }
+      /* S39：多玩家集資 */
+      case "SYNDICATE_OPENED": {
+        var rem0=Math.round(e.remaining*100);
+        ui.announce("📢 "+me(e.fromId)+" 發起集資「"+e.title+"」：自己出 "+Math.round(e.myShare*100)+"%，剩 "+rem0+"% 開放認購（一輪內湊不滿就流標）", e.fromId);
+        ui.lastAct[e.fromId]={turn:ui.S.turnNumber, msg:"📢 發起集資「"+e.title+"」"};
+        if(e.fromId===ui.myId()) ui.toast("📢 集資已廣播：剩 "+rem0+"% 等人認購——下一次輪到你之前沒湊滿就流標","good",5000,"POP");
+        else ui.toast("📢 "+nm(e.fromId)+" 發起集資「"+e.title+"」，剩 "+rem0+"% 可認購","good",5000,"POP");
+        setTimeout(function(){ if(ui.showSyndicateOffer) ui.showSyndicateOffer(ui.S.pendingSyndicate); }, 250);
+        break; }
+      case "SYNDICATE_JOINED": {
+        var remJ=Math.round(e.remaining*100);
+        ui.announce("🤝 "+me(e.playerId)+" 認購「"+e.title+"」"+Math.round(e.share*100)+"%"+(remJ>0?("，還剩 "+remJ+"%"):"，湊滿了"), e.playerId);
+        if(e.playerId===ui.myId()) ui.toast("🤝 已認購 "+Math.round(e.share*100)+"%"+(remJ>0?("，還剩 "+remJ+"% 等其他人"):"，湊滿成交"),"good",4000,"POP");
+        break; }
+      case "SYNDICATE_DECLINED":
+        ui.announce(me(e.playerId)+" 婉拒了集資「"+e.title+"」", e.playerId); break;
+      case "SYNDICATE_FORMED": {
+        var msJ=(e.members||[]).map(function(m){ return nm(m.id)+" "+Math.round(m.share*100)+"%"; }).join("、");
+        var lineS="🤝 集資成交：「"+e.title+"」　"+msJ;
+        ui.announce(lineS, e.fromId);
+        (e.members||[]).forEach(function(m){ ui.lastAct[m.id]={turn:ui.S.turnNumber, msg:"🤝 集資持份 "+Math.round(m.share*100)+"%「"+e.title+"」"}; });
+        if((e.members||[]).some(function(m){ return m.id===ui.myId(); })) ui.toast(lineS,"good",6000,"POP");
+        break; }
+      case "SYNDICATE_FAILED": {
+        var whyS = e.reason==="unfilled" ? ("一輪內只湊到 "+Math.round((1-e.remaining)*100)+"%，流標") : ("結算時有人出不起（"+e.reason+"），流標");
+        ui.announce("📢 集資「"+e.title+"」"+whyS+(e.fromId===ui.myId()?"——機會回到你手上":""), e.fromId);
+        if(e.fromId===ui.myId()) ui.toast("📢 集資流標："+whyS+"。這張機會回到你手上，可以自己買或放棄","warn",6500,"POP");
+        break; }
       case "JV_OFFERED":
         if(e.fromId===ui.myId()) ui.toast("🤝 合資邀約已送出，等待回應","good",3000);
         ui.announce("🤝 "+nm(e.fromId)+(e.targetId===null||e.targetId===undefined

@@ -104,7 +104,7 @@ tut.STEPS = [
   { n:17, zone:"子面板", layer:2, title:"記帳盤面",
     what:"把這回合的錢分到資產／負債／收入／支出四格。",
     when:"每回合結束前，標準難度以上都要做。",
-    warn:"整筆全對連續 5 次才解鎖自動記帳，錯一格整筆歸零。",
+    warn:"整筆全對連續 3 次就自動接手記帳，錯一格整筆歸零。",
     open:function(){ var S=ui.S, p=S.players[0];
       E.buildBookkeeping(S,p); S.phase="BOOKKEEPING";
       ui.modalOn(true); ui.renderBookkeeping(S,p); },

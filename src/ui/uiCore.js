@@ -912,6 +912,21 @@ ui.renderFinBoard = function(){
       "　等待 "+wq2.waiting.map(function(id){return (S.players[id]&&S.players[id].name)||("玩家"+id);}).join("、");
     pw.appendChild(wl);
   }
+  // S39：進行中的集資——每個人都看得到、沒認購的可以從這裡進去
+  var psX=S.pendingSyndicate;
+  if(psX){
+    any=true;
+    var remX=E.syndicateRemaining(psX);
+    var takenX=Object.keys(psX.shares).map(function(k){ return (S.players[k]?S.players[k].name:"?")+" "+Math.round(psX.shares[k]*100)+"%"; }).join("、");
+    var sl=el("div","gold");
+    sl.textContent="📢 集資進行中：「"+psX.title+"」　已認 "+takenX+"　剩 "+Math.round(remX*100)+"%";
+    var meX=S.players[ui.myId()];
+    if(meX && !meX.isNPC && meX.id!==psX.fromId && psX.shares[meX.id]===undefined && remX>1e-9){
+      sl.style.cursor="pointer"; sl.title="點這裡認購";
+      sl.onclick=function(){ ui.showSyndicateOffer(psX); };
+    }
+    pw.appendChild(sl);
+  }
   if(!any) pw.appendChild(el("div",null,"（沒有進行中的 P2P／合資）"));
   s4.appendChild(pw);
 };
@@ -4347,6 +4362,9 @@ ui.oppDealBtns = function(cd){
     ui.dispatch({type:"START_OPP_AUCTION",playerId:S.activePlayerIdx,payload:{cardId:cd.id}});
   }));
   if(ui.showJvPanel) out.push(optBtn("找人合資","選一位夥伴按出資比共同持有，各自持份獨立",function(){ ui.showJvPanel(cd); }));
+  // S39：多玩家集資——自己出一部分，剩下的廣播給所有人認購；一輪內湊不滿就流標
+  if(ui.showSyndicatePanel && !S.pendingSyndicate)
+    out.push(optBtn("發起集資","設定自己的持份，剩餘廣播給所有人認購（先到先得）；一輪內湊不滿就流標，機會回到你手上",function(){ ui.showSyndicatePanel(cd); }));
   // V10：吃不下就轉介出去，收 1–2 個月現金流的介紹費
   var fee=E.referralFee(S,cd);
   if(fee>0) out.push(optBtn("轉介給他人（收介紹費 "+M(fee)+"）",
@@ -4412,6 +4430,84 @@ ui.showJvPanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+/* ===================== S39：集資 ===================== */
+ui.showSyndicatePanel = function(cd){
+  var S=ui.S, me=S.players[S.activePlayerIdx];
+  var minS=E.cfg(S,"jvMinShare"); if(minS===undefined) minS=0.2;
+  var entry=E.oppEntry(S,cd), inc=E.oppIncome(S,cd);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="500px";
+  box.appendChild(el("h2",null,"📢 發起集資：「"+cd.title+"」"));
+  box.appendChild(el("div","flavor","你先決定自己出多少，剩下的持份廣播給所有人（真人與電腦）認購，先到先得、湊滿即成交。"+
+    "<b>下一次輪到你之前還沒湊滿就流標</b>，這張機會會回到你手上，可以自己買或放棄。成交後每人一份獨立資產（持份等比例）。"));
+  var slid=el("div","slider"), rng=el("input"); rng.type="range";
+  var cap=1-minS, lo=minS;
+  // 自己那一份要付得起：往下找付得起的最大持份
+  var shareCap=cap; while(shareCap>=lo-1e-9 && me.cash<E.syndicateNeed(S,me,cd,shareCap)) shareCap=util.r2(shareCap-0.1);
+  var canS = shareCap>=lo-1e-9;
+  rng.min=Math.round(lo*100); rng.max=Math.round((canS?shareCap:lo)*100); rng.step=10;
+  rng.value=Math.min(Math.round((canS?shareCap:lo)*100), 40);
+  var myShare=(+rng.value)/100;
+  var lbl=el("div"); lbl.style.cssText="font-size:12px;color:var(--tx2)";
+  slid.appendChild(lbl); slid.appendChild(rng); box.appendChild(slid);
+  if(!canS) box.appendChild(el("div","flavor","⚠ 你的現金連最低持份（"+Math.round(lo*100)+"%）都出不起——先累積現金再發起。"));
+  var pv=el("div","preview"); box.appendChild(pv);
+  var o=el("div","opts");
+  var goBtn=optBtn("發起集資","",function(){
+    if(!canS){ ui.hint("現金不足最低持份，無法發起集資","warn"); return; }
+    ov.remove();
+    ui.dispatch({type:"PROPOSE_SYNDICATE",playerId:S.activePlayerIdx,payload:{cardId:cd.id, myShare:myShare}}); },true);
+  function refresh(){
+    var need=E.syndicateNeed(S,me,cd,myShare), myI=util.r2(inc*myShare);
+    lbl.textContent="你的持份 "+Math.round(myShare*100)+"%（開放認購 "+Math.round((1-myShare)*100)+"%）";
+    pv.innerHTML="你這一份要付 <b class='num"+(need>me.cash?" neg":"")+"'>"+M(need)+"</b>（月現金流約 <b class='num pos'>+"+M(myI)+"</b>）"+
+      "<br><span style='color:var(--tx3)'>整筆入手 "+M(entry)+"、月現金流 "+M(inc)+"；認購的人各自付自己那份、各自貸款。電腦會在結算時依現金水位補位。</span>";
+    var sm=goBtn.querySelector("small"); if(sm) sm.textContent="自己 "+Math.round(myShare*100)+"%，廣播 "+Math.round((1-myShare)*100)+"%";
+  }
+  rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
+  o.appendChild(goBtn);
+  o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+ui.showSyndicateOffer = function(ps){
+  if(!ps || !ui.S) return;
+  var S=ui.S, me=S.players[ui.myId()];
+  if(!me || me.isNPC || me.bankrupt || me.playerStage!=="INNER") return;
+  if(me.id===ps.fromId || ps.shares[me.id]!==undefined || (ps.declined&&ps.declined[me.id])) return;
+  var rem=E.syndicateRemaining(ps); if(rem<=1e-9) return;
+  var frm=S.players[ps.fromId], card=ns.content.byId[ps.cardId];
+  var lo=Math.min(ps.minShare, rem);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="560px";
+  box.appendChild(el("h2",null,"📢 "+frm.name+" 發起集資「"+ps.title+"」"));
+  var takenTxt=Object.keys(ps.shares).map(function(k){ return (S.players[k]?S.players[k].name:"?")+" "+Math.round(ps.shares[k]*100)+"%"; }).join("、");
+  box.appendChild(el("div","sub","已認購："+takenTxt+"　·　還剩 <b>"+Math.round(rem*100)+"%</b>。先到先得，湊滿即成交；"+frm.name+"下一次回合前沒湊滿就流標。你的現金 "+M(me.cash)+"。"));
+  box.appendChild(cardFace(card));
+  var slid=el("div","slider"), rng=el("input"); rng.type="range";
+  rng.min=Math.round(lo*100); rng.max=Math.round(rem*100); rng.step=(rem*100)%10===0 && lo*100%10===0 ? 10 : 1;
+  rng.value=rng.max; var share=(+rng.value)/100;
+  var lbl=el("div"); lbl.style.cssText="font-size:12px;color:var(--tx2)";
+  slid.appendChild(lbl); slid.appendChild(rng); box.appendChild(slid);
+  var facts=el("div"); box.appendChild(facts);
+  var fbWrap=el("div"); box.appendChild(fbWrap);
+  var o=el("div","opts");
+  var joinBtn=optBtn("認購","依你的預設買法買入自己那份",function(){
+    if(me.cash<E.syndicateNeed(S,me,card,share)){ ui.hint("現金不足，付不起這一份","warn"); return; }
+    ov.remove(); ui.dispatch({type:"JOIN_SYNDICATE",playerId:ui.myId(),payload:{share:share}}); },true);
+  function refresh(){
+    lbl.textContent="認購 "+Math.round(share*100)+"%";
+    facts.innerHTML=""; facts.appendChild(ui.oppFacts(S, card, me, share));
+    fbWrap.innerHTML=""; var fb=ui.offerFundingBox(S, me, E.syndicateNeed(S,me,card,share)); if(fb) fbWrap.appendChild(fb);
+    // 月現金流以上面的明細表（已扣貸款月付）為準，按鈕只寫要拿出多少現金，不再另算一個對不上的數
+    var sm=joinBtn.querySelector("small"); if(sm) sm.textContent="出 "+M(E.syndicateNeed(S,me,card,share))+"（持份 "+Math.round(share*100)+"%）";
+  }
+  rng.oninput=function(){ share=(+rng.value)/100; refresh(); }; refresh();
+  if(eduBox(card)) box.appendChild(eduBox(card));
+  o.appendChild(joinBtn);
+  o.appendChild(optBtn("婉拒","不參與這一筆（之後不再提醒）",function(){ ov.remove();
+    ui.dispatch({type:"DECLINE_SYNDICATE",playerId:ui.myId(),payload:null}); }));
+  o.appendChild(optBtn("先看看","關掉，之後從交易所再進來",function(){ ov.remove(); }));
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 

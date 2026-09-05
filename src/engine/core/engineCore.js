@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.46.0-S38", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.47.0-S39", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -153,7 +153,7 @@ E.newGame = function(opts){
     config: opts.config, enabledModules: opts.modules.slice(),
     turnNumber:1, phase:"ROLL", activePlayerIdx:0, players:[], macro:null,
     decks:{}, activeGlobalEvents:[], eventSeq:0, actionLog:[], decisionQueue:[],
-    pendingDecision:null, winner:null, uidSeq:0, log:[], bookkeeping:null, pendingTrade:null, pendingP2P:null, pendingAuction:null, pendingReferral:null, pendingJV:null, pendingShock:null,
+    pendingDecision:null, winner:null, uidSeq:0, log:[], bookkeeping:null, pendingTrade:null, pendingP2P:null, pendingAuction:null, pendingReferral:null, pendingJV:null, pendingSyndicate:null, pendingShock:null,
     stockPrices:{}, dividendBonus:{}, spaceMult:{}, tapestrySample:[], over:false
   };
   S.macro = { stage:"RECOVERY", baseRate:S.config.rate_RECOVERY, targetRate:S.config.rate_RECOVERY,
