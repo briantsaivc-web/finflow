@@ -1,6 +1,6 @@
 {
   "name": "finflow",
-  "version": "2.48.0",
+  "version": "2.48.1",
   "private": true,
   "description": "FinFlow 財商沙盒——單一 HTML 檔的財商桌遊數位版",
   "scripts": {

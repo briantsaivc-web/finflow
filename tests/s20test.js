@@ -25,7 +25,7 @@ const { chromium } = require('playwright');
   const rows=[]; let bad=0;
   for(let i=0;i<20;i++){
     await pg.evaluate(k=>ns.tutorial.goto(k), i);
-    await pg.waitForTimeout(340);          // 第二層面板有進場動畫，等落定
+    await pg.waitForTimeout(600);          // 第二層面板有進場動畫，等落定（S40b：340→600，慢機器上 260ms 補量會晚於測量）
     rows.push(await pg.evaluate(()=>{
       const t=ns.tutorial, st=t.STEPS[t.state.i];
       const e=t.stepEl(st), r=e?e.getBoundingClientRect():null;

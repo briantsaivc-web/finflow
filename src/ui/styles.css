@@ -277,6 +277,8 @@ button{font-family:inherit;font-size:inherit;color:inherit;background:none;borde
    說明卡講第 5 格、畫面卻換成別的面板——框跟內容就對不起來了。 */
 #tutShield{position:fixed;inset:0;z-index:875;background:transparent}
 #tutLayer{position:fixed;inset:0;z-index:880;pointer-events:none}
+/* S40b：教學子層不跑 pop 進場動畫——慢機器上 260ms 的補量會晚於測量，框跟錨點就對不上（s20test 第 17 步偶發） */
+body.tutChild .card,body.tutChild .sheetbox,body.tutChild .overlay{animation:none!important}
 #tutLayer>*{pointer-events:auto}
 /* 高亮框：把被說明的那一塊圈起來。被選中的那塊維持原樣，只加金邊與外光暈。
    S20b：原本用 box-shadow 0 0 0 9999px 壓暗全螢幕——兩個問題：

@@ -7342,6 +7342,7 @@ ns.boot = function(){
   /* S20：互動教學的子層。網址帶 #tut 時不走開局流程，直接起一個示範局並疊上熱點。
      教學是在 iframe 裡載入自己，所以玩家正在進行的局完全不受影響。 */
   if(ns.tutorial && ns.tutorial.isChild && ns.tutorial.isChild()){
+    document.body.classList.add("tutChild");   // S40b：教學子層關掉面板進場動畫，焦點框第一次就量到落定位置
     $("app").classList.remove("hide");
     ns.tutorial.boot();
     return;
