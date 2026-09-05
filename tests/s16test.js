@@ -98,6 +98,8 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     });
 
     step("小通知靜音：good 收起來、warn 照跳",()=>{
+      // S35 起這是舊制（notifyMode=S18）的規則；精簡模式由 s35test 驗
+      ui.notifyMode="S18";
       close(); ui._sumOff=false; ui._mutedToasts=[];
       document.getElementById("toast").innerHTML="";
       ui.toast("一般提示","good");
@@ -109,7 +111,7 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       document.getElementById("toast").innerHTML="";
       ui.toast("關閉結算後","good");
       A(document.getElementById("toast").children.length===1,"關閉結算畫面後應回到原本行為");
-      ui._sumOff=false;
+      ui._sumOff=false; ui.notifyMode="S35";
       return "good 靜音／warn 照跳／可關閉";
     });
 

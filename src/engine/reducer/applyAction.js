@@ -308,8 +308,19 @@ E.apply = function(state, action, opts){
             ev("BK_ENTRY_OK",{playerId:p.id, group:grpT, streak:p.bkStreak[grpT]});
             if(p.bkStreak[grpT]>=thr && !p.bkUnlocked[grpT]){
               p.bkUnlocked[grpT]=true;
+              /* S35：練熟的當下直接切成自動（bkAutoOnMastery=1，預設）。
+                 S11 的「解鎖不等於自動開啟」是要把選擇權留給玩家；真人實測回饋是
+                 記帳題太多拖慢決策，所以把預設翻過來——面板上的開關留著，想再練的人
+                 自己關回手記。0＝回到 S11 行為。事件順序：先 MASTERED 再 AUTO_SET，
+                 介面用同一則通知講兩件事。 */
+              var autoOn = E.cfg(S,"bkAutoOnMastery"); if(autoOn===undefined) autoOn=1;
+              if(autoOn) p.bkAuto[grpT]=true;
               ev("BK_MASTERED",{playerId:p.id, group:grpT, groupName:E.bkGroupName(grpT),
-                                streak:p.bkStreak[grpT]});
+                                streak:p.bkStreak[grpT], autoOn:!!autoOn});
+              if(autoOn){
+                ev("BK_AUTO_SET",{playerId:p.id, group:grpT, groupName:E.bkGroupName(grpT), on:true, byMastery:true});
+                E.buildBookkeeping(S,p);      // 這一套剩下的題目立刻收掉（與 SET_BK_AUTO 同一條路）
+              }
             }
           }
         }

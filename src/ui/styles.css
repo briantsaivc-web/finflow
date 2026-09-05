@@ -541,6 +541,18 @@ table.tb th{color:var(--tx3);font-size:var(--fs-xs);letter-spacing:.1em;font-wei
   font-size:var(--fs-sm);box-shadow:0 8px 26px rgba(0,0,0,.5);animation:tin .3s}
 .toast.warn{border-color:#8A4B2A;color:#F5A96E} .toast.good{border-color:#2F6E5B;color:#7FE3C7}
 @keyframes tin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* S35：操作回饋氣泡（貼在剛按的按鈕旁）與訊息欄篩選 */
+.hintBubble{position:fixed;z-index:830;background:var(--panel2);border:1px solid #8A4B2A;color:#F5A96E;
+  border-radius:8px;padding:6px 11px;font-size:var(--fs-sm);box-shadow:0 8px 22px rgba(0,0,0,.5);
+  pointer-events:none;max-width:320px;line-height:1.4;animation:tin .18s;transition:opacity .25s}
+.hintBubble.good{border-color:#2F6E5B;color:#7FE3C7}
+.feedFilter{display:flex;gap:5px;align-items:center;margin:2px 0 4px;flex-wrap:wrap}
+.feedFilter .chip{font-size:11px;color:var(--tx3);border:1px solid var(--line2);border-radius:99px;padding:1px 8px;cursor:pointer;user-select:none}
+.feedFilter .chip.on{color:var(--gold);border-color:var(--gold)}
+.feedFilter .chip i{font-style:normal;margin-left:4px;opacity:.75}
+.feedFilter .newBadge{margin-left:auto;font-size:11px;color:#F5A96E;border:1px solid #8A4B2A;border-radius:99px;padding:1px 7px}
+#sysLog .ln .ci{margin-right:4px;font-size:11px;opacity:.85}
+#sysLog .ln.neg{color:#F5A96E} #sysLog .ln.pos{color:#7FE3C7}
 .log{font-family:var(--mono);font-size:var(--fs-xs);color:var(--tx2);white-space:pre-wrap;line-height:1.6}
 .ok{color:var(--pos)} .fail{color:var(--neg)}
 svg text{user-select:none}

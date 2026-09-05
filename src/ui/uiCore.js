@@ -77,22 +77,110 @@ ui.entryCat = function(e, meId){
   return "MINE";
 };
 
+/* ===================== S35：通知三分法 =====================================
+   真人實測回饋：「節奏變慢很大，原因是訊息量太多，決策變慢。」
+   S18 的分類（SYS 靜音、個人事務照跳）解的是「一則一則跳太吵」；S35 解的是「拖慢決策」，
+   所以方向反過來，而且多拆一層：
+
+     SYS   系統與總經（景氣／利率／政策／天災／衝擊）→ 照跳 toast（全場資訊，你要留的）
+     HINT  操作回饋（現金不足、要先學會、只能在自己回合……）→ 貼在剛按的按鈕旁邊的小氣泡，
+           不是 toast 也不進訊息欄——丟進訊息欄會變成「按了沒反應」
+     POP   少數要打斷的（換你來了、代打中、錯誤復原）→ 照跳 toast
+     其餘  自己動作的結果、其他玩家引發的結果 → 只進左欄「系統訊息」，不彈
+
+   薪資單（showPayslip）與大事橫幅（broadcast）不在這條路上，行為不變。
+   ui.notifyMode="S18" 可整套切回舊行為（本機偏好，不進遊戲狀態、不影響決定論）。   */
+ui.notifyMode = "S35";
 ui.toastMuted = function(cls, topic){
+  if(ui.notifyMode!=="S18"){
+    // S35：只有 SYS／POP 會跳；HINT 走氣泡；其餘進訊息欄。這裡回答的是「會不會跳 toast」。
+    return !(topic==="SYS" || topic==="POP");
+  }
   if(!ui.turnSummaryOn || !ui.turnSummaryOn()) return false;
   if(topic==="SYS") return true;            // 廣播資訊：一律收進彙總，不再一則一則跳
   if(cls==="warn") return false;            // 需要你當下處理的（被拒、追繳、出價、邀約）照跳
   return true;
 };
+ui._showToast = function(msg, cls, ms){
+  var host=$("toast"); if(!host) return;
+  var t=el("div","toast"+(cls?" "+cls:""),msg); host.appendChild(t);
+  setTimeout(function(){ t.style.opacity=0; setTimeout(function(){ t.remove(); },300); }, ms||2200);
+  return t;
+};
 ui.toast = function(msg, cls, ms, topic){
+  if(ui.notifyMode!=="S18"){
+    if(topic==="HINT") return ui.hint(msg, cls, ms);
+    if(topic==="SYS" || topic==="POP"){
+      // SYS 照跳，同時留一份給結算彙總列「這一輪的提示」（彙總只在大事才彈，見 checkTurnSummary）
+      if(topic==="SYS") (ui._mutedToasts=ui._mutedToasts||[]).push({ msg:msg, cat:"SYS" });
+      return ui._showToast(msg, cls, ms);
+    }
+    (ui._mutedToasts=ui._mutedToasts||[]).push({ msg:msg, cat:topic||"MINE" });
+    return ui.feedNote(msg, cls, topic);     // topic 沒給就交給 feedCat 依文字判斷
+  }
   if(ui.toastMuted(cls, topic)){
     (ui._mutedToasts=ui._mutedToasts||[]).push({ msg:msg, cat:topic||"SYS" });
     return;
   }
-  var t=el("div","toast"+(cls?" "+cls:""),msg); $("toast").appendChild(t);
-  setTimeout(function(){ t.style.opacity=0; setTimeout(function(){ t.remove(); },300); }, ms||2200);
+  return ui._showToast(msg, cls, ms);
 };
-// 系統類通知的捷徑：訊息一定進彙總，不會打斷當下操作
+// 系統類通知的捷徑（S35：照跳；S18：進彙總）
 ui.toastSys = function(msg, cls, ms){ return ui.toast(msg, cls, ms, "SYS"); };
+/* S35：「發生在我身上、但不需要我當下動手」的資訊（停走、失業、持股評價、事業景氣調整）。
+   S18 把它們算成 SYS 收進彙總；S35 的 SYS 是要跳的總經類，所以這些改進訊息欄（MINE）。
+   舊制模式下維持 SYS，讓 S18 的行為能整套重現。 */
+ui.toastSelf = function(msg, cls, ms){ return ui.toast(msg, cls, ms, ui.notifyMode==="S18" ? "SYS" : "MINE"); };
+
+/* S35：操作回饋氣泡——貼在最近一次點擊的元素旁邊，1.8 秒後消失。
+   靠 document 層的 click 監聽記住「剛才按了哪裡」；沒有最近點擊（例如鍵盤操作）就退回 toast。 */
+ui._lastClick = null;
+if(typeof document!=="undefined" && !ui._clickHooked){
+  ui._clickHooked = true;
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+    while(t && t!==document.body && !(t.tagName==="BUTTON" || t.tagName==="A" || (t.classList && t.classList.contains("opt")))) t=t.parentNode;
+    ui._lastClick = { el:(t && t!==document.body)?t:ev.target, at:Date.now() };
+  }, true);
+}
+ui.hint = function(msg, cls, ms){
+  if(ui.notifyMode==="S18") return ui._showToast(msg, cls||"warn", ms);
+  var lc=ui._lastClick, el0=lc && lc.el, fresh = lc && (Date.now()-lc.at)<2500;
+  if(!fresh || !el0 || !el0.getBoundingClientRect || !document.body.contains(el0)) return ui._showToast(msg, cls||"warn", ms);
+  var old=document.getElementById("hintBubble"); if(old) old.remove();
+  var b=el("div","hintBubble"+(cls?" "+cls:"")); b.id="hintBubble"; b.textContent=msg;
+  document.body.appendChild(b);
+  var r=el0.getBoundingClientRect(), bw=b.offsetWidth, bh=b.offsetHeight;
+  var left=Math.max(6, Math.min(window.innerWidth-bw-6, r.left + r.width/2 - bw/2));
+  var top = r.top - bh - 8; if(top<6) top = r.bottom + 8;
+  b.style.left=left+"px"; b.style.top=top+"px";
+  clearTimeout(ui._hintT);
+  ui._hintT=setTimeout(function(){ b.style.opacity=0; setTimeout(function(){ b.remove(); },250); }, ms||1800);
+  return b;
+};
+
+/* S35：不彈的通知進左欄「系統訊息」。同一件事很多來源會先 announce 一行再 toast 一則
+   （例如修繕：announce「誰：⚒ …」＋toast「⚒ …」），所以進訊息欄前先跟本輪最近幾則比對，
+   包含關係就不重覆記。純呈現層，不碰遊戲狀態。 */
+ui.feedNote = function(msg, cls, cat){
+  var m=String(msg||""); if(!m) return null;
+  var turn = ui.S ? ui.S.turnNumber : 0;
+  var recent=(ui.feed||[]).slice(-6);
+  for(var i=0;i<recent.length;i++){
+    var fm=String(recent[i].msg||"");
+    if(recent[i].turn===turn && (fm===m || fm.indexOf(m)>=0 || (m.length>=12 && m.indexOf(fm)>=0))) return recent[i];
+  }
+  var row = ui.announce ? ui.announce(m, undefined, "note") : null;
+  if(row){ if(cat) row.cat = cat; if(cls==="warn"||cls==="bad") row.tone="neg"; else if(cls==="good"||cls==="pos") row.tone="pos";
+    // 立刻補一行到畫面上（下一次 render 會整段重畫，這裡只是不要讓玩家等）
+    var log=$("sysLog");
+    if(log && ui.feedRowEl && ui.feedVisible && ui.feedVisible(row)){
+      var ln=ui.feedRowEl(row,true);
+      var first=log.firstChild; if(first && first.classList && first.classList.contains("new")) first.classList.remove("new");
+      log.insertBefore(ln, log.firstChild);
+    }
+  }
+  return row;
+};
 
 /* M12：難度預設表（單機／多人共用同一份，決定論要求） */
 /* S23b：M9 進階金融只在進階以上開——新手與標準難度整包關掉，
@@ -762,16 +850,28 @@ ui.renderFinBoard = function(){
   all.onclick=function(){ ui.showFullLog(); };
   right.appendChild(ver); right.appendChild(all);
   tn.appendChild(tnl); tn.appendChild(right); s3.appendChild(tn);
+  /* S35：篩選列——不彈的通知全進這裡之後，訊息量會上去；沒有分類篩選與「新幾則」，
+     「在訊息欄就可以看到」在實務上會變成「看不到」。篩選是本機偏好，不進遊戲狀態。 */
+  var fl=el("div","feedFilter");
+  var allFeed=(ui.feed||[]);
+  var newN = Math.max(0, allFeed.length - (ui._feedSeen||0));
+  [["ALL","全部"],["SYS","🌐"],["MINE","🙋"],["OTHERS","👥"]].forEach(function(pair){
+    var k=pair[0], c=el("span","chip"+(ui._feedFilter===k?" on":""), pair[1]);
+    c.title = k==="ALL" ? "全部訊息" : (ui.CAT_NAME[k]||k);
+    var cnt = k==="ALL" ? allFeed.length : allFeed.filter(function(r){ return (r.cat||"SYS")===k; }).length;
+    if(cnt) c.appendChild(el("i",null,String(cnt)));
+    c.onclick=function(){ ui._feedFilter=k; try{ localStorage.setItem("finflow.feedFilter",k); }catch(e){} ui.render(); };
+    fl.appendChild(c);
+  });
+  if(newN>0){ var nb=el("span","newBadge","新 "+newN); nb.title="你上一回合之後新進來的訊息"; fl.appendChild(nb); }
+  s3.appendChild(fl);
   var log=el("div"); log.id="sysLog";
   // S17：系統訊息搬到左欄後版位變大，能顯示的則數跟著提高（原本擠在中欄只放得下 5 則）
   var feedN = $("infoL") ? 14 : 5;
-  var feed=(ui.feed||[]).slice(-feedN).reverse();   // 最新在上
-  if(!feed.length) log.appendChild(el("div","ln","（遊戲開始）"));
+  var feed=allFeed.filter(function(r){ return ui.feedVisible ? ui.feedVisible(r) : true; }).slice(-feedN).reverse();   // 最新在上
+  if(!feed.length) log.appendChild(el("div","ln",allFeed.length?"（這一類還沒有訊息）":"（遊戲開始）"));
   feed.forEach(function(fd,i){
-    var ln=el("div","ln"+(i===0?" new":""));    // 最新一則醒目
-    ln.appendChild(el("span","tn","第"+fd.turn+"輪"));
-    ln.appendChild(el("span",null,fd.msg));
-    log.appendChild(ln);
+    log.appendChild(ui.feedRowEl ? ui.feedRowEl(fd, i===0) : el("div","ln",fd.msg));    // 最新一則醒目
   });
   s3.appendChild(log);
 
@@ -820,7 +920,7 @@ ui.mallItems = function(){ return (ns.content.cards && ns.content.cards.MALL) ||
 ui.showMall = function(){
   var S=ui.S, p=S.players[ui.myId()];
   var per=E.cfg(S,"mallPerTurn"); if(per===undefined) per=1;
-  if(per<=0){ ui.toast("本局未開啟人生商城","warn",3000); return; }
+  if(per<=0){ ui.hint("本局未開啟人生商城","warn",3000); return; }
   // S14a-2：逛商城與下手都不影響別人，開放在別人的回合也能做。
   // 輪到自己時仍受階段規則（先擲完骰、處理完決策與記帳）——引擎那邊是同一條規則。
   var myTurn = S.activePlayerIdx===ui.myId();
@@ -1050,6 +1150,7 @@ ui.showFullLog = function(){
     var ln=el("div"); ln.style.cssText="padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.06)"+
       (i===0?";color:var(--gold);font-weight:600":";color:var(--tx2)");
     ln.appendChild(el("span",null,"第"+f.turn+"輪　")).style.color="var(--tx3)";
+    ln.appendChild(el("span",null,({SYS:"🌐",MINE:"🙋",OTHERS:"👥"}[f.cat||"SYS"])+" "));   // S35：三桶標記
     ln.appendChild(el("span",null,f.msg));
     wrap.appendChild(ln);
   });
@@ -1253,7 +1354,7 @@ ui.renderSheet = function(){
       if(!okF){ gb.style.opacity=".45"; gb.style.filter="grayscale(1)";
                 gb.title="被動收入還沒蓋過每月支出"; }
       gb.onclick=function(){
-        if(!okF){ ui.toast("被動收入還沒蓋過每月支出——還不能辭職","warn",3000); return; }
+        if(!okF){ ui.hint("被動收入還沒蓋過每月支出——還不能辭職","warn",3000); return; }
         ui.dispatch({type:"GRADUATE_NOW",playerId:ui.myId(),payload:null});
       };
       gz.appendChild(gb);
@@ -1392,7 +1493,7 @@ ui.renderSheet = function(){
   nonStock.forEach(function(a){
     var tr=el("tr");
     var td1=el("td"); var nmS=el("span",null,a.name); nmS.style.cursor="pointer"; nmS.title="點擊看操作";
-    nmS.onclick=function(){ if(a.kind==="P2P_LOAN"){ ui.toast("P2P 債權每輪自動回收本息","warn"); return; } ui.showAsset(a); };
+    nmS.onclick=function(){ if(a.kind==="P2P_LOAN"){ ui.hint("P2P 債權每輪自動回收本息","warn"); return; } ui.showAsset(a); };
     td1.appendChild(nmS); tr.appendChild(td1);
     tr.appendChild(el("td","num",M(a.marketValue)));
     var td3=el("td","num "+(a.monthlyIncome>=0?"pos":"neg"),(a.monthlyIncome>=0?"+":"")+M(a.monthlyIncome));
@@ -1898,7 +1999,7 @@ ui.showMarginWarning = function(e){
   var o=el("div","opts");
   var afford = p.cash >= e.needed;
   var bTop=optBtn("立即補繳 "+M(e.needed), afford?"償還部分融資，維持率回到安全區":"現金不足（你有 "+M(p.cash)+"）",
-    function(){ if(!afford){ ui.toast("現金不足，考慮賣出部分持股","warn"); return; }
+    function(){ if(!afford){ ui.hint("現金不足，考慮賣出部分持股","warn"); return; }
       ov.remove(); ui.dispatch({type:"TOP_UP_MARGIN",playerId:e.playerId,payload:{liabilityId:e.liabilityId}}); }, afford);
   if(!afford){ bTop.style.opacity=".55"; }
   o.appendChild(bTop);
@@ -2024,8 +2125,8 @@ ui.decisionOptBtn = function(p, op, i, decide){
   else if(!afford && cost) sub += "（現金不足，需 "+M(cost)+"）";
   var ok = afford && hasSk;
   var b = optBtn(op.label, sub, function(){
-    if(!hasSk){ ui.toast("要先學會「"+skTitle+"」才能選這個","warn",4000); return; }
-    if(!afford){ ui.toast("現金不足","warn"); return; }
+    if(!hasSk){ ui.hint("要先學會「"+skTitle+"」才能選這個","warn",4000); return; }
+    if(!afford){ ui.hint("現金不足","warn"); return; }
     decide(i);
   }, i===0 && ok);
   if(!ok){ b.disabled=true; b.style.opacity=".5"; }
@@ -2431,7 +2532,7 @@ ui.decisionCard = function(S,p,d){
                  + "；不用再親自顧，也不會因為停更而掉，時間空出來做下一個"
                  + (afford?"":"（現金不足，需 "+M(stC)+"）");
       var bS=optBtn("👥 請一個人接手", subStaff, function(){
-        if(!afford){ ui.toast("現金不足","warn"); return; }
+        if(!afford){ ui.hint("現金不足","warn"); return; }
         decide("staff");
       }, netStaff>0 && afford);
       if(!afford){ bS.disabled=true; bS.style.opacity=".5"; }
@@ -3402,7 +3503,7 @@ ui.markTurnSummary = function(pid){
   ui._sumMark[pid]=(p.ledger||[]).length;
 };
 
-ui.showTurnSummary = function(pid){
+ui.showTurnSummary = function(pid, why){
   var S=ui.S; if(!S) return;
   var p=S.players[pid]; if(!p) return;
   var from=ui._sumMark[pid]||0;
@@ -3423,6 +3524,13 @@ ui.showTurnSummary = function(pid){
   sub.innerHTML="現金淨變動 <b class='num "+(tot.cash>=0?"pos":"neg")+"'>"+
     (tot.cash>=0?"+":"")+M(tot.cash)+"</b>　·　這一輪與你有關的每一筆都在下面（含別人回合發生在你身上的）。";
   box.appendChild(sub);
+  if(why && ui.sumMode()==="auto"){
+    // S35：說清楚為什麼這一輪彈了——玩家才知道「平常不彈」不是壞掉
+    var whyTxt = why.big ? ("本輪現金變動達一個月生活支出（"+M(why.thr)+"）") : "有其他玩家引發的帳";
+    var wn=el("div","note"); wn.style.cssText="font-size:12px;color:var(--gold);margin:-2px 0 6px";
+    wn.textContent="⚡ 只在大事才彈——這一輪："+whyTxt+"。其餘輪次請看左欄「系統訊息」或「每輪紀錄」。";
+    box.appendChild(wn);
+  }
 
   /* S18：分三類列示——系統與大環境／你自己的動作／其他玩家引發。
      實測回饋：「事件彙整應該有幾類，可分別列式」。歸類只影響列在哪一段，
@@ -3483,13 +3591,18 @@ ui.showTurnSummary = function(pid){
     if(left>0) start();
   };
   o.appendChild(auto);
-  var off=el("button","opt");
-  off.textContent="不要再顯示結算畫面";
-  off.title="關掉後改回原本的小通知；設定面板可以再打開";
-  off.onclick=function(){ ui._sumOff=true;
-    try{ localStorage.setItem("finflow.sumOff","1"); }catch(e){}
-    ui.toast("已關閉回合結算畫面","good"); close(); };
-  o.appendChild(off);
+  // S35：三段切換——只在大事（預設）／每輪都顯示／不顯示
+  var modeBtn=el("button","opt");
+  function modeLabel(){ var m=ui.sumMode(); modeBtn.textContent = m==="always" ? "顯示：每輪（點擊改）" : m==="auto" ? "顯示：只在大事（點擊改）" : "顯示：關"; }
+  modeLabel();
+  modeBtn.onclick=function(){
+    var m=ui.sumMode();
+    if(m==="auto"){ ui._sumAlways=true; } else if(m==="always"){ ui._sumAlways=false; ui._sumOff=true; } else { ui._sumOff=false; ui._sumAlways=false; }
+    try{ localStorage.setItem("finflow.sumAlways", ui._sumAlways?"1":"0"); localStorage.setItem("finflow.sumOff", ui._sumOff?"1":"0"); }catch(e){}
+    modeLabel();
+    if(ui.sumMode()==="off"){ ui.hint("已關閉回合結算畫面（設定面板可再打開）","good"); close(); }
+  };
+  o.appendChild(modeBtn);
   box.appendChild(o);
 
   // 被靜音的小通知列在最後，一則都不漏——同樣分三類
@@ -3520,11 +3633,48 @@ ui.showTurnSummary = function(pid){
 };
 
 // 觸發：我的回合剛結束（在 ui.render 尾端偵測「剛剛還是我的回合，現在不是了」）
+/* S35：結算彙總改成「只在大事才彈」（auto，預設）。
+   真人實測回饋：每輪一個要按「朕知道了」的全螢幕畫面，是拖慢節奏的大頭。
+   資料本來就全在「每輪紀錄」裡，隨時開得到；主動彈只留給兩種情況：
+     (1) 本輪現金淨變動的絕對值 ≥ 一個月生活支出（大額進出，值得停一下）
+     (2) 有「其他玩家引發」的分錄（別人對你做了事，你可能還沒看到）
+   ui._sumAlways=true 回到 S16 每輪都彈；ui._sumOff=true 完全不彈。都是本機偏好。 */
+ui._sumAlways = false;
+ui.sumMode = function(){
+  if(ui._sumOff===true) return "off";
+  if(ui.notifyMode==="S18" || ui._sumAlways) return "always";
+  return "auto";
+};
+ui.sumThreshold = function(p){
+  var d=p && p.derived; var exp = d ? (d.totalExpenses||0) : 0;
+  return Math.max(1, exp);
+};
+ui.summaryWorthy = function(pid){
+  var S=ui.S; if(!S) return { worthy:false };
+  var p=S.players[pid]; if(!p) return { worthy:false };
+  var from=ui._sumMark[pid]||0;
+  var rows=(p.ledger||[]).slice(from).filter(function(e){
+    return !(e.eduTags||[]).some(function(g){ return g==="bookkeeping"; }); });
+  if(!rows.length) return { worthy:false, rows:0 };
+  var tot=ui.ledgerTotals(rows), thr=ui.sumThreshold(p);
+  var others=rows.some(function(e){ return ui.entryCat(e,pid)==="OTHERS"; });
+  var big = Math.abs(tot.cash) >= thr;
+  return { worthy:(big||others), big:big, others:others, cash:tot.cash, thr:thr, rows:rows.length };
+};
 ui.checkTurnSummary = function(){
   var S=ui.S; if(!S || S.over) return;
   var me=ui.myId();
   var isMine = (S.activePlayerIdx===me) && !S.players[me].isNPC;
-  if(ui._wasMyTurn && !isMine && ui.turnSummaryOn()) ui.showTurnSummary(me);
+  if(ui._wasMyTurn && !isMine){
+    var mode=ui.sumMode();
+    if(mode==="always") ui.showTurnSummary(me);
+    else if(mode==="auto"){
+      var w=ui.summaryWorthy(me);
+      if(w.worthy) ui.showTurnSummary(me, w);
+      else { ui.markTurnSummary(me); ui._mutedToasts=[]; }   // 不彈：標記結算到此，提示已在訊息欄
+    }
+    ui._feedSeen = (ui.feed||[]).length;     // S35：我的回合結束＝之後進來的訊息都算「新」
+  }
   ui._wasMyTurn = isMine;
 };
 // S7：每輪紀錄——把「這一輪發生了什麼、對我的影響是多少」攤在同一頁。
@@ -3773,7 +3923,7 @@ ui.buyRealEstate = function(S,p,d,cd,card,c,decide){
   card.appendChild(slid); card.appendChild(pv);
   refresh();
   var o=el("div","opts");
-  var buy=optBtn("買下去",null,function(){ if(!ui._buy.afford){ ui.toast("現金不足","warn"); return; }
+  var buy=optBtn("買下去",null,function(){ if(!ui._buy.afford){ ui.hint("現金不足","warn"); return; }
     ui.spendGuard(util.r2(p.cash-ui._buy.down), function(){ decide(ui._buy.mode==="loan"?"loan":"cash", ui._buy.params); }); }, net>0);
   o.appendChild(buy);
   ui.oppDealBtns(cd).forEach(function(b){ o.appendChild(b); });
@@ -3817,7 +3967,7 @@ ui.buyStock = function(S,p,d,cd,card,c,decide){
   rng.oninput=function(){ state.units=+rng.value; refresh(); };
   card.appendChild(slid); card.appendChild(pv); refresh();
   var o=el("div","opts");
-  o.appendChild(optBtn("買進",null,function(){ if(!ui._buy.afford){ ui.toast("現金不足","warn"); return; }
+  o.appendChild(optBtn("買進",null,function(){ if(!ui._buy.afford){ ui.hint("現金不足","warn"); return; }
     var goS=function(){ ui.spendGuard(util.r2(p.cash-ui._buy.own), function(){ decide(ui._buy.margin?"margin":"cash",{units:ui._buy.units}); }); };
     if(ui._buy.margin) ui.marginGuard(def, goS); else goS(); }));
   o.appendChild(optBtn(T("act.skip"),null,function(){ decide("skip"); }));
@@ -3874,7 +4024,7 @@ ui.buySimple = function(S,p,d,cd,card,c,decide){
   }
   card.appendChild(pv); refresh();
   var o=el("div","opts");
-  o.appendChild(optBtn("買下去",null,function(){ if(!ui._buy.afford){ ui.toast("現金不足","warn"); return; }
+  o.appendChild(optBtn("買下去",null,function(){ if(!ui._buy.afford){ ui.hint("現金不足","warn"); return; }
     ui.spendGuard(util.r2(p.cash-ui._buy.down), function(){ decide(ui._buy.mode,ui._buy.params); }); }, income>0));
   ui.oppDealBtns(cd).forEach(function(b){ o.appendChild(b); });
   o.appendChild(optBtn(T("act.skip"),null,function(){ decide("skip"); }));
@@ -3928,7 +4078,7 @@ ui.bkAutoBox = function(S,p){
   box.appendChild(el("div","ttl","⚙️ 自動記帳（一套一套練熟，練熟的那一套就不用再手記）"));
   box.appendChild(el("div","note",
     "同一筆帳要<b class='gold'>整組分對</b>才算一次——錯一格整筆重來。"+
-    "連續 "+thr+" 次就解鎖那一套，開不開由你決定。"+
+    "連續 "+thr+" 次就練熟那一套"+((E.cfg(S,"bkAutoOnMastery")===undefined||E.cfg(S,"bkAutoOnMastery"))?"，系統直接幫你接手記帳（想再練可以關回手記）。":"，開不開由你決定。")+
     "<br>下面依<b class='gold'>實際出現頻率</b>由高到低排（900 局模擬統計）——先練最上面那一套，最快脫離手記。"));
   var grid=el("div"); grid.style.cssText="display:flex;flex-direction:column;gap:7px;margin-top:8px";
   E.BK_GROUPS.forEach(function(g){
@@ -4123,7 +4273,7 @@ ui.showDetails = function(p){
       ? " <span class='neg' style='font-size:11px'>🏚 空租至第 "+a.vacantUntilTurn+" 輪（原租金 "+M(a.vacantIncome||0)+"）</span>" : "";
     return "<td>"+a.name+(a.units>1?" ×"+a.units:"")+vac+"</td><td class='num'>"+M(a.marketValue)+
       "</td><td class='num "+(a.monthlyIncome>=0?"pos":"neg")+"'>"+(a.monthlyIncome>=0?"+":"")+M(a.monthlyIncome)+"/月</td>";
-  }, function(a){ if(a.kind==="P2P_LOAN"){ ui.toast("P2P 債權每輪自動回收本息，不可出售或增貸","warn",3500); return; } ui.showAsset(a); }));
+  }, function(a){ if(a.kind==="P2P_LOAN"){ ui.hint("P2P 債權每輪自動回收本息，不可出售或增貸","warn",3500); return; } ui.showAsset(a); }));
   wrap.appendChild(actPanel("負債明細（點擊可還款／轉貸）", p.liabilities, function(l){
     return "<td>"+l.name+"</td><td class='num neg'>"+M(l.principal)+
       "</td><td class='num neg'>−"+M(l.monthlyPayment)+"/月　"+util.pct(l.annualRate,2)+"</td>";
@@ -4187,7 +4337,7 @@ ui.showJvPanel = function(cd){
   var pv=el("div","preview"); box.appendChild(pv);
   var o=el("div","opts");
   var goBtn=optBtn("提出合資","",function(){
-    if(!canJV){ ui.toast("現金不足最低出資比，無法提出合資","warn"); return; }
+    if(!canJV){ ui.hint("現金不足最低出資比，無法提出合資","warn"); return; }
     ov.remove();
     ui.dispatch({type:"PROPOSE_JV",playerId:S.activePlayerIdx,
       payload:{cardId:cd.id, partnerId:target.id, myShare:myShare}}); },true);
@@ -4243,10 +4393,10 @@ ui.showP2PPanel = function(rescueMode){
   // V11：破產程序中也可開（強制借款模式），這是資產賣光後的最後手段
   var inBankruptcy = S.phase==="BANKRUPTCY";
   if(!inBankruptcy && (S.activePlayerIdx!==ui.myId() || (S.phase!=="ROLL" && S.phase!=="READY_END"))){
-    ui.toast("交易與借貸只能在你自己的回合進行","warn",3000); return; }
-  if(me.bankrupt){ ui.toast("你已破產出局","warn"); return; }
+    ui.hint("交易與借貸只能在你自己的回合進行","warn",3000); return; }
+  if(me.bankrupt){ ui.hint("你已破產出局","warn"); return; }
   var others=S.players.filter(function(x){ return x.id!==me.id && !x.bankrupt; });
-  if(!others.length){ ui.toast("沒有可交易的對象","warn"); return; }
+  if(!others.length){ ui.hint("沒有可交易的對象","warn"); return; }
   var maxR=E.cfg(S,"p2pMaxRate"); if(maxR===undefined) maxR=0.18;
   var term=E.cfg(S,"p2pDefaultTerm"); if(term===undefined) term=24;
   var st={ mode:(inBankruptcy||rescueMode)?"borrow":"lend", target:others[0],
@@ -4347,8 +4497,8 @@ ui.showTradePanel = function(){
   // 八期：原本用 activePlayerIdx，NPC 回合按下會靜默無反應（看起來像壞掉）
   // V1：寫死 0 → ui.myId()，多人時非 0 號座位才開得了面板
   if(S.activePlayerIdx!==ui.myId() || (S.phase!=="ROLL" && S.phase!=="READY_END")){
-    ui.toast("交易與借貸只能在你自己的回合進行","warn",3000); return; }
-  if(me.bankrupt){ ui.toast("你已破產出局","warn"); return; }
+    ui.hint("交易與借貸只能在你自己的回合進行","warn",3000); return; }
+  if(me.bankrupt){ ui.hint("你已破產出局","warn"); return; }
   var sellable=me.assets.filter(function(a){ return !a.linkedLiabilityId && a.kind!=="P2P_LOAN"; });   // §4：債權不可轉讓
   var others=S.players.filter(function(x){ return x.id!==me.id && !x.bankrupt; });
   var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="560px";
@@ -4616,7 +4766,7 @@ ui.offerFundingBox = function(S, me, needCash){
   }
   b.onclick=function(){
     var c=calc();
-    if(c.take<=0){ ui.toast("目前沒有可動用的信用額度","warn",3000); paint(); return; }
+    if(c.take<=0){ ui.hint("目前沒有可動用的信用額度","warn",3000); paint(); return; }
     var before=(ui.S.players[ui.myId()]||{}).cash;
     ui.dispatch({type:"TAKE_LOAN",playerId:ui.myId(),payload:{amount:c.take}});
     var after=(ui.S.players[ui.myId()]||{}).cash;
@@ -4718,7 +4868,7 @@ ui.stockChartSVG = function(S, def, opts){
 
 ui.showStockPanel = function(focusSymbol){
   var S=ui.S; if(!S) return;
-  if(S.enabledModules.indexOf("M1")<0){ ui.toast("本局未開啟股市模組（開局時可勾選）","warn",3000); return; }
+  if(S.enabledModules.indexOf("M1")<0){ ui.hint("本局未開啟股市模組（開局時可勾選）","warn",3000); return; }
   var p=S.players[ui.myId()];
   var reopen=function(){ ui.showStockPanel(focusSymbol); };
   var myTurnS = S.activePlayerIdx===ui.myId();
@@ -4952,7 +5102,7 @@ ui.showStockPanel = function(focusSymbol){
                 : delisted ? "已下市，不能再買" : (!canTrade ? whyNot : (maxCash<1?"現金不足一張":""));
     bCash.onclick=function(){
       var u=Math.min(getU(), maxCash);
-      if(u<1){ ui.toast("現金不足","warn"); return; }
+      if(u<1){ ui.hint("現金不足","warn"); return; }
       ui.spendGuard(util.r2(p.cash-price*u*(1+feeR0)), function(){ ov.remove();
         ui.dispatch({type:"TRADE_STOCK",playerId:ui.myId(),payload:{symbol:symbol,side:"buy",units:u,margin:false}}); });
     };
@@ -4965,7 +5115,7 @@ ui.showStockPanel = function(focusSymbol){
                  : (!canTrade ? whyNot : (maxMargin<1?"自備款不足一張":"自備 "+util.pct(S.config.marginRatio,0)+"，其餘向券商借"));
       bMar.onclick=function(){
         var u=Math.min(getU(), maxMargin);
-        if(u<1){ ui.toast("自備款不足","warn"); return; }
+        if(u<1){ ui.hint("自備款不足","warn"); return; }
         ui.marginGuard(def, function(){
           ui.spendGuard(util.r2(p.cash-price*u*(S.config.marginRatio+feeR0)), function(){ ov.remove();
             ui.dispatch({type:"TRADE_STOCK",playerId:ui.myId(),payload:{symbol:symbol,side:"buy",units:u,margin:true}}); });
@@ -5025,7 +5175,7 @@ ui.showStockPanel = function(focusSymbol){
       setB.disabled=!canSet; setB.title=canSet?"每次發薪自動買，不佔回合動作（不必等自己的回合）":whySet;
       setB.onclick=function(){
         var v=Math.max(0, Math.round(+amt.value||0));
-        if(v>0 && v<minD){ ui.toast("每月最低 "+M(minD),"warn"); return; }
+        if(v>0 && v<minD){ ui.hint("每月最低 "+M(minD),"warn"); return; }
         ui.dispatch({type:"SET_DCA",playerId:ui.myId(),payload:{symbol:symbol,amount:v}});
         ov.remove(); reopen();
       };

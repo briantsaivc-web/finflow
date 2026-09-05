@@ -459,6 +459,7 @@ tut.boot = function(){
   ui.toast = function(msg, cls, ms, topic){
     (ui._mutedToasts = ui._mutedToasts || []).push({ msg:msg, cat:topic||"SYS" });
   };
+  ui.hint = function(){};      // S35：操作回饋氣泡同樣靜音（它不走 ui.toast）
   tut.buildDemo();
   var shield = document.createElement("div");
   shield.id="tutShield";

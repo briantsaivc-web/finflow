@@ -34,6 +34,9 @@ function play(MAXT){
     if(document.querySelectorAll('#overlays .overlay').length>before) sumOpened++;
     return r;
   };
+  // S35：這一支量的是 S18 舊制的契約（SYS 靜音入彙總、彙總每輪開），所以釘在舊制模式跑；
+  // 精簡模式（預設）的契約由 s35test 量
+  ui.notifyMode="S18"; ui._sumAlways=false; ui._sumOff=false;
   let shown=0; const shownList=[];
   const origToast=ui.toast;
   ui.toast=function(msg,cls,ms,topic){

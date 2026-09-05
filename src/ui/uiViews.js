@@ -11,10 +11,40 @@ ui.lastAct = {};
 ui.announce = function(msg, pid, tag){
   var row={turn: ui.S?ui.S.turnNumber:0, msg:msg, pid:(pid===undefined?null:pid)};
   if(tag) row.tag=tag;
+  row.cat = ui.feedCat ? ui.feedCat(row) : "SYS";   // S35：訊息欄分三桶（沿用 S18 的 SYS／MINE／OTHERS）
   ui.feed.push(row);
-  if(ui.feed.length>40) ui.feed.shift();
+  if(ui.feed.length>60) ui.feed.shift();
   if(pid!==undefined && pid!==null) ui.lastAct[pid]={turn:(ui.S?ui.S.turnNumber:0), msg:msg};
   return row;
+};
+/* S35：一則訊息屬於哪一桶。擲骰行看 pid；其餘用 S18 的關鍵字規則（SYS_RE／OTHERS_RE）
+   加上「摘要裡出現別人的名字」。純呈現用——分錯只是列在別的篩選下，不影響任何數字。 */
+ui.feedCat = function(row){
+  var me = ui.myId ? ui.myId() : 0, m=String(row.msg||"");
+  if(row.tag==="roll") return (row.pid===me) ? "MINE" : "OTHERS";
+  if(ui.SYS_RE && ui.SYS_RE.test(m)) return "SYS";
+  if(ui.OTHERS_RE && ui.OTHERS_RE.test(m)) return "OTHERS";
+  var S=ui.S;
+  if(S && S.players){
+    for(var i=0;i<S.players.length;i++){
+      if(i===me) continue;
+      var nm=S.players[i] && S.players[i].name;
+      if(nm && nm.length>=1 && m.indexOf(nm)>=0) return "OTHERS";
+    }
+    if(row.pid!==null && row.pid!==undefined) return (row.pid===me) ? "MINE" : "OTHERS";
+  }
+  return "MINE";
+};
+ui._feedFilter = "ALL";              // 本機偏好：ALL／SYS／MINE／OTHERS
+ui._feedSeen = 0;                    // 我上一次回合開始時的 feed 長度——之後進來的算「新」
+ui.feedVisible = function(row){ return ui._feedFilter==="ALL" || (row.cat||"SYS")===ui._feedFilter; };
+ui.feedRowEl = function(fd, isNew){
+  var ln=el("div","ln"+(isNew?" new":"")+(fd.tone?" "+fd.tone:""));
+  ln.appendChild(el("span","tn","第"+fd.turn+"輪"));
+  var ic={SYS:"🌐",MINE:"🙋",OTHERS:"👥"}[fd.cat||"SYS"];
+  var ci=el("span","ci",ic); ci.title=(ui.CAT_NAME||{})[fd.cat]||""; ln.appendChild(ci);
+  ln.appendChild(el("span",null,fd.msg));
+  return ln;
 };
 /* S18：把「決定了什麼」接回同一行——實測回饋「系統訊息 誰-幾點-機會-決定，多加決定這個」。
    做法是找到這一輪這位玩家最後那一行擲骰紀錄，直接把文字接上去，
@@ -73,7 +103,7 @@ ui.dispatch = function(action){
   try{
     ui.S.players.forEach(function(pl){ delete pl._b; delete pl._btn; pl.assets.forEach(function(a){ delete a._btn; }); }); // 防禦：清除任何誤掛到 state 的 DOM
     var res = E.apply(ui.S, action);
-    if(res.rejected){ ui.toast(T("toast.rejected"),"warn"); return; }
+    if(res.rejected){ ui.hint(T("toast.rejected"),"warn"); return; }
     ui.S = res.state;
     ui.handleEvents(res.events);
     ui.render();
@@ -82,7 +112,7 @@ ui.dispatch = function(action){
   }catch(err){
     ui.busy=false;
     try{ ui.render(); }catch(e2){}
-    ui.toast("發生錯誤，已嘗試復原（動作："+(action&&action.type||"?")+"）","warn",4500);
+    ui.toast("發生錯誤，已嘗試復原（動作："+(action&&action.type||"?")+"）","warn",4500,"POP");
     if(window&&window.console) console.error("dispatch error:", err);
   }
 };
@@ -116,8 +146,8 @@ ui.handleEvents = function(evs){
                     +(e.resumed?"——接著打，帳目全部保留":""));
         ui.toast("對局延長至 "+e.maxTurns+" 輪","good");
         break; }
-      case "CLASSIFY_BAD": ui.toast(T("bk.wrong"),"warn"); break;
-      case "CLASSIFY_OK": ui.toast("分類正確","good"); break;
+      case "CLASSIFY_BAD": ui.hint(T("bk.wrong"),"warn"); break;
+      case "CLASSIFY_OK": ui.hint("分類正確","good",1200); break;
       case "MACRO_TRANSITION": { var m={RECOVERY:"復甦",BOOM:"過熱",RECESSION:"衰退",DEPRESSION:"蕭條"};
         ui.announce("景氣轉入「"+m[e.to]+"」"); ui.toastSys("景氣轉入："+m[e.to],"warn"); break; }
       case "RATE_REVIEW": {
@@ -171,7 +201,7 @@ ui.handleEvents = function(evs){
         // S29：景氣調整是廣播型資訊、不需要你當下處理，應該收進回合彙總而不是一則一則跳。
         // 原本漏了 topic，於是 warn 這一類就繞過了 S18 的靜音規則（S18 測試容忍 2 則，
         // 這一版牌堆一動就冒出第 3 則，才把這個洞照出來）。
-        if(e.playerId===ui.myId()) ui.toastSys(line4, up?"good":"warn", 4000);
+        if(e.playerId===ui.myId()) ui.toastSelf(line4, up?"good":"warn", 4000);
         break; }
       case "CREDIT_RATING_CHANGED": {
         var S9=ui.S, p9=S9.players[e.playerId];
@@ -199,7 +229,8 @@ ui.handleEvents = function(evs){
         ui.toastSys("償債能力警示："+e.name,"bad",5000); break;
       case "BK_MASTERED":
         if(e.playerId===ui.myId())
-          ui.toast("🎓 「"+e.groupName+"」這一套練熟了——記帳面板可以把它改成自動","good",5000);
+          ui.toast(e.autoOn ? ("🎓 「"+e.groupName+"」練熟了——這一套以後自動記帳（記帳面板可關回手記）")
+                            : ("🎓 「"+e.groupName+"」這一套練熟了——記帳面板可以把它改成自動"),"good",5000,"POP");
         break;
       case "DELIST_CLEARED":
         ui.announce("✅ 警示解除："+e.name+"　撐過來了"); break;
@@ -343,7 +374,7 @@ ui.handleEvents = function(evs){
       case "TURNS_SKIPPED": {
         var ts="🏥 "+(e.label||"事件")+"：停走 "+e.turns+" 回合";
         ui.lastAct[e.playerId]={turn:ui.S.turnNumber, msg:ts};
-        if(e.playerId===ui.myId()) ui.toastSys(ts,"warn",4500);
+        if(e.playerId===ui.myId()) ui.toastSelf(ts,"warn",4500);
         break; }
       case "P2P_FORMED": {
         var lp="🤝 "+nm(e.lenderId)+" 放款 "+M(e.amount)+" 給 "+nm(e.borrowerId)+"（年利率 "+util.pct(e.rate,1)+"・"+e.term+" 期・月付 "+M(e.payment)+"）";
@@ -401,7 +432,7 @@ ui.handleEvents = function(evs){
         if(e.playerId===ui.myId()) ui.toast("新創倒閉："+e.name,"warn"); break;
       case "LAYOFF":
         ui.announce(me(e.playerId)+" 遇到失業，需支付開銷並停走", e.playerId);
-        if(e.playerId===ui.myId()) ui.toastSys("失業：支付開銷並停走","warn"); break;
+        if(e.playerId===ui.myId()) ui.toastSelf("失業：支付開銷並停走","warn"); break;
       case "FREEDOM_REACHED":
         ui.announce(me(e.playerId)+" 的被動收入已覆蓋支出！", e.playerId);
         if(e.playerId===ui.myId()) ui.toast("你的被動收入已覆蓋支出，可以辭職圓夢了","good",5000); break;
@@ -414,7 +445,7 @@ ui.handleEvents = function(evs){
         break; }
       case "HOLDINGS_REVALUED":
         // S29：持股評價同上——純資訊，收進彙總
-        if(e.playerId===ui.myId()) ui.toastSys("本月持股評價 "+(e.delta>=0?"+":"")+M(e.delta), e.delta>=0?"good":"warn"); break;
+        if(e.playerId===ui.myId()) ui.toastSelf("本月持股評價 "+(e.delta>=0?"+":"")+M(e.delta), e.delta>=0?"good":"warn"); break;
       case "DREAM_PROGRESS": {
         if(!e.progress) break;
         var dn=nm(e.playerId), dcost=ui.S.config.dreamCost;
@@ -527,8 +558,9 @@ ui.handleEvents = function(evs){
         var rsn = e.reason ? ("（"+e.reason+"）") : "";
         var rest = (e.remaining>0) ? ("，之後還要停 "+e.remaining+" 輪") : "";
         ui.announce(me(e.playerId)+" 這回合停走"+rsn+rest);
+        // S35：停走仍然要跳（POP）——這是「為什麼輪不到我」的唯一即時解釋，S13.1 §7 的教訓
         if(e.playerId===ui.myId())
-          ui.toastSys("你這回合停走"+rsn+(e.remaining>0?("　還剩 "+e.remaining+" 輪"):"　這是最後一輪"),"warn",5200);
+          ui.toast("你這回合停走"+rsn+(e.remaining>0?("　還剩 "+e.remaining+" 輪"):"　這是最後一輪"),"warn",5200, ui.notifyMode==="S18"?"SYS":"POP");
         break; }
       case "BANKRUPT":
         ui.announce(me(e.playerId)+" 破產出局");
@@ -577,10 +609,10 @@ ui.toggleAutopilot = function(){
   var me=S.players[ui.myId()]; if(!me) return;
   if(ui.isAutopilot()){
     ui.dispatch({type:"PLAYER_RETURN", playerId:ui.myId(), payload:null});
-    ui.toast("換你來了","good");
+    ui.toast("換你來了","good",2200,"POP");
     return;
   }
-  if(me.bankrupt){ ui.toast("破產處理中不能交給電腦","warn"); return; }
+  if(me.bankrupt){ ui.hint("破產處理中不能交給電腦","warn"); return; }
   var ov=el("div","overlay"), bx=el("div","sheetbox"); bx.style.maxWidth="440px";
   bx.appendChild(el("h2",null,"🤖 交給電腦代打？"));
   bx.appendChild(el("div","flavor",
@@ -591,7 +623,7 @@ ui.toggleAutopilot = function(){
   var oo=el("div","opts");
   oo.appendChild(optBtn("交給電腦","我先離開一下",function(){ ov.remove();
     ui.dispatch({type:"PLAYER_LEAVE", playerId:ui.myId(), payload:null});
-    ui.toast("代打中——按「我來」隨時接回","good",3000);
+    ui.toast("代打中——按「我來」隨時接回","good",3000,"POP");
     setTimeout(function(){ ui.tick(); }, 60);
   },true));
   oo.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
@@ -697,7 +729,7 @@ ui.showStuck = function(err){
     },true));
   }
   oo.appendChild(optBtn("複製狀態",null,function(){
-    try{ navigator.clipboard.writeText(JSON.stringify(dump)); ui.toast("已複製","good"); }catch(e){}
+    try{ navigator.clipboard.writeText(JSON.stringify(dump)); ui.hint("已複製","good"); }catch(e){}
   }));
   oo.appendChild(optBtn("先關掉",null,function(){ ov.remove(); }));
   bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
@@ -1102,7 +1134,7 @@ ui.showReport = function(){
   replaySameSeed.onclick = function(){
     ov.remove(); ui._reported = false;
     ui.startCore(S.seed, util.clone(S.config), S.enabledModules.slice(), ns.seedPlayers(S), { noRules:true });
-    ui.toast("已用相同種子重開：牌序與骰子都一樣，換個決策看看結局會不會不同", "pos");
+    ui.toast("已用相同種子重開：牌序與骰子都一樣，換個決策看看結局會不會不同", "pos", 4000, "POP");
   };
   if(!(ui.mp && ui.mp.mode)) opts.appendChild(replaySameSeed);
 
@@ -1135,7 +1167,7 @@ ui.exportJSON = function(obj, filename){
     var b=new Blob([s],{type:"application/json"}), u=URL.createObjectURL(b);
     var a=document.createElement("a"); a.href=u; a.download=filename; a.click();
     setTimeout(function(){ URL.revokeObjectURL(u); },1000);
-    ui.toast("已匯出 "+filename,"good");
+    ui.hint("已匯出 "+filename,"good");
   }catch(e){ ui.showText(s); }
 };
 ui.showText = function(s){
@@ -1159,14 +1191,29 @@ ns.devpanel = {
     var sr=el("div","cfrow");
     var sl=el("div","l"); sl.appendChild(el("span",null,"回合結算彙總畫面"));
     var sb=el("button","act");
-    function sbl(){ sb.textContent = ui.turnSummaryOn() ? "開啟中" : "已關閉"; }
+    // S35：三段——只在大事（預設）／每輪／關閉
+    function sbl(){ var m=ui.sumMode(); sb.textContent = m==="always" ? "每輪都顯示" : m==="auto" ? "只在大事才顯示" : "已關閉"; }
     sbl();
-    sb.onclick=function(){ ui._sumOff = ui.turnSummaryOn();
-      try{ localStorage.setItem("finflow.sumOff", ui._sumOff?"1":"0"); }catch(e){}
+    sb.onclick=function(){
+      var m=ui.sumMode();
+      if(m==="auto"){ ui._sumAlways=true; } else if(m==="always"){ ui._sumAlways=false; ui._sumOff=true; } else { ui._sumOff=false; ui._sumAlways=false; }
+      try{ localStorage.setItem("finflow.sumAlways", ui._sumAlways?"1":"0"); localStorage.setItem("finflow.sumOff", ui._sumOff?"1":"0"); }catch(e){}
       sbl(); };
     sl.appendChild(sb); sr.appendChild(sl);
-    sr.appendChild(el("div","d","每輪結束用一個畫面總結所有異動，取代零散的小通知。關閉時回到原本行為。"));
+    sr.appendChild(el("div","d","「只在大事」＝本輪現金變動達一個月支出、或有其他玩家引發的帳才彈；其餘輪次看左欄「系統訊息」或「每輪紀錄」。"));
     sd.appendChild(sr);
+    // S35：通知模式（精簡／舊制）
+    var nr=el("div","cfrow");
+    var nl=el("div","l"); nl.appendChild(el("span",null,"通知方式"));
+    var nbtn=el("button","act");
+    function nbl(){ nbtn.textContent = ui.notifyMode==="S18" ? "舊制（S18）" : "精簡（S35）"; }
+    nbl();
+    nbtn.onclick=function(){ ui.notifyMode = (ui.notifyMode==="S18") ? "S35" : "S18";
+      try{ localStorage.setItem("finflow.notifyMode", ui.notifyMode); }catch(e){}
+      nbl(); };
+    nl.appendChild(nbtn); nr.appendChild(nl);
+    nr.appendChild(el("div","d","精簡：只有薪資單、系統總經與少數提醒會跳；操作回饋貼在按鈕旁；其餘全部進左欄「系統訊息」。舊制：S18 的行為。"));
+    sd.appendChild(nr);
     var ar=el("div","cfrow");
     var al=el("div","l"); al.appendChild(el("span",null,"結算畫面自動關閉"));
     var ab=el("button","act");
@@ -1213,13 +1260,13 @@ ns.devpanel = {
     mk(T("dev.save")+"…", function(){ ns.devpanel.slots(); });
     mk(T("dev.reset"), function(){ var c=ns.buildConfig(ns.configRegistry);
       Object.keys(c).forEach(function(k){ if(ui.S) ui.dispatch({type:"CONFIG_PATCH",playerId:0,payload:{key:k,value:c[k]}}); });
-      ui.configOverrides={}; ns.devpanel.build(); ui.toast("已恢復預設","good"); });
+      ui.configOverrides={}; ns.devpanel.build(); ui.hint("已恢復預設","good"); });
     mk(T("dev.replay"), function(){ if(!ui.S) return;
       var seed=ui.S.seed, cfg=util.clone(ui.S.config), mods=ui.S.enabledModules.slice();
       var pl=ui.S.players.map(function(p){ return {name:p.name,isNPC:p.isNPC,personality:p.npcPersonality,
         professionId:p.professionId,dreamCardId:p.dreamCardId}; });
       ui.S=E.newGame({seed:seed,config:cfg,modules:mods,players:pl}); E.beginTurn(ui.S);
-      ui._reported=false; ui.render(); ui.tick(); ui.toast("同種子重玩","good"); });
+      ui._reported=false; ui.render(); ui.tick(); ui.hint("同種子重玩","good"); });
     mk(T("dev.selftest"), function(){ ns.selftest.run(true); });
     body.appendChild(tools);
   },
@@ -1231,8 +1278,8 @@ ns.devpanel = {
     var ok=el("button","opt","匯入"); ok.onclick=function(){
       try{ var c=JSON.parse(ta.value); Object.keys(c).forEach(function(k){
         if(ui.S && (k in ui.S.config)) ui.dispatch({type:"CONFIG_PATCH",playerId:0,payload:{key:k,value:c[k]}}); });
-        ns.devpanel.build(); ov.remove(); ui.toast("已匯入","good");
-      }catch(e){ ui.toast("JSON 格式有誤","warn"); } };
+        ns.devpanel.build(); ov.remove(); ui.hint("已匯入","good");
+      }catch(e){ ui.hint("JSON 格式有誤","warn"); } };
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
     box.appendChild(ok); box.appendChild(no); ov.appendChild(box); $("overlays").appendChild(ov);
   },
@@ -1246,12 +1293,12 @@ ns.devpanel = {
       row.appendChild(el("span",null,"槽 "+i+"　"+(has?"已存":"空")));
       var s=el("button","act","存"); s.onclick=function(){
         try{ localStorage.setItem(key, JSON.stringify(ui.S?ui.S.config:ns.buildConfig(ns.configRegistry)));
-          ui.toast("已存到槽 "+i,"good"); ov.remove(); }catch(e){ ui.toast("存檔失敗，請改用匯出","warn"); } };
+          ui.hint("已存到槽 "+i,"good"); ov.remove(); }catch(e){ ui.hint("存檔失敗，請改用匯出","warn"); } };
       var l=el("button","act","讀"); l.disabled=!has; l.onclick=function(){
         var c=JSON.parse(localStorage.getItem(key));
         Object.keys(c).forEach(function(k){ if(ui.S && (k in ui.S.config))
           ui.dispatch({type:"CONFIG_PATCH",playerId:0,payload:{key:k,value:c[k]}}); });
-        ns.devpanel.build(); ov.remove(); ui.toast("已讀取槽 "+i,"good"); };
+        ns.devpanel.build(); ov.remove(); ui.hint("已讀取槽 "+i,"good"); };
       row.appendChild(s); row.appendChild(l); box.appendChild(row);
     })(i); }
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
@@ -2021,8 +2068,10 @@ ns.selftest = {
       assert(since.length===1 && since[0].summary.indexOf("別人回合")>=0,
         "結算範圍應涵蓋上次結算之後的每一筆");
       assert((w.ledger.length-n0)===1,"測試前提");
-      // 靜音只擋 good／無類別，warn 一律照跳
-      assert(ui.toastMuted("warn")===false,"warn 類通知不得被靜音（那是需要當下處理的）");
+      // 靜音只擋 good／無類別，warn 一律照跳——這是 S16／S18 舊制的規則；S35 精簡模式的規則在 s35test 驗
+      var saveNM92=ui.notifyMode; ui.notifyMode="S18";
+      try{ assert(ui.toastMuted("warn")===false,"warn 類通知不得被靜音（那是需要當下處理的）"); }
+      finally{ ui.notifyMode=saveNM92; }
       return "下市價回報 0 且不得交易；五欄拆解正確；賣股損益＝入袋−成本並標明費稅差額；結算涵蓋上次之後全部";
     });
 
@@ -2082,8 +2131,9 @@ ns.selftest = {
     });
 
     t("T-94 S18 通知分三類／決定入列／成本卡標籤", function(){
-      /* (a) 靜音規則改看 topic：廣播資訊收進彙總，要你當下處理的照跳 */
-      var saveOff=ui._sumOff; ui._sumOff=false;
+      /* (a) 靜音規則改看 topic：廣播資訊收進彙總，要你當下處理的照跳
+         S35 起這是「舊制（notifyMode=S18）」的規則，仍要能整套切回來；精簡模式的規則由 s35test 驗 */
+      var saveOff=ui._sumOff, saveNM=ui.notifyMode; ui._sumOff=false; ui.notifyMode="S18";
       try{
         assert(ui.toastMuted("warn")===false,"需要當下處理的 warn 仍要跳（被拒／追繳／出價）");
         assert(ui.toastMuted("warn","SYS")===true,"系統廣播（景氣／利率／政策／停走）要收進彙總");
@@ -2091,12 +2141,15 @@ ns.selftest = {
         assert(ui.toastMuted("warn","MINE")===false,"自己動作的 warn 要跳");
         ui._sumOff=true;
         assert(ui.toastMuted("warn","SYS")===false,"關掉結算畫面後一律照跳（回到 S16 之前的行為）");
-      } finally { ui._sumOff=saveOff; }
+      } finally { ui._sumOff=saveOff; ui.notifyMode=saveNM; }
 
-      /* (b) 系統類 toast 真的都改用 toastSys 了——景氣／利率／政策／停走四條主要來源 */
+      /* (b) 系統類 toast 真的都改用 toastSys 了——景氣／利率／政策／下市／天災。
+         S35 把「發生在我身上但不用動手」的（停走／失業／持股評價／事業景氣調整）拆成 toastSelf，
+         舊制模式下它們仍是 SYS；所以這裡數的是兩者合計。 */
       var hsrc=ui.handleEvents.toString();
-      assert((hsrc.match(/toastSys\(/g)||[]).length>=6,
-        "系統類通知至少六處要走 toastSys，實得 "+((hsrc.match(/toastSys\(/g)||[]).length));
+      var nSys=(hsrc.match(/toastSys\(/g)||[]).length, nSelf=(hsrc.match(/toastSelf\(/g)||[]).length;
+      assert(nSys>=5 && (nSys+nSelf)>=9,
+        "系統類通知要走 toastSys／toastSelf，實得 toastSys "+nSys+"、toastSelf "+nSelf);
 
       /* (c) 分錄歸類：三類各要分得出來 */
       var S=mkGame(9401,["M1","M2","M3","M4","M6"]);
@@ -6197,12 +6250,23 @@ ns.selftest = {
       post(LOAN); answerAll(["asset","expense","expense"]);
       assert(p.bkStreak.buyCash===1,"一套答錯不得影響另一套，實得 "+p.bkStreak.buyCash);
 
-      // (c) 連續達標才解鎖，且解鎖不自動開啟
-      p.bkStreak={}; p.bkEntryBad={};
+      // (c) 連續達標才解鎖。S35：預設（bkAutoOnMastery=1）練熟當下直接切成自動；
+      //     bkAutoOnMastery=0 回到 S11「解鎖不等於自動開啟」——兩種都驗
+      var saveAOM=S.config.bkAutoOnMastery; S.config.bkAutoOnMastery=0;
+      p.bkStreak={}; p.bkEntryBad={}; p.bkUnlocked={}; p.bkAuto={};
       for(var i=0;i<thr;i++){ post([["CASH",-10],["ASSET",10]]); answerAll(["asset"]); }
       assert(p.bkUnlocked.buyCash===true,"連續 "+thr+" 次整筆全對應解鎖");
-      assert(!p.bkAuto.buyCash,"解鎖不等於自動開啟");
+      assert(!p.bkAuto.buyCash,"bkAutoOnMastery=0：解鎖不等於自動開啟（S11 行為）");
       assert(!p.bkUnlocked.buyLoan,"沒練到的那一套不得跟著解鎖");
+      S.config.bkAutoOnMastery=1;
+      p.bkStreak={}; p.bkEntryBad={}; p.bkUnlocked={}; p.bkAuto={};
+      for(var i2=0;i2<thr;i2++){ post([["CASH",-10],["ASSET",10]]); answerAll(["asset"]); }
+      assert(p.bkUnlocked.buyCash===true && p.bkAuto.buyCash===true,"bkAutoOnMastery=1：練熟當下應直接切成自動");
+      assert(!p.bkAuto.buyLoan,"沒練到的那一套不得跟著自動");
+      S.config.bkAutoOnMastery=saveAOM;
+      p.bkStreak={}; p.bkEntryBad={}; p.bkUnlocked={}; p.bkAuto={};
+      for(var i3=0;i3<thr;i3++){ post([["CASH",-10],["ASSET",10]]); answerAll(["asset"]); }
+      p.bkAuto.buyCash=false;   // 後面 (d) 要驗「解鎖後開得起來」，先關回手記
 
       // (d) 沒解鎖不給開；解鎖後開了，該套整筆不再出題，別套照出
       var rNo=E.apply(S,{type:"SET_BK_AUTO",playerId:p.id,payload:{group:"buyLoan",on:true}},{mutate:true});
@@ -7061,7 +7125,7 @@ ui.showRules = function(fromStart){
 ui.showRepayPicker = function(p){
   var S=ui.S;
   var list=(p.liabilities||[]).filter(function(l){ return l.kind!=="P2P"; });
-  if(!list.length){ ui.toast("目前沒有可提前清償的貸款","warn"); return; }
+  if(!list.length){ ui.hint("目前沒有可提前清償的貸款","warn"); return; }
   var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="460px";
   box.appendChild(el("h2",null,"提前還本"));
   box.appendChild(el("div","sub","提前還本會降低月付與利息支出；現金要留夠生活，別把緩衝還光。你的現金 "+M(p.cash)+"。"));
@@ -7143,6 +7207,10 @@ ns.boot = function(){
     var so=localStorage.getItem("finflow.sumOff"); if(so==="1") ui._sumOff=true;
     var sa=parseInt(localStorage.getItem("finflow.sumAutoSec")||"0",10);
     if(isFinite(sa) && sa>=0) ui._sumAutoSec=sa;
+    // S35：本機偏好——每輪都彈／通知模式／訊息欄篩選
+    if(localStorage.getItem("finflow.sumAlways")==="1") ui._sumAlways=true;
+    var nmode=localStorage.getItem("finflow.notifyMode"); if(nmode==="S18") ui.notifyMode="S18";
+    var ff=localStorage.getItem("finflow.feedFilter"); if(ff && /^(ALL|SYS|MINE|OTHERS)$/.test(ff)) ui._feedFilter=ff;
   }catch(e){}
   $("btnSim").onclick=function(){ ns.simui.show(); };   // 八期：三顆圖示鈕已移入中欄操作區（id 不變）
   $("btnDev").onclick=function(){ ns.devpanel.build(); $("devpanel").classList.add("on"); };   // 七期修正：CSS 用 .on，原誤寫 .open 導致無反應
@@ -7213,7 +7281,7 @@ ns.boot = function(){
     var cont=el("button","opt","繼續上一局"); cont.onclick=function(){
       try{ ui.S=ns.replay(save); ui.configOverrides={};
         $("app").classList.remove("hide"); ov2.remove(); ui._reported=false; ui.render(); ui.tick(); }
-      catch(e){ ov2.remove(); ui.toast("存檔重放失敗，改開新局","warn"); ui.showSetup(); } };
+      catch(e){ ov2.remove(); ui.toast("存檔重放失敗，改開新局","warn",4000,"POP"); ui.showSetup(); } };
     var fresh=el("button","opt","開新的一局"); fresh.onclick=function(){
       try{ localStorage.removeItem("finflow.autosave"); }catch(e){} ov2.remove(); ui.showSetup(); };
     o.appendChild(cont); o.appendChild(fresh); box2.appendChild(o);
