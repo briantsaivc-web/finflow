@@ -1,6 +1,6 @@
 {
   "packId": "skill",
-  "packVersion": "1.7.0",
+  "packVersion": "1.8.0",
   "requiresEngine": ">=1",
   "cards": {
     "SKILL": [
@@ -14,7 +14,7 @@
         "hint": "交通類：可能在需要機動性的場合派上用場",
         "cost": 20,
         "recurringMonthly": 0,
-        "turns": 4,
+        "turns": 2,
         "tier": "MID",
         "family": "MOBILITY",
         "decayable": false,
@@ -62,7 +62,7 @@
         "hint": "安全類：可能在有人出事的場合派上用場",
         "cost": 8,
         "recurringMonthly": 0,
-        "turns": 2,
+        "turns": 1,
         "tier": "SMALL",
         "family": "SAFETY",
         "decayable": false,
@@ -156,9 +156,9 @@
         "flavor": "每次去海邊都只能坐在岸上顧包包。",
         "eduNote": "有些能力，一輩子只需要用到一次，但那一次無可取代。",
         "hint": "安全類：可能在親水活動的場合派上用場",
-        "cost": 10,
+        "cost": 8,
         "recurringMonthly": 0,
-        "turns": 3,
+        "turns": 2,
         "tier": "SMALL",
         "family": "SAFETY",
         "decayable": false,
@@ -462,7 +462,7 @@
             "effects": [
               {
                 "op": "SALARY_MULT",
-                "factor": 1.05,
+                "factor": 1.1,
                 "label": "會議上被看見"
               }
             ]

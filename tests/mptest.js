@@ -24,9 +24,12 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step('seat0 視角：不該看到 2 號的按鈕', ()=>{
       ui.mp={mode:true, seat:0};
       ui.viewPlayerId=null; ui.renderSheet();
-      const t=document.getElementById('sheet').textContent;
-      if(/辭職進入自由圈/.test(t)) throw new Error('0 號不該看到 2 號的辭職按鈕');
-      return '(對照組正確)';
+      /* S36 修正：S31 起自己的財報永遠有一顆「辭職進入自由圈」按鈕（沒達標時停用並寫出缺口），
+         所以不能再用文字比對——要驗的是「0 號視角不得有一顆『可按的』辭職鈕」（0 號沒灌被動收入）。
+         這條從 S31 起就一直紅，但 mptest 不在 test:ui 裡，S35 之前沒人看到。 */
+      const live=[].slice.call(document.querySelectorAll('#sheet button')).filter(b=>/辭職進入自由圈/.test(b.textContent) && !b.disabled);
+      if(live.length) throw new Error('0 號不該看到可按的辭職按鈕（那是 2 號的資格）');
+      return '(對照組正確：按鈕停用)';
     });
     step('seat2 視角：財報是自己的，且不顯示「檢視他人」', ()=>{
       ui.mp={mode:true, seat:2};

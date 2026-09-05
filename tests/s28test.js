@@ -168,8 +168,8 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       const ai=card("SKE_AILAYOFF").skillBranch.have.effects[0];
       A(ai.op==="SALARY_MULT" && ai.factor===1.2,"AI 那張應為 ×1.2，實得 "+ai.factor);
       const bd=card("SKE_BUDGET").skillBranch.have.effects;
-      A(bd.length===1 && bd[0].op==="SALARY_MULT" && bd[0].factor===1.05,
-        "預算會議應改成加薪 5%，實得 "+JSON.stringify(bd));
+      A(bd.length===1 && bd[0].op==="SALARY_MULT" && bd[0].factor===1.1,   // S36：1.05→1.10（簡報是全牌堆最小的加薪，往上拉）
+        "預算會議應為加薪 10%（S36），實得 "+JSON.stringify(bd));
       const tt=card("SKE_TEAMTRIP");
       A(!/團建/.test(tt.title),"一次性團建不該給永久加薪，標題應改，實得 "+tt.title);
       A(/客戶/.test(tt.title),"應改成長期的客戶關係經營，實得 "+tt.title);
