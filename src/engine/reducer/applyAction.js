@@ -1296,7 +1296,11 @@ E.apply = function(state, action, opts){
     }
     var pjL=S.pendingJV;
     if(pjL){
-      if(pjL.fromId===lp.id){ S.pendingJV=null; }
+      if(pjL.fromId===lp.id){
+        // S41（Brian：「合資不見了、log 看不出來」）：這條原本靜默清掉——現在發事件進訊息欄
+        S.pendingJV=null;
+        E.ev("JV_REJECTED",{cardId:pjL.cardId, title:pjL.title, partnerId:null, reason:"left", fromId:lp.id});
+      }
       else if(pjL.targetId===lp.id){
         S.pendingJV=null;
         E.ev("JV_REJECTED",{cardId:pjL.cardId, title:pjL.title, partnerId:lp.id, reason:"partner", humanSaidNo:true});
@@ -1307,7 +1311,8 @@ E.apply = function(state, action, opts){
           S.pendingJV=null; E.jvPollNPC(S,frmJ2,cardJ2,pjL.myShare); }
       }
     }
-    E.ev("PLAYER_LEFT",{playerId:lp.id});
+    E.ev("PLAYER_LEFT",{playerId:lp.id, forcedBy:(action.payload && action.payload.forcedBy!==undefined && action.payload.forcedBy!==null) ? action.payload.forcedBy : null,
+                        why:(action.payload && action.payload.why) || null});   // S41：別人替離線／久未動作的座位交電腦代打
     E.syncPhase(S);
     break; }
 

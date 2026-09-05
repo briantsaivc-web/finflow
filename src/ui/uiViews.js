@@ -346,8 +346,10 @@ ui.handleEvents = function(evs){
         var why=e.humanSaidNo ? (e.partnerId!==null&&e.partnerId!==undefined?nm(e.partnerId):"對方")+" 婉拒了合資"
           : {partner:"對方評估現金水位後婉拒",self:"你的現金不足自己那份的入手門檻",
              afford:"有一方付不起實際自備款","buy-fail":"買入未成立",
-             nobody:"廣播後沒有玩家或電腦願意合資",income:"這張卡沒有月現金流，不適合合資"}[e.reason]||"未成立";
-        ui.toast("🤝 合資未成立："+why+"（機會回到你手上）","warn",4500);
+             nobody:"廣播後沒有玩家或電腦願意合資",income:"這張卡沒有月現金流，不適合合資",
+             left:"發起人 "+(e.fromId!==undefined&&e.fromId!==null?nm(e.fromId):"")+" 的座位轉為電腦代打，邀約取消"}[e.reason]||"未成立";
+        if(e.reason==="left"){ ui.feedNote("🤝 合資取消："+why,"warn","SYS"); ui.toast("🤝 合資取消："+why,"warn",4500); }   // S41：所有座位都看得到
+        else ui.toast("🤝 合資未成立："+why+"（機會回到你手上）","warn",4500);
         break; }
       /* S39：多玩家集資 */
       case "SYNDICATE_OPENED": {
@@ -394,7 +396,12 @@ ui.handleEvents = function(evs){
         if(e.playerId===ui.myId()) ui.toast(ctxt, e.prize>0?"good":"warn", 4500);
         break; }
       case "PLAYER_LEFT":
-        ui.broadcast("🚪 "+nm(e.playerId)+" 離開了", "座位交給電腦代打，之後可重新連線回來接手","warn",4000);
+        if(e.forcedBy!==null && e.forcedBy!==undefined){
+          var whyF=(e.why==="offline"?"裝置離線":"輪到他卻久未動作");
+          ui.feedNote("🤖 "+nm(e.playerId)+" 的座位交給電腦代打——"+nm(e.forcedBy)+" 替他按的（"+whyF+"）","warn","SYS");
+          ui.broadcast("🤖 "+nm(e.playerId)+" 的座位交給電腦代打", nm(e.forcedBy)+" 替他按的（"+whyF+"）；他重新連線或按「我來」即可接回","warn",5000);
+        } else
+          ui.broadcast("🚪 "+nm(e.playerId)+" 離開了", "座位交給電腦代打，之後可重新連線回來接手","warn",4000);
         break;
       case "PLAYER_RETURNED":
         ui.broadcast("👋 "+nm(e.playerId)+" 回來了", "已從電腦手上接回自己的座位","good",4000);
@@ -754,6 +761,7 @@ ui.showStuck = function(err){
     懸置拍賣:!!S.pendingAuction, 懸置轉介:!!S.pendingReferral, 懸置合資:!!S.pendingJV,
     懸置轉讓:!!S.pendingTrade, 懸置P2P:!!S.pendingP2P,
     電腦下一步:(ns.npc.nextAction(S)||{}).type||"null",
+    同步破口:(ui.mp&&ui.mp.lastDesync)||null,   // S41：最後一次重放被拒的那一筆
     例外:err?String(err&&err.message||err):null };
   var pre=el("div"); pre.style.cssText="font-family:monospace;font-size:11px;white-space:pre-wrap;"+
     "background:rgba(0,0,0,.30);border-radius:6px;padding:8px;margin-top:8px;line-height:1.6";

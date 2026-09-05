@@ -522,7 +522,10 @@ function mpBeginGame(ad, code, uid, setup){
       setTimeout(function(){ mpSend({type:"PLAYER_RETURN",playerId:ui.mp.seat,payload:null}); }, 300);
   });
   ad.onAction(function(entry){ mpOnAction(entry); });
-  ad.onPresence(function(p){ ui.mp.presence=p||{}; if(ui.S) ui.renderPlayerCards(); });
+  ad.onPresence(function(p){ ui.mp.presence=p||{}; if(ui.S){ ui.renderPlayerCards(); mpCheckHost(); } });
+  ui.mp._lastActTs=now();
+  clearInterval(ui.mp._watch);
+  ui.mp._watch=setInterval(function(){ if(ui.S && ui.mp.mode){ mpCheckHost(); ui.renderPlayerCards(); } }, 10000);   // S41：房主離線／久未動作的按鈕要在沒人動的時候也長出來
   ad.onMeta(function(m){
     if(!m) return;
     var wasHost=ui.mp.host;
@@ -551,8 +554,24 @@ function mpApplyEntry(entry){
   var res=E.apply(S, {type:entry.type, playerId:entry.playerId, payload:entry.payload});
   if(res.rejected){
     // 決定論破口（理論上不會發生）：全量重放自救
-    console.error("MP desync on seq",entry.seq,entry.type);
-    mpFullResync(); return;
+    var rjE=(res.events||[]).filter(function(e){return e.type==="ACTION_REJECTED";}).slice(-1)[0];
+    var diag={ seq:entry.seq, type:entry.type, playerId:entry.playerId, reason:(rjE&&rjE.reason)||"?",
+               ver:(ns.BUILD?ns.BUILD.ver:"?"), turn:S.turnNumber, phase:S.phase, logLen:S.actionLog.length,
+               active:S.activePlayerIdx, seat:ui.mp.seat, ts:now() };
+    console.error("MP desync on seq",entry.seq,entry.type,diag);
+    /* S41（Brian 實測：卡住卻「log 看不出來」）：破口那一筆寫進系統訊息、存本機，卡住面板可以複製。
+       同一筆全量重放後仍被拒＝不是暫時失序，是各端狀態真的分岔：不再無限重放，攤開來講。 */
+    ui.mp.lastDesync=diag;
+    try{ localStorage.setItem("finflow.mp.lastDesync", JSON.stringify(diag)); }catch(e){}
+    var noteD="⚠ 同步破口：第 "+entry.seq+" 筆動作（"+entry.type+"，座位 "+entry.playerId+"）重放被拒（"+diag.reason+"），已從房間紀錄重新同步";
+    if(ui.mp._resyncSeq===entry.seq){
+      ui.feedNote(noteD,"warn","SYS");
+      ui.mp._resyncSeq=null;
+      if(ui.showStuck) ui.showStuck(new Error("同步破口重放後仍被拒：seq "+entry.seq+" "+entry.type+"（"+diag.reason+"）"));
+      return;
+    }
+    ui.mp._resyncSeq=entry.seq;
+    mpFullResync(noteD); return;
   }
   ui.S=res.state;
   ui.handleEvents(res.events);   // replaying 時 toast／公告已由包裝器靜音
@@ -560,20 +579,28 @@ function mpApplyEntry(entry){
   while((nx=ui.mp._pending[ui.S.actionLog.length])){ ui.mp._pending[ui.S.actionLog.length]=undefined; mpApplyEntry(nx); }
 }
 function mpOnAction(entry){
+  ui.mp._lastActTs=now();        // S41：久未動作計時
   mpApplyEntry(entry);
   if(!ui.mp.replaying){ ui.render(); ui.save(); mpAfter(); }
 }
-function mpFullResync(){
+function mpFullResync(note){
   var ad=ui.mp.adapter, setup=ui.mp.setup;
   ui.mp.replaying=true;
+  /* S41 修根因：這裡原本沒帶 mp:true，S31 起 startCore 會把 ui.mp 整個清掉——
+     自救一次，這台就靜靜掉出房間、改用單機邏輯跑同一份盤面（擲骰被拒「這個動作現在不能做」且沒有原因、
+     玩家卡沒有上線燈）。若這台是房主，電腦玩家沒人代跑，全桌停擺。Brian 2026-09-05 真人局就是這個樣子。 */
   ui.startCore(setup.seed, util.clone(setup.config), setup.modules, setup.players.map(function(pl){
     return { name:pl.name, isNPC:pl.isNPC, personality:pl.personality, professionId:pl.professionId, dreamCardId:pl.dreamCardId };
-  }), {noRules:true});
+  }), {noRules:true, mp:true});
+  ui.mp._pending={};
   Promise.resolve(ad.readLog()).then(function(log){
     (log||[]).forEach(function(e2){ mpApplyEntry(e2); });
-    ui.mp.replaying=false; ui.render(); mpAfter();
+    ui.mp.replaying=false;
+    if(note) ui.feedNote(note,"warn","SYS");    // startCore 會清空訊息欄，所以破口訊息要在重放完之後才寫
+    ui.render(); mpAfter();
   });
 }
+ui.mpFullResync=mpFullResync;   // S41：測試用
 
 // 誰可以送出這個動作
 function mpMayAct(action){
@@ -581,6 +608,7 @@ function mpMayAct(action){
   if(!p) return false;
   if(action.type==="CONFIG_PATCH") return ui.mp.host;              // 參數：多人局僅房主（開局前）
   if(action.type==="PLAYER_RETURN") return action.playerId===ui.mp.seat;   // 只有原座位主人能接回
+  if(action.type==="PLAYER_LEAVE" && action.playerId!==ui.mp.seat) return !!mpForceLeaveWhy(action.playerId);   // S41：離線／久未動作的座位可由別人交給電腦
   if(p.isNPC) return ui.mp.host;                                   // NPC 由房主代跑
   return action.playerId===ui.mp.seat;                             // 真人只能動自己的
 }
@@ -651,6 +679,58 @@ function mpSend(action, opts){
     // ok：等 onAction 回聲套用（各端一致的唯一路徑）
   }).catch(function(e){ ui.toast("連線寫入失敗："+(e&&e.message||e),"warn",5000); });
 }
+
+/* ======================= S41：任何一台出事，其他人都玩得下去 =======================
+   Brian 的用法：兩台電腦辦真人局，玩一陣子後全部交給電腦代跑、自己只看。
+   舊制只有房主「主動按離開」才交棒，所以房主那台掉出房間／iPad 切背景／沒電，全桌就停。 */
+ui.MP_OFFLINE_MS = 30000;    // 心跳（10 秒一次）停超過這麼久＝離線
+ui.MP_IDLE_MS    = 90000;    // 輪到他卻這麼久沒有任何動作＝卡住
+// 以「全房最新的一次心跳」當基準，而不是本機時鐘——兩台電腦時鐘差幾十秒不會把在線的人當離線
+function mpNewestSeen(){
+  var pr=ui.mp.presence||{}, mx=now();
+  Object.keys(pr).forEach(function(u){ var t=(pr[u]&&pr[u].lastSeen)||0; if(t>mx) mx=t; });
+  return mx;
+}
+function mpOnline(uid){
+  if(!uid) return false;
+  if(uid===ui.mp.uid) return true;
+  var pr=(ui.mp.presence||{})[uid];
+  if(!pr) return true;                       // 還沒收到這台的心跳紀錄＝沒有離線的證據，當在線
+  return (mpNewestSeen()-(pr.lastSeen||0)) < ui.MP_OFFLINE_MS;
+}
+ui.mpOnline=mpOnline;
+// 房主離線 → 在線且座位號最小的真人裝置接任（各端算法一致，不會兩台同時搶）
+function mpCheckHost(){
+  var S=ui.S; if(!ui.mp.mode || !S || S.over || ui.mp.replaying) return false;
+  var meta=ui.mp.meta||{}; if(!meta.hostUid || meta.hostUid===ui.mp.uid) return false;
+  if(mpOnline(meta.hostUid)) return false;
+  var seatUid=ui.mp.seatUid||{}, cand=null;
+  Object.keys(seatUid).map(Number).sort(function(a,b){return a-b;}).forEach(function(i){
+    if(cand===null && mpOnline(seatUid[i])) cand=seatUid[i]; });
+  if(cand!==ui.mp.uid) return false;
+  if(ui.mp._claimAt && now()-ui.mp._claimAt < 20000) return false;   // 已寫過，等 meta 回聲
+  ui.mp._claimAt=now();
+  Promise.resolve(ui.mp.adapter.writeMeta({hostUid:ui.mp.uid})).then(function(){
+    ui.feedNote("👑 房主離線超過 "+Math.round(ui.MP_OFFLINE_MS/1000)+" 秒，由你接任房主（電腦玩家改由你的裝置代跑）","warn","SYS");
+  });
+  return true;
+}
+ui.mpCheckHost=mpCheckHost;
+// 別人可以把「離線」或「輪到他卻久未動作」的真人座位交給電腦代打（他回來自動接手／按「我來」）
+function mpForceLeaveWhy(seat){
+  var S=ui.S; if(!ui.mp.mode || !S || S.over) return null;
+  var p=S.players[seat]; if(!p || p.isNPC || p.bankrupt || seat===ui.mp.seat) return null;
+  var uid=(ui.mp.seatUid||{})[seat];
+  if(uid && !mpOnline(uid)) return "offline";
+  if(S.activePlayerIdx===seat && ui.mp._lastActTs && (now()-ui.mp._lastActTs) > ui.MP_IDLE_MS) return "idle";
+  return null;
+}
+ui.mpForceLeaveWhy=mpForceLeaveWhy;
+ui.mpForceLeave=function(seat){
+  var why=mpForceLeaveWhy(seat); if(!why) return false;
+  mpSend({type:"PLAYER_LEAVE", playerId:seat, payload:{forcedBy:ui.mp.seat, why:why}});
+  return true;
+};
 
 /* ---- NPC 由房主代跑 ---- */
 function mpAfter(){
@@ -861,10 +941,21 @@ ui.renderPlayerCards=function(){
   for(var i=0;i<cols.length;i++){
     var u=seatUid[i];
     if(!u) continue;   // NPC
-    var pr=presence[u];
-    var on = pr && (now()-(pr.lastSeen||0) < 30000);
+    var on = mpOnline(u);   // S41：以全房最新心跳為基準
     var nm=cols[i].querySelector(".nm");
     if(nm){ var dot=el("span",null,on?"🟢":"🔴"); dot.style.fontSize="9px"; nm.insertBefore(dot, nm.firstChild); }
+    // S41：離線或輪到他卻久未動作 → 其他真人可以替他交給電腦代打
+    var whyF=mpForceLeaveWhy(i);
+    if(whyF && !cols[i].querySelector(".mpForce")){
+      (function(seat,why){
+        var fb=el("button","act mpForce","🤖 請電腦代打");
+        fb.title=(why==="offline"?"這個座位的裝置已離線超過 "+Math.round(ui.MP_OFFLINE_MS/1000)+" 秒"
+                                :"輪到他卻超過 "+Math.round(ui.MP_IDLE_MS/1000)+" 秒沒有動作")+"——交給電腦，他回來可以接回";
+        fb.style.cssText="margin-top:4px;font-size:11px";
+        fb.onclick=function(ev){ ev.stopPropagation(); ui.mpForceLeave(seat); };
+        cols[seat].appendChild(fb);
+      })(i,whyF);
+    }
   }
   var be=$("btnEnd");
   if(be && ui.S.over){ be.disabled=true; }

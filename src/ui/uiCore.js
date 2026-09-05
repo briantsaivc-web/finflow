@@ -304,10 +304,11 @@ ui.buildGameConfig = function(preset){
 ui.resetMultiplayer = function(){
   if(!ui.mp) return;
   try{ if(ui.mp._hb) clearInterval(ui.mp._hb); }catch(e){}
+  try{ if(ui.mp._watch) clearInterval(ui.mp._watch); }catch(e){}   // S41
   try{ if(ui.mp.adapter && ui.mp.adapter.close) ui.mp.adapter.close(); }catch(e){}
   ui.mp = { mode:false, seat:0, code:null, uid:null, host:false, adapter:null,
             meta:null, setup:null, seatUid:null, presence:null, replaying:false,
-            _hb:null, _stall:0 };
+            _hb:null, _watch:null, _stall:0, _pending:{} };
 };
 ui.startCore = function(seed, config, modules, players, opts){
   opts=opts||{};
