@@ -741,6 +741,8 @@ E.apply = function(state, action, opts){
     if(it.payload.insurance && p.flags && p.flags.insured) return reject("ALREADY_INSURED");
     if(it.payload.propertyInsurance && p.flags && p.flags.propInsured) return reject("ALREADY_INSURED");
     if(it.oncePerGame && p.mallBought && p.mallBought[it.id]) return reject("ONCE_ONLY");
+    // S38（Brian）：比賽拿過獎金就不能再刷同一場——獎金不是提款機
+    if(it.payload.contest && p.contestWon && p.contestWon[it.id]) return reject("CONTEST_WON");
     // 效期內不得重複購買（健身房年約／健檢）——UI 灰化只是提示，這裡才是把關
     if(E.mallStillActive(S,p,it)) return reject("STILL_ACTIVE");
     // S13.1 §2：同一項商品的重購冷卻（幸福感遞減之外的第二道）
@@ -2168,8 +2170,11 @@ E.resolveDecision = function(S,p,d,optionId,params){
         var rollC=util.randInt(S,1,6), tierC=null;
         for(var ci=0;ci<plc.contest.length;ci++){ if(rollC>=plc.contest[ci].min){ tierC=plc.contest[ci]; break; } }
         if(!tierC) tierC=plc.contest[plc.contest.length-1];
-        if(tierC.prize>0) ledger.post(S,p,itc.title+"："+tierC.label,
-          [{account:"CASH",delta:util.r2(tierC.prize),label:"競賽獎金"}],{eduTags:["mall"]});
+        if(tierC.prize>0){
+          ledger.post(S,p,itc.title+"："+tierC.label,
+            [{account:"CASH",delta:util.r2(tierC.prize),label:"競賽獎金"}],{eduTags:["mall"]});
+          p.contestWon = p.contestWon||{}; p.contestWon[itc.id]=true;   // S38：拿過獎金的比賽本局不能再報
+        }
         E.ev("CONTEST_RESULT",{playerId:p.id, itemId:itc.id, title:itc.title,
           roll:rollC, label:tierC.label, prize:tierC.prize||0});
       }
@@ -3320,6 +3325,20 @@ E.mallCooldownLeft = function(S, p, it){
   if(last===undefined || last===null) return 0;
   return Math.max(0, cd-(S.turnNumber-last));
 };
+/* S38：一件商品點亮的品格軸（0～N 個）。virtues 陣列優先，否則退回單軸 virtue。 */
+E.mallVirtues = function(it){
+  var pl=(it&&it.payload)||{};
+  if(Array.isArray(pl.virtues)) return pl.virtues.slice();
+  return pl.virtue ? [pl.virtue] : [];
+};
+/* S38：商城同一類內依「總價」排序——一次費用（含月薪倍數、年繳保費）＋ 12 個月的月費。
+   純呈現用；引擎與電腦決策都不吃這個順序。 */
+E.mallSortKey = function(S, it, p){
+  var pl=(it&&it.payload)||{};
+  var once = E.mallCost(S,it,p);
+  var monthly = (pl.recurringMonthly||0)*12;
+  return once + Math.max(0, monthly);
+};
 E.mallStillActive = function(S, p, it){
   var pl=(it&&it.payload)||{};
   if(!pl.flag || !p.flags) return false;
@@ -3336,7 +3355,8 @@ E.mallApply = function(S, p, it){
   if(cost>0) post.push({account:"CASH",delta:-cost,label:it.title});
   if(pl.recurringMonthly){
     post.push({account:"EXPENSE",delta:util.r2(pl.recurringMonthly),label:it.title+" 每月"});
-    notes.push("每月 +"+util.money(pl.recurringMonthly));
+    // S38：負數＝每月省下（好市多會員）——支出水位往下走
+    notes.push(pl.recurringMonthly>0 ? ("每月 +"+util.money(pl.recurringMonthly)) : ("每月省 "+util.money(-pl.recurringMonthly)));
   }
   if(post.length) ledger.post(S,p,"商城："+it.title,post,{eduTags:["mall"]});
 
@@ -3350,10 +3370,13 @@ E.mallApply = function(S, p, it){
     notes.push("重複購買：幸福感 +"+gainJoy+"（原 +"+pl.joy+"）");
   p.flags = p.flags||{};
 
-  // 品格
-  if(pl.virtue && S.enabledModules.indexOf("M6")>=0){
+  // 品格（S38：可一次點多軸——payload.virtues:[...]；單軸的 payload.virtue 照舊）
+  if(S.enabledModules.indexOf("M6")>=0){
+    var axesM = E.mallVirtues(it);
     var max=S.config.virtueMaxLevel||3;
-    if(p.virtues[pl.virtue]<max){ p.virtues[pl.virtue]++; notes.push("品格 "+pl.virtue+" +1"); }
+    axesM.forEach(function(ax){
+      if(p.virtues[ax]<max){ p.virtues[ax]++; notes.push("品格 "+ax+" +1"); }
+    });
   }
   // 保險
   if(pl.insurance){

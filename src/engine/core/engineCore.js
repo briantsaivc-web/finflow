@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.45.0-S37", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.46.0-S38", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -235,7 +235,7 @@ E.makePlayer = function(S, idx, pd){
       digitalFLOP:0, digitalOK:0, digitalHIT:0,
       // S4
       careerSwitched:0, sideJobs:0, propClaimTotal:0, lifeDeferred:0, freefalls:0 },
-    mallBought:{}, mallLastBuy:{}, mallBoughtThisTurn:0,
+    mallBought:{}, mallLastBuy:{}, mallBoughtThisTurn:0, contestWon:{},   // S38：拿過獎金的比賽
     // M8 S1：技能狀態（必須在此初始化，否則 actionLog 重放時 undefined 會炸）
     skills:{}, learning:null, digitalAssets:[], tending:null, skillCooldownUntil:0,
     deferredLifeId:null, sideJob:null, pendingDelistWarn:null,

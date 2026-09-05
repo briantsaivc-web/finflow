@@ -817,6 +817,7 @@ npc.canBuyMall = function(S, p, it){
   var per=E.cfg(S,"mallPerTurn"); if(per===undefined) per=1;
   if(per<=0 || (p.mallBoughtThisTurn||0)>=per) return false;
   if(it.oncePerGame && p.mallBought && p.mallBought[it.id]) return false;
+  if(it.payload && it.payload.contest && p.contestWon && p.contestWon[it.id]) return false;   // S38：拿過獎金不再報
   if(E.mallStillActive(S,p,it)) return false;
   if(E.mallCooldownLeft(S,p,it)>0) return false;
   if(!E.mallAffordable(S,p,it)) return false;

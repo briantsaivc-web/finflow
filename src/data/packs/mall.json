@@ -504,6 +504,46 @@
         "moduleReq": null
       },
       {
+        "id": "ML_CMP6",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "挑戰比賽",
+        "icon": "🎮",
+        "title": "海外電競大賽",
+        "flavor": "機票自理，決賽場館坐滿一萬人。",
+        "eduNote": "獎金池很大，機率很小——報名費是門票，不是投資。",
+        "payload": {
+          "cost": 50,
+          "joy": 3,
+          "contest": [
+            {
+              "min": 6,
+              "prize": 400,
+              "label": "奪冠！獎金與贊助合約一起來"
+            },
+            {
+              "min": 5,
+              "prize": 120,
+              "label": "打進四強，拿到分區獎金"
+            },
+            {
+              "min": 3,
+              "prize": 30,
+              "label": "小組出線，領到參賽獎勵"
+            },
+            {
+              "min": 1,
+              "prize": 0,
+              "label": "首輪出局，見識了世界"
+            }
+          ]
+        },
+        "tags": [
+          "contest"
+        ],
+        "moduleReq": null
+      },
+      {
         "id": "ML_EDU6",
         "deck": "MALL",
         "kind": "MALL",
@@ -563,12 +603,40 @@
         "payload": {
           "costSalaryMult": 1.5,
           "cost": 100,
-          "joy": 3
+          "joy": 2,
+          "virtues": [
+            "TEMPER",
+            "PRUDENCE",
+            "PARENTING"
+          ]
         },
         "tags": [
           "family"
         ],
         "oncePerGame": false,
+        "moduleReq": null
+      },
+      {
+        "id": "ML_VIR6",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "人情品格",
+        "icon": "🧘",
+        "title": "身心靈成長營",
+        "flavor": "三天兩夜，手機收走，回來的路上安靜了很久。",
+        "eduNote": "品格不是一次課程的事，但一次課程可以是開始。",
+        "payload": {
+          "cost": 66,
+          "joy": 1,
+          "virtues": [
+            "TEMPER",
+            "PRUDENCE",
+            "PARENTING"
+          ]
+        },
+        "tags": [
+          "growth"
+        ],
         "moduleReq": null
       },
       {
@@ -582,14 +650,36 @@
         "eduNote": "醫療健康支出往往是一次性大額負擔，平時的緊急預備金就是為了這刻而存在。",
         "payload": {
           "cost": 150,
-          "joy": 2,
-          "reqChild": true
+          "joy": 3,
+          "reqChild": true,
+          "virtue": "PARENTING"
         },
         "tags": [
           "medical",
           "family"
         ],
         "oncePerGame": true,
+        "moduleReq": null
+      },
+      {
+        "id": "ML_HEA4",
+        "deck": "MALL",
+        "kind": "MALL",
+        "group": "健康身心",
+        "icon": "👓",
+        "title": "小孩近視預防",
+        "flavor": "角膜塑型片與定期追蹤，每半年回診一次。",
+        "eduNote": "看得見的支出換看不見的損失——預防永遠比治療便宜。",
+        "payload": {
+          "cost": 100,
+          "joy": 2,
+          "virtue": "PARENTING",
+          "reqChild": true
+        },
+        "tags": [
+          "health",
+          "family"
+        ],
         "moduleReq": null
       },
       {
@@ -619,11 +709,11 @@
         "group": "尊榮享受",
         "title": "好市多 Costco 頂級黑鑽會員",
         "icon": "💳",
-        "flavor": "推著滿載牛肉與生活用品的推車，結帳時享受 2% 尊榮回饋感。",
+        "flavor": "推著滿載牛肉與生活用品的推車，結帳時享受 2% 尊榮回饋感——年底算一算，真的有省到。",
         "eduNote": "會員費買的是批發採購的單價優勢，但要小心在大包裝誘惑下買了過多不需要的消耗品。",
         "payload": {
-          "cost": 3,
-          "recurringMonthly": 0,
+          "cost": 10,
+          "recurringMonthly": -1,
           "joy": 1
         },
         "tags": [

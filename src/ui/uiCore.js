@@ -980,13 +980,19 @@ ui.showMall = function(){
   groups.forEach(function(g){
     box.appendChild(el("div","mallGroup",g));
     var grid=el("div","mallGrid");
-    items.filter(function(it){ return it.group===g; }).forEach(function(it){
+    // S38（Brian）：每一類內依金額由小到大排（上到下、左到右），同價依 id
+    var itemsG=items.filter(function(it){ return it.group===g; }).slice().sort(function(a,b){
+      var ka=E.mallSortKey(S,a,p), kb=E.mallSortKey(S,b,p);
+      return ka!==kb ? ka-kb : (a.id<b.id?-1:1);
+    });
+    itemsG.forEach(function(it){
       var pl=it.payload||{};
       var b=el("button","mallItem");
       var owned = (pl.insurance && p.flags && p.flags.insured)
                || (pl.propertyInsurance && p.flags && p.flags.propInsured);
       var active = E.mallStillActive(S,p,it);                       // 年約還在效期內
       var usedUp = it.oncePerGame && p.mallBought && p.mallBought[it.id];
+      var wonAlready = pl.contest && p.contestWon && p.contestWon[it.id];   // S38：拿過獎金的比賽
       if(owned || active) b.className+=" mallOn";
       b.appendChild(el("div","ic",pl.icon||it.icon||"🛍"));
       b.appendChild(el("div","tt",it.title));
@@ -999,7 +1005,8 @@ ui.showMall = function(){
         if(pl.annualPremium) price.push("年繳 "+M(pl.annualPremium));
         if(pl.cost) price.push("一次 "+M(pl.cost));
       }
-      if(pl.recurringMonthly) price.push("每月 "+M(pl.recurringMonthly));
+      if(pl.recurringMonthly>0) price.push("每月 "+M(pl.recurringMonthly));
+      else if(pl.recurringMonthly<0) price.push("每月省 "+M(-pl.recurringMonthly));   // S38：好市多
       if(!price.length) price.push("免費");
       var boughtN = (p.mallBought && p.mallBought[it.id]) || 0;
       var cdLeftM = E.mallCooldownLeft(S,p,it);
@@ -1011,7 +1018,7 @@ ui.showMall = function(){
         extra.push(boughtN>0 ? ("幸福感 +"+joyNow+"（原 +"+pl.joy+"，第 "+(boughtN+1)+" 次）")
                              : ("幸福感 +"+pl.joy));
       }
-      if(pl.virtue) extra.push("品格 "+T("virtue."+pl.virtue)+" +1");
+      E.mallVirtues(it).forEach(function(ax){ extra.push("品格 "+T("virtue."+ax)+" +1"); });   // S38：多軸
       if(pl.skipTurns) extra.push("停走 "+pl.skipTurns+" 輪");
       if(pl.chance!==undefined) extra.push("成功機率 "+Math.round(pl.chance*100)+"%");
       if(pl.contest) extra.push("擲骰決定獎金");
@@ -1027,6 +1034,7 @@ ui.showMall = function(){
       else if(owned) why="已投保，不需重複購買";
       else if(active) why="年約還在效期內（至第 "+p.flags[pl.flag+"Until"]+" 輪），到期會問你要不要續約";
       else if(usedUp) why="本局限購一次，已經買過了";
+      else if(wonAlready) why="這場比賽你已經拿過獎金——同一場不能再刷";
       else if(cdLeftM>0) why="剛買過，再過 "+cdLeftM+" 輪才能重複購買";
       else if(pl.reqChild && !(p.childrenCount>0)) why="還沒有小孩";
       else if(itCost>p.cash) why="現金不足";
