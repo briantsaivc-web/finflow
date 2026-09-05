@@ -38,8 +38,10 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step("牌堆擴到 13 張，一局出 6 張（不調的話新題材會被稀釋）",()=>{
       const S=fresh(2901);
       A((ns.content.cards.DIGITAL||[]).length===13,"應有 13 張，實得 "+(ns.content.cards.DIGITAL||[]).length);
-      A(E.cfg(S,"digitalPerGame")===6,"每局應出 6 張，實得 "+E.cfg(S,"digitalPerGame"));
-      A((S.digitalSample||[]).length===6,"本局樣本應為 6 張，實得 "+(S.digitalSample||[]).length);
+      // S37：6→10（真人 30 輪內一張都沒遇到的機率約 45%，Brian 裁示往提高遇到機率調）；這裡驗「抽樣數＝設定值且 <13」
+      const nDig=E.cfg(S,"digitalPerGame");
+      A(nDig>=6 && nDig<13,"每局應出 6～12 張（S37 為 10），實得 "+nDig);
+      A((S.digitalSample||[]).length===nDig,"本局樣本應等於設定值 "+nDig+"，實得 "+(S.digitalSample||[]).length);
       return "13 張裡出 6 張（命中率 "+Math.round(6/13*100)+"%）";
     });
 
@@ -81,12 +83,15 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       give(S,p,"SKL_PHOTO");
       const od=E.digitalOdds(S,p,card("DIG_AIART"));
       A(od.pro,"有攝影底子應算本行");
-      A(Math.abs(od.flop-0.55)<1e-9,"做白工機率應為卡片自訂的 55%，實得 "+od.flop);
-      A(Math.abs(od.hit-0.08)<1e-9,"爆紅機率應為卡片自訂的 8%，實得 "+od.hit);
+      // S37：全域機率改了（爆紅降、還可以升），這三張自訂的機率等比例跟著調：AIART 55/8 → 42/5
+      const pl=card("DIG_AIART").payload;
+      A(Math.abs(od.flop-pl.flopPct)<1e-9,"做白工機率應為卡片自訂的 "+pl.flopPct+"，實得 "+od.flop);
+      A(Math.abs(od.hit-pl.hitPct)<1e-9,"爆紅機率應為卡片自訂的 "+pl.hitPct+"，實得 "+od.hit);
+      A(pl.flopPct>E.cfg(S,"digitalFlopPct") && pl.hitPct<E.cfg(S,"digitalHitPct"),"AI 素材仍應比一般數位資產更難紅、更容易做白工（供給暴增）");
       const S2=fresh(2906), q=S2.players[0];
       const od2=E.digitalOdds(S2,q,card("DIG_AIART"));
       A(!od2.pro,"沒有攝影底子應算外行");
-      A(Math.abs(od2.flop-0.70)<1e-9,"外行的做白工機率也要吃卡片自訂值，實得 "+od2.flop);
+      A(Math.abs(od2.flop-pl.amateurFlopPct)<1e-9,"外行的做白工機率也要吃卡片自訂值 "+pl.amateurFlopPct+"，實得 "+od2.flop);
       give(S,p,"SKL_BOOK");                                  // 本行才比得到「本行的全域值」
       const od3=E.digitalOdds(S,p,card("DIG_COURSE"));
       A(od3.pro,"給了記帳應算本行");

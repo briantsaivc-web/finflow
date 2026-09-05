@@ -88,7 +88,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.44.0-S36", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.45.0-S37", date:"2026-09-05" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -99,10 +99,17 @@ E.cfg = function(S, key){
     if(ev.param===key){ if(!best || ev.priority>best.priority || (ev.priority===best.priority && ev.seq>best.seq)) best=ev; } }
   return best ? best.value : S.config[key];
 };
-E.effMaxLTV = function(S){
+E.effMaxLTV = function(S, card){
   var liq = S.enabledModules.indexOf("M4")>=0 ? S.macro.liquidity : 1;
   var ceil = E.cfg(S,"maxLTVCeiling"); if(ceil===undefined) ceil=0.85;
-  return Math.max(0.3, Math.min(ceil, E.cfg(S,"maxLTV") * liq));
+  /* S37：大額／特殊機會的「大戶成數」——銀行對大標的與有人脈的客戶給得比較鬆（台灣實務也成立）。
+     bigDealLtvBonus 同時墊高硬上限與景氣後的成數，否則卡面 15% 自備款在復甦期會被 0.8 壓回 20%，等於白改。
+     沒帶 card（舊呼叫端）＝一般成數，行為不變。 */
+  var bonus = 0;
+  if(card && (card.deck==="OPPORTUNITY_LARGE" || card.deck==="OPPORTUNITY_SPECIAL")){
+    bonus = E.cfg(S,"bigDealLtvBonus"); if(bonus===undefined || !isFinite(bonus)) bonus=0.05;
+  }
+  return Math.max(0.3, Math.min(ceil+bonus, E.cfg(S,"maxLTV") * liq + bonus));
 };
 // 本利攤還月付額（等額本息）
 E.pmt = function(P, annualRate, months){
@@ -390,8 +397,14 @@ E.buildDecks = function(S){
                  .slice(0, nDig).map(function(c){ return c.id; });
         S.digitalSample = digs;
       } else { S.digitalSample = []; }
+      /* S37：技能卡不再洗進人生牌堆（skillCardsInLifeDeck=0，預設）。
+         S32 技能全開之後，這 18 張跟進修商城重複（差別只有七折學費），留在牌堆裡只剩稀釋作用——
+         95 張裡占 19%，把數位資產（6 張）壓到 6%。拿掉之後牌堆 77 張。
+         skillSample 本身留著（商城與 SKILL_GATE 抽樣都靠它）；翻轉人生卡（SELF_INVEST）仍在牌堆，
+         那才是「公司送訓七折」的正當路徑。=1 回到 S36 以前的行為。 */
+      var skInDeck = E.cfg(S,"skillCardsInLifeDeck"); if(skInDeck===undefined) skInDeck = 0;
       S.decks.LIFE_EVENT.draw = util.shuffle(S,
-        S.decks.LIFE_EVENT.draw.concat(S.skillSample, gates, digs));
+        S.decks.LIFE_EVENT.draw.concat(skInDeck ? S.skillSample : [], gates, digs));
     }
   }
   if(mods.indexOf("M4")>=0){
@@ -435,7 +448,7 @@ E.oppCompare = function(S, card, viewer){
   var pl=card.payload||{}, im=S.config.assetIncomeMult;
   var entry=0, income=0, note="";
   if(card.kind==="REALESTATE"){
-    var ltv = E.canUseLoan(S) ? Math.min(1-(pl.downPayment||0)/(pl.price||1), E.effMaxLTV(S)) : 0;
+    var ltv = E.canUseLoan(S) ? Math.min(1-(pl.downPayment||0)/(pl.price||1), E.effMaxLTV(S,card)) : 0;
     if(!(ltv>0)) ltv=0;
     var loan=util.r2((pl.price||0)*ltv);
     entry=util.r2((pl.price||0)-loan);
@@ -600,6 +613,14 @@ E.drawBlessing = function(S, p){
   if(key==="DREAM"){
     p.dreamProgress=(p.dreamProgress||0)+1;
     detail="夢想進度 +1（現為 "+p.dreamProgress+"）";
+    /* S37 修錯（Brian 實測：5／5 圓夢但相簿第五張沒蓋章）：
+       盲盒的「圓夢靈感」是第三條拿進度的路，S31 做相簿時只接了踩聖地與購點兩條，
+       這裡一直沒寫 dreamLog，也沒發 DREAM_PROGRESS——所以相簿少一張、全服公告也沒播。
+       補上同一套：寫相簿（paid=false）、發事件；圓夢判定交給呼叫端既有的 checkDreamWin／recheckDreamWin。 */
+    if(E.logDreamPoint) E.logDreamPoint(S,p,p.dreamProgress,false,"blessing");
+    E.ev("DREAM_PROGRESS",{playerId:p.id, progress:p.dreamProgress, paid:false, source:"blessing",
+      milestone:E.dreamMilestone?E.dreamMilestone(S,p,p.dreamProgress):"",
+      milestoneImg:E.dreamMilestoneImg?E.dreamMilestoneImg(S,p,p.dreamProgress):null});
   } else if(key==="GUARDIAN"){
     if(!p.flags) p.flags={};
     p.flags.guardian=true;
@@ -664,25 +685,34 @@ E.applyEffects = function(S, p, effects, label, opts){
           if(ef.filter && !t.assets.some(function(a){return a.kind===ef.filter.kind;})) return;
           var amt0 = E.effAmount(t, ef);                       // S26：salaryMult 依月薪計價，沒有就用寫死的 amount
           var amt = util.r2(amt0 * (amt0<0 ? rate : 1));
+          /* S37（Brian：「減免一定要讓玩家有感」）：這一筆每一段折抵都記下來寫進分錄——
+             原價、誰替你省了多少、沒準備的話本來可以省多少。分錄長什麼樣，每輪紀錄／彙總／訊息欄就長什麼樣。 */
+          var relief = { gross:util.r2(-amt), saved:[], missed:[] };
           // §2.4 貴人相助：負面人生事件費用減免一次（觸發後清旗標）
           if(amt<0 && opts.lifeEvent && t.flags && t.flags.guardian){
             var disc=E.cfg(S,"guardianDiscount"); if(disc===undefined) disc=0.5;
             var saved=util.r2(-amt*disc);
             amt=util.r2(amt*(1-disc));
             t.flags.guardian=false;
+            relief.saved.push({kind:"guardian", label:"貴人相助", amount:saved});
             E.ev("GUARDIAN_USED",{playerId:t.id, saved:saved, label:ef.label||label});
           }
           // V10：健康狀態（健身房／健檢）先折抵，再由醫療意外險理賠
           // V11.1：把每一段折抵記下來，讓事件卡可以列出「原價／折抵／理賠／實付／省下」
           var gross0=amt, hSaved=0, claim=0, wouldClaim=0;
           // 住宅火險：天災類現金損失理賠（卡片以 propertyClaim:true 標記，與醫療險互不重疊）
-          if(amt<0 && ef.propertyClaim && t.flags && t.flags.propInsured){
+          if(amt<0 && ef.propertyClaim){
             var pcE = E.cfg(S,"propertyClaimPct"); if(pcE===undefined) pcE = 0.5;
             var claimP = util.r2(-amt*pcE);
-            if(claimP>0){
-              amt = util.r2(amt+claimP);
-              t.stats.propClaimTotal = util.r2((t.stats.propClaimTotal||0)+claimP);
-              E.ev("PROPERTY_CLAIM",{playerId:t.id, claim:claimP, where:"disaster", label:ef.label||label});
+            if(t.flags && t.flags.propInsured){
+              if(claimP>0){
+                amt = util.r2(amt+claimP);
+                t.stats.propClaimTotal = util.r2((t.stats.propClaimTotal||0)+claimP);
+                relief.saved.push({kind:"propertyClaim", label:"產險理賠", amount:claimP});
+                E.ev("PROPERTY_CLAIM",{playerId:t.id, claim:claimP, where:"disaster", label:ef.label||label});
+              }
+            } else if(claimP>0){
+              relief.missed.push({kind:"propertyClaim", label:"若有產險", amount:claimP});   // S37：沒保的人也要看到
             }
           }
           /* S26：法律知識折抵——賠償／和解類支出，懂法的人談得下來。
@@ -692,7 +722,12 @@ E.applyEffects = function(S, p, effects, label, opts){
             if(ld>0){
               var lSaved=util.r2(-amt*ld);
               if(lSaved>0){ amt=util.r2(amt+lSaved);
+                relief.saved.push({kind:"legal", label:"懂法律", amount:lSaved});
                 E.ev("LEGAL_DISCOUNT",{playerId:t.id, saved:lSaved, label:ef.label||label}); }
+            } else {
+              var ldDef=E.cfg(S,"legalSkillDiscountPct"); if(ldDef===undefined) ldDef=0.5;
+              var lWould=util.r2(-amt*ldDef);
+              if(lWould>0) relief.missed.push({kind:"legal", label:"若有法律常識", amount:lWould});
             }
           }
           /* S27：綜所稅的列舉扣除——寫法完全比照上面的 legalClaim。
@@ -711,7 +746,12 @@ E.applyEffects = function(S, p, effects, label, opts){
             if(tr>0){
               var tSaved=util.r2(-amt*tr);
               if(tSaved>0){ amt=util.r2(amt+tSaved);
+                relief.saved.push({kind:"tax", label:"列舉扣除 "+Math.round(tr*100)+"%", amount:tSaved});
                 E.ev("TAX_DEDUCTION",{playerId:t.id, saved:tSaved, pct:tr, label:ef.label||label}); }
+            } else {
+              var tvDef=E.cfg(S,"taxSkillDiscountPct"); if(tvDef===undefined) tvDef=0.3;
+              var tWould=util.r2(-amt*tvDef);
+              if(tWould>0) relief.missed.push({kind:"tax", label:"若懂記帳可列舉", amount:tWould});
             }
           }
           /* S26：醫療鏈只吃「不是產險那一筆」的效果。
@@ -721,14 +761,17 @@ E.applyEffects = function(S, p, effects, label, opts){
           if(amt<0 && opts.insurable && !ef.propertyClaim){
             var hd=E.healthDiscount(S,t);
             if(hd>0){ hSaved=util.r2(-amt*hd); amt=util.r2(amt*(1-hd));
+              relief.saved.push({kind:"health", label:"平時有健身／健檢", amount:hSaved});
               E.ev("HEALTH_DISCOUNT",{playerId:t.id, saved:hSaved, label:ef.label||label}); }
             var cp=E.cfg(S,"insuranceClaimPct"); if(cp===undefined) cp=0.6;
             if(t.flags && t.flags.insured){
               claim=util.r2(-amt*cp);
               if(claim>0){ amt=util.r2(amt+claim);
+                relief.saved.push({kind:"insurance", label:"醫療意外險理賠", amount:claim});
                 E.ev("INSURANCE_CLAIM",{playerId:t.id, claim:claim, label:ef.label||label}); }
             } else {
               wouldClaim=util.r2(-amt*cp);      // 沒保險：記下「本來可以省下多少」當對照
+              if(wouldClaim>0) relief.missed.push({kind:"insurance", label:"若有醫療意外險", amount:wouldClaim});
             }
             if(opts.claimOut) opts.claimOut.push({
               playerId:t.id, label:ef.label||label,
@@ -738,8 +781,18 @@ E.applyEffects = function(S, p, effects, label, opts){
               claimPct:cp, healthPct:E.healthDiscount(S,t)
             });
           }
+          relief.net=util.r2(-amt);
+          var hasRelief = amt<0 && (relief.saved.length || relief.missed.length);
+          if(hasRelief){
+            var sv=0; relief.saved.forEach(function(x){ sv+=x.amount; }); relief.savedTotal=util.r2(sv);
+            relief.label=ef.label||label;
+            E.ev("RELIEF_SUMMARY",{playerId:t.id, label:ef.label||label, gross:relief.gross, net:relief.net,
+                                    saved:relief.saved, missed:relief.missed, savedTotal:relief.savedTotal});
+            if(opts.reliefOut) opts.reliefOut.push({ playerId:t.id, label:relief.label, gross:relief.gross, net:relief.net,
+                                                     saved:relief.saved, missed:relief.missed, savedTotal:relief.savedTotal });
+          }
           ledger.post(S,t, ef.label||label, [{account:"CASH",delta:amt,label:ef.label||label}],
-            {eduTags:["event"], srcTitle:label});
+            {eduTags:["event"], srcTitle:label, detail: hasRelief ? {relief:relief} : null});
         }); break;
       case "SKIP_TURNS":   // v0.2：重大傷病等事件的停走（通用 DSL op）
         // S13.1 §7：原本 switch 裡有兩個同名 case，第二個是死碼，於是寫 {"n":2} 的卡會被

@@ -1773,13 +1773,16 @@ E.presentCard = function(S,p,card){
       break;
     case "LIFE_EVENT":
       var insurableL=(card.tags||[]).indexOf("insurable")>=0;
-      var claimsL=[];
+      var claimsL=[], reliefsL=[];
       var impL=E.captureImpact(S,p,function(){
-        E.applyEffects(S,p,card.effects,card.title,{lifeEvent:true, insurable:insurableL, claimOut:claimsL}); });
+        E.applyEffects(S,p,card.effects,card.title,{lifeEvent:true, insurable:insurableL, claimOut:claimsL, reliefOut:reliefsL}); });
       // V11.1：把理賠明細掛到 ACK 卡上（原價／折抵／理賠／實付）
       var ackL={kind:"ACK", cardId:card.id, impact:impL};
       var sumL=E.summarizeClaims(claimsL, p.id);
       if(sumL) ackL.claim=sumL;
+      // S37：四條鏈（產險／法律／報稅／醫療＋健康）的減免與「沒準備本可省」都掛上卡面
+      var myRel=reliefsL.filter(function(x){ return x.playerId===p.id; });
+      if(myRel.length) ackL.reliefs=myRel;
       E.pushDecision(S,p,ackL);
       if(p.cash<0) E.enterBankruptcy(S,p);
       break;
@@ -2300,7 +2303,7 @@ E.buyAsset = function(S,p,card,optionId,params){
 
   if(card.kind==="REALESTATE"){
     var useLoan = optionId==="loan" && E.canUseLoan(S);
-    var ltv = useLoan ? Math.min(params.ltv!==undefined?params.ltv:(1-pl.downPayment/pl.price), E.effMaxLTV(S)) : 0;
+    var ltv = useLoan ? Math.min(params.ltv!==undefined?params.ltv:(1-pl.downPayment/pl.price), E.effMaxLTV(S,card)) : 0;
     var loan = util.r2(pl.price*ltv), down = util.r2(pl.price-loan);
     if(p.cash<down) return;
     var rent=util.r2((pl.monthlyRent||0)*im), cost=util.r2(pl.monthlyCost||0);   // V4：缺欄位防 NaN
@@ -3680,11 +3683,12 @@ E.dreamMilestoneImg = function(S,p,n){ return E.msImg(E.dreamMilestoneRaw(S,p,n)
 /* S31：把這一點記進夢想相簿。相簿要有時間軸才有紀念價值——
    「第 34 輪，你站上了南湖大山」比單純一張圖強得多。
    郵戳位置（stampPos）與濃印旗標（stampBold）在里程碑資料上，離線算好，執行期不分析圖片。 */
-E.logDreamPoint = function(S, p, n, paid){
+E.logDreamPoint = function(S, p, n, paid, source){
   var raw = E.dreamMilestoneRaw(S,p,n) || {};
   if(!p.dreamLog) p.dreamLog = [];
   p.dreamLog.push({ n:n, turn:S.turnNumber, ms:E.msText(raw)||"", img:E.msImg(raw)||null,
-                    pos:raw.stampPos||"tr", bold:!!raw.stampBold, paid:!!paid });
+                    pos:raw.stampPos||"tr", bold:!!raw.stampBold, paid:!!paid,
+                    source: source || (paid ? "paid" : "shrine") });   // S37：blessing＝幸福盲盒
 };
 
 /* v0.2 §1：購點（每回合限 1 點、價格 base×n、限現金） */
@@ -4186,7 +4190,7 @@ E.execJV = function(S, p, partner, jCard, myShare){
   function needOf(pl2, cd2){
     var o=E.oppDefaultOption(S,pl2,cd2), pp=cd2.payload;
     if(cd2.kind==="REALESTATE" && o.optionId==="loan"){
-      var ltv=Math.min(1-(pp.downPayment||0)/Math.max(1,pp.price), E.effMaxLTV(S));
+      var ltv=Math.min(1-(pp.downPayment||0)/Math.max(1,pp.price), E.effMaxLTV(S,jCard));
       if(!(ltv>0)) ltv=0;
       return { need: util.r2(pp.price-util.r2(pp.price*ltv)), opt:o };
     }

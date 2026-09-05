@@ -1,6 +1,6 @@
 {
   "packId": "skill",
-  "packVersion": "1.8.0",
+  "packVersion": "1.9.0",
   "requiresEngine": ">=1",
   "cards": {
     "SKILL": [
@@ -1080,8 +1080,8 @@
           "threshold": 3,
           "baseIncome": 26,
           "decayRate": 0.78,
-          "flopPct": 0.4,
-          "hitPct": 0.18
+          "flopPct": 0.3,
+          "hitPct": 0.1
         }
       },
       {
@@ -1099,10 +1099,10 @@
           "monthlyCost": 1,
           "threshold": 4,
           "baseIncome": 12,
-          "flopPct": 0.55,
-          "hitPct": 0.08,
-          "amateurFlopPct": 0.7,
-          "amateurHitPct": 0.03
+          "flopPct": 0.42,
+          "hitPct": 0.05,
+          "amateurFlopPct": 0.6,
+          "amateurHitPct": 0.02
         }
       },
       {
@@ -1142,8 +1142,8 @@
           "threshold": 4,
           "baseIncome": 10,
           "decayRate": 1,
-          "flopPct": 0.45,
-          "hitPct": 0.1
+          "flopPct": 0.34,
+          "hitPct": 0.06
         }
       },
       {

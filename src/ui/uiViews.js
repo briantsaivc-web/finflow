@@ -451,14 +451,14 @@ ui.handleEvents = function(evs){
         var dn=nm(e.playerId), dcost=ui.S.config.dreamCost;
         var ms=e.milestone||"";                       // V11：這一點到底做了什麼事
         ui.announce("✨ "+me(e.playerId)+"「"+(e.dreamName||"圓夢")+"」"+e.progress+"／"+dcost+
-          (ms?("："+ms):"")+(e.paid===false?"（聖地免費 +1）":""), e.playerId);
+          (ms?("："+ms):"")+(e.source==="blessing"?"（幸福盲盒・圓夢靈感 +1）":(e.paid===false?"（聖地免費 +1）":"")), e.playerId);
         ui.lastAct[e.playerId]={turn:ui.S.turnNumber, msg:"✨ "+(ms||("圓夢進度 "+e.progress+"／"+dcost))};
         // 全服公告：標題放具體成就，副標放進度與剩餘
         // S24：公告配上這一點的圖。圖載不到時 <img> 會自己移除 → 回到純文字版公告。
         ui.broadcast("✨ "+dn+"："+(ms||("圓夢進度 "+e.progress+" ／ "+dcost)),
           (e.dreamName?("《"+e.dreamName+"》　"):"")+"進度 "+e.progress+" ／ "+dcost+"　"+
           (e.progress>=dcost?"夢想已集滿！":"還差 "+(dcost-e.progress)+" 點")+
-          (e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）"),
+          (e.source==="blessing"?"　（幸福感的回報：圓夢靈感 +1）":(e.paid===false?"　（踩到自己夢想類別的聖地，免費 +1）":"　（投入資金推進）")),
           "good", e.milestoneImg?7500:6000, e.milestoneImg||null);
         break; }
       case "DREAM_PENDING":
@@ -509,7 +509,22 @@ ui.handleEvents = function(evs){
         if(!tail) break;
         var body="🛠 「"+(e.title||"技能")+"」派上用場"+(wh?("："+wh):"")
                + (e.assetName?("（"+e.assetName+"）"):"")+"——"+tail;
-        if(e.playerId===ui.myId()) ui.toast(body,"good",4500);
+        if(e.playerId===ui.myId()) ui.toast(body,"good",4500,(ui.notifyMode==="S18")?"SYS":"POP");   // S37：技能派上用場一律跳（舊制收進彙總）
+        break; }
+      /* S37：減免總結——一筆支出的原價／各段折抵／實付，有準備的跳 good、沒準備的跳 warn（對照本可省多少）。
+         這是 Brian 點名「一定要有感」的那一則；不分通知模式一律跳。 */
+      case "RELIEF_SUMMARY": {
+        if(e.playerId!==ui.myId()) break;
+        var sv=(e.saved||[]), ms=(e.missed||[]);
+        // 舊制（S18）模式維持它的契約（SYS 收進彙總）；精簡模式一律跳
+        var relTopic = (ui.notifyMode==="S18") ? "SYS" : "POP";
+        if(sv.length){
+          var who=sv.map(function(x){ return x.label+" −"+M(x.amount); }).join("、");
+          ui.toast("🛡 "+e.label+"：原 "+M(e.gross)+"，"+who+" → 實付 "+M(e.net),"good",6500,relTopic);
+        } else if(ms.length){
+          var could=ms.map(function(x){ return x.label+"可省 "+M(x.amount); }).join("、");
+          ui.toast("⚠ "+e.label+" "+M(e.net)+" 全額自付——"+could,"warn",6500,relTopic);
+        }
         break; }
       // S27：報稅的列舉扣除——省下來的錢要讓玩家看見，「平常留單據」才會變成習慣
       case "TAX_DEDUCTION":
@@ -1830,19 +1845,24 @@ ns.selftest = {
       }
 
       // (a) 入場門檻落在設計帶內（大買賣 600–1200；特殊機會 800–1600）
+      // S37：大額／特殊的不動產自備款 20%→15%（大戶成數），中階不動產的入場門檻由 600 起變 450 起
+      var bandLo = E.cfg(S,"bigDealLtvBonus")>0 ? 450 : 600;
       var midL=mid.filter(function(c){ return c.deck==="OPPORTUNITY_LARGE"; });
       var midS=mid.filter(function(c){ return c.deck==="OPPORTUNITY_SPECIAL"; });
       assert(midL.length>=8,"中階大買賣應至少 8 張，實得 "+midL.length);
       assert(midS.length>=3,"低門檻特殊機會應至少 3 張，實得 "+midS.length);
       midL.forEach(function(c){ var e=entryOf(c);
-        assert(e>=600 && e<=1200, c.id+" 入場門檻 "+e+" 超出 600–1200"); });
+        assert(e>=bandLo && e<=1200, c.id+" 入場門檻 "+e+" 超出 "+bandLo+"–1200"); });
       midS.forEach(function(c){ var e=entryOf(c);
         assert(e>=800 && e<=1600, c.id+" 入場門檻 "+e+" 超出 800–1600"); });
 
       // (b) 報酬率必須落在既有曲線上——不得偷渡一批「又便宜又好賺」的卡
       //     既有：小買賣中位約 83%、大買賣中位約 54%。中階應介於兩者之間。
+      //     S37：大額／特殊的不動產自備款 15%＋租金 ×1.1（報酬階梯），槓桿把中階不動產的現金報酬率拉到 80% 上下，
+      //     上限依 bigDealLtvBonus 是否開啟放寬到 90%（小買賣中位約 83% 仍在其上）
+      var bandHi = E.cfg(S,"bigDealLtvBonus")>0 ? 0.90 : 0.80;
       midL.forEach(function(c){ var y=yearYield(c);
-        assert(y>0.45 && y<0.80, c.id+" 年報酬率 "+util.pct(y,1)+" 不在 45%–80% 的中階帶內"); });
+        assert(y>0.45 && y<bandHi, c.id+" 年報酬率 "+util.pct(y,1)+" 不在 45%–"+Math.round(bandHi*100)+"% 的中階帶內"); });
       // 同 deck 內，規模越大報酬率不應反而越高（曲線方向）
       var reMid=midL.filter(function(c){ return c.kind==="REALESTATE"; })
                     .sort(function(a,b){ return entryOf(a)-entryOf(b); });

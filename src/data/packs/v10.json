@@ -271,8 +271,8 @@
         "eduNote": "整棟收租看的是「實際入住率」，不是滿租試算表。",
         "payload": {
           "price": 16000,
-          "monthlyRent": 92,
-          "downPayment": 3200,
+          "monthlyRent": 101.2,
+          "downPayment": 2400,
           "monthlyCost": 11.0
         },
         "tags": [
@@ -290,8 +290,8 @@
         "eduNote": "旅宿業是「單價 × 住房率」的生意，兩個數字都會被景氣打。",
         "payload": {
           "price": 8500,
-          "monthlyRent": 58,
-          "downPayment": 1700,
+          "monthlyRent": 63.8,
+          "downPayment": 1275,
           "monthlyCost": 7.0
         },
         "tags": [
@@ -308,7 +308,7 @@
         "eduNote": "加盟金與權利金是固定成本，展店前先算「幾家才會賺」。",
         "payload": {
           "price": 4200,
-          "monthlyProfit": 112
+          "monthlyProfit": 128.8
         },
         "tags": [
           "business"
@@ -324,7 +324,7 @@
         "eduNote": "「氛圍財」景氣好時最旺、反轉時最先被砍——這是可支配支出的第一線。",
         "payload": {
           "price": 2600,
-          "monthlyProfit": 58,
+          "monthlyProfit": 66.7,
           "volatileProfit": true
         },
         "tags": [
@@ -341,7 +341,7 @@
         "eduNote": "大品牌加盟：營收穩定換抽成——算的是「穩定折價」值不值。",
         "payload": {
           "price": 5200,
-          "monthlyProfit": 145
+          "monthlyProfit": 166.8
         },
         "tags": [
           "business"
@@ -357,7 +357,7 @@
         "eduNote": "多店加盟賺的是規模，但兩家店的人事問題不止兩倍。",
         "payload": {
           "price": 3600,
-          "monthlyProfit": 96
+          "monthlyProfit": 110.4
         },
         "tags": [
           "business"
@@ -373,10 +373,10 @@
         "eduNote": "頭款兩成，剩下八成是銀行的。合資的話你出的是頭款的一部分，槓桿沒有變小。",
         "payload": {
           "price": 3000,
-          "downPayment": 600,
+          "downPayment": 450,
           "mortgageRate": 0.022,
           "isFloating": true,
-          "monthlyRent": 22,
+          "monthlyRent": 24.2,
           "monthlyCost": 4,
           "exitMultipliers": {
             "RECOVERY": 1,
@@ -402,10 +402,10 @@
         "eduNote": "單一租客的物件，空租一次就吃掉整年報酬——分散不只講在股票上。",
         "payload": {
           "price": 4000,
-          "downPayment": 800,
+          "downPayment": 600,
           "mortgageRate": 0.022,
           "isFloating": true,
-          "monthlyRent": 29,
+          "monthlyRent": 31.9,
           "monthlyCost": 6,
           "exitMultipliers": {
             "RECOVERY": 1,
@@ -431,10 +431,10 @@
         "eduNote": "四個租客比一個穩，但也代表四倍的維修與催租。",
         "payload": {
           "price": 5000,
-          "downPayment": 1000,
+          "downPayment": 750,
           "mortgageRate": 0.022,
           "isFloating": true,
-          "monthlyRent": 37,
+          "monthlyRent": 40.7,
           "monthlyCost": 9,
           "exitMultipliers": {
             "RECOVERY": 1,
@@ -460,10 +460,10 @@
         "eduNote": "便宜有便宜的理由：法拍的折價，買的是你自己承擔的麻煩。",
         "payload": {
           "price": 6000,
-          "downPayment": 1200,
+          "downPayment": 900,
           "mortgageRate": 0.024,
           "isFloating": true,
-          "monthlyRent": 45,
+          "monthlyRent": 49.5,
           "monthlyCost": 10,
           "exitMultipliers": {
             "RECOVERY": 1,
@@ -489,7 +489,7 @@
         "eduNote": "會員制的生意，現金流看起來很穩——直到續約季。",
         "payload": {
           "price": 700,
-          "monthlyProfit": 22,
+          "monthlyProfit": 25.3,
           "volatileProfit": true
         },
         "tags": [
@@ -508,7 +508,7 @@
         "eduNote": "綁售的兩店裡通常有一間是拖油瓶。買之前要分開看兩本帳。",
         "payload": {
           "price": 900,
-          "monthlyProfit": 27,
+          "monthlyProfit": 31.0,
           "volatileProfit": false
         },
         "tags": [
@@ -527,7 +527,7 @@
         "eduNote": "同一個商圈的三間店不是分散，是集中——商圈衰退時一起衰退。",
         "payload": {
           "price": 1100,
-          "monthlyProfit": 32,
+          "monthlyProfit": 36.8,
           "volatileProfit": false
         },
         "tags": [
@@ -546,7 +546,7 @@
         "eduNote": "B2B 的生意毛利低但量大；最大的風險是最大的那個客戶。",
         "payload": {
           "price": 1200,
-          "monthlyProfit": 34,
+          "monthlyProfit": 39.1,
           "volatileProfit": true
         },
         "tags": [

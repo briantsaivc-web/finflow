@@ -2278,7 +2278,7 @@ ui.decisionCard = function(S,p,d){
       var cards=(ns.content.cards[deckId]||[]).filter(function(cc){ return E.cardUsable(S,p,cc); });
       var mins=[]; 
       cards.forEach(function(cc){ var pl=cc.payload||{}, need;
-        if(cc.kind==="REALESTATE"){ var ltv=Math.min(1-(pl.downPayment/pl.price), E.effMaxLTV(S)); need=util.r2(pl.price*(1-ltv)); }
+        if(cc.kind==="REALESTATE"){ var ltv=Math.min(1-(pl.downPayment/pl.price), E.effMaxLTV(S,cc)); need=util.r2(pl.price*(1-ltv)); }
         else if(cc.kind==="STOCK"){ need=S.stockPrices[pl.symbol]||pl.offerPrice; }
         else if(cc.kind==="BUSINESS"){ need=Math.max(0, pl.price-(E.canUseLoan(S)?E.creditCapacity(S,p):0)); }
         else if(cc.kind==="STARTUP"){ need=pl.investAmount; }
@@ -2993,7 +2993,9 @@ ui.decisionCard = function(S,p,d){
   card.appendChild(cardFace(d.title ? {title:d.title, flavor:d.text||""} : (cd||{title:"事件"})));
   if(cd){ var eb5=eduBox(cd); if(eb5) card.appendChild(eb5); }
   // V11.1：醫療／意外事件的理賠明細——原價、折抵、理賠、實際支付、省下多少
-  if(d.claim && d.claim.gross>0) card.appendChild(ui.claimBox(S,d.claim));
+  // S37：四條鏈的減免明細（產險／法律／報稅／醫療＋健康）一次列出；只有舊存檔沒有 reliefs 時才退回 V11.1 的醫療版
+  if(d.reliefs && d.reliefs.length) card.appendChild(ui.reliefBox(S,d.reliefs));
+  else if(d.claim && d.claim.gross>0) card.appendChild(ui.claimBox(S,d.claim));
   if(d.impact && d.impact.length){
     var acc={INCOME_ACTIVE:"主動收入",INCOME_PASSIVE:"被動收入",EXPENSE:"支出",ASSET:"資產市值",LIABILITY:"負債",CASH:"現金"};
     var wrap=el("div"); wrap.style.marginTop="8px";
@@ -3320,7 +3322,7 @@ ui.showDreamAlbum = function(pid){
         +"background:linear-gradient(transparent,rgba(0,0,0,.82))";
       cap.innerHTML = got
         ? ("<b>"+txt+"</b><br><span style='color:var(--gold)'>第 "+got.turn+" 輪"
-           + (got.paid?"　投入資金":"　踩到聖地・免費")+"</span>")
+           + (got.source==="blessing"?"　幸福盲盒・靈感":(got.paid?"　投入資金":"　踩到聖地・免費"))+"</span>")
         : ("<span style='color:var(--tx3)'>"+(txt||"—")+"</span><br><span style='color:var(--tx3)'>沒走到這裡</span>");
       cell.appendChild(cap);
       if(file && got){
@@ -3346,7 +3348,7 @@ ui.showDreamPhoto = function(p, n, got){
   wrap.appendChild(ui.stampEl(n>=need?"圓滿":"已完成",{pos:got.pos||"tr", bold:!!got.bold, medal:n>=need}));
   box.appendChild(wrap);
   box.appendChild(el("h2",null,got.ms||""));
-  box.appendChild(el("div","sub","第 "+got.turn+" 輪"+(got.paid?"　投入資金推進":"　踩到自己夢想類別的聖地，免費 +1")));
+  box.appendChild(el("div","sub","第 "+got.turn+" 輪"+(got.source==="blessing"?"　幸福感的回報：圓夢靈感 +1":(got.paid?"　投入資金推進":"　踩到自己夢想類別的聖地，免費 +1"))));
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
@@ -3447,6 +3449,17 @@ ui.ledgerRow = function(e){
     r.note=(r.note?r.note+"　·　":"")+"被動收入 "+M(e.detail.passive||0)+"＝"+pr.join("　");
   }
   if(e.detail && e.detail.held) r.note=(r.note?r.note+"　·　":"")+"累積持有 "+e.detail.held+" 張";
+  /* S37（Brian：「減免一定要寫出來，玩家才有感」）：分錄帶了減免明細就攤在備註上——
+     原價、誰替你省了多少、沒準備的話本來可以省多少。每輪紀錄／彙總／訊息欄三處共用這一行。 */
+  if(e.detail && e.detail.relief){
+    var rl=e.detail.relief, parts=[];
+    (rl.saved||[]).forEach(function(x){ parts.push(x.label+" −"+M(x.amount)); });
+    var line="";
+    if(parts.length) line="原 "+M(rl.gross)+"・"+parts.join("・")+" → 實付 "+M(rl.net);
+    (rl.missed||[]).forEach(function(x){ line+=(line?"　":"")+"（"+x.label+"可省 "+M(x.amount)+"）"; });
+    if(line) r.note=(r.note?r.note+"　·　":"")+line;
+    r.relief=rl;
+  }
   // 資產處分：把「現金 − 資產」的差額講明白（差額＝費稅，不是算錯）
   if(r.asset<0 && r.cash>0){
     var gap=util.r2(r.cash+r.asset);
@@ -3836,6 +3849,38 @@ ui.showWellbeingDetail = function(p){
 };
 
 // V11.1：理賠明細卡——把「有沒有事先準備」的差別攤在同一張表上
+/* S37：減免明細盒——每一筆效果一列：原價 → 各段折抵 → 實付；沒準備的寫「若有〇〇可省 X」。
+   這是「保險／知識／品格有沒有用」唯一會被玩家記住的畫面：付錢的那一刻。 */
+ui.reliefBox = function(S, list){
+  var box=el("div","claimBox");
+  var anySaved=list.some(function(x){ return (x.saved||[]).length; });
+  var anyMissed=list.some(function(x){ return (x.missed||[]).length; });
+  box.appendChild(el("div","ttl", anySaved ? "🛡 這一次，你的準備替你省了錢" : "⚠ 這一次你全額自付——本來可以更少"));
+  var tb=el("table","claimTb"), totSaved=0, totMissed=0;
+  function row(k,v,cls,strong){
+    var tr=el("tr"); var td1=el("td",null,k); var td2=el("td","num"+(cls?" "+cls:"")); td2.textContent=v;
+    if(strong){ td1.style.fontWeight="700"; td2.style.fontWeight="700"; }
+    tr.appendChild(td1); tr.appendChild(td2); tb.appendChild(tr); return tr;
+  }
+  list.forEach(function(x){
+    row(x.label+"　原價", M(x.gross), "neg");
+    (x.saved||[]).forEach(function(s){ totSaved+=s.amount; row("　　"+s.label, "−"+M(s.amount), "pos"); });
+    var r=row("　　實付", M(x.net), "neg", true); r.className="tot";
+    (x.missed||[]).forEach(function(m){ totMissed+=m.amount; row("　　"+m.label+"，本可省", M(m.amount), "", false).style.color="var(--tx3)"; });
+  });
+  if(totSaved>0) row("合計省下", M(util.r2(totSaved)), "pos", true);
+  box.appendChild(tb);
+  var note=el("div","note");
+  if(anySaved && !anyMissed)
+    note.innerHTML="這 <b>"+M(util.r2(totSaved))+"</b> 不是運氣，是你<b>在出事之前</b>就準備好的東西換來的。";
+  else if(anySaved && anyMissed)
+    note.innerHTML="省下 <b>"+M(util.r2(totSaved))+"</b>；還有 <b>"+M(util.r2(totMissed))+"</b> 是準備得更齊的人不用付的。";
+  else
+    note.innerHTML="這次沒有任何減免，全額由現金承擔。準備齊的人這一筆可以少付 <b class='pos'>"+M(util.r2(totMissed))+"</b>——"+
+      "<b>未雨綢繆的意思就是這個：</b>保險要在還用不到的時候買，知識要在還用不到的時候學。";
+  box.appendChild(note);
+  return box;
+};
 ui.claimBox = function(S,cl){
   var box=el("div","claimBox");
   var hasSave = cl.saved>0;

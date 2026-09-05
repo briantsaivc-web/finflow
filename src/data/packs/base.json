@@ -1068,10 +1068,10 @@
         "eduNote": "大標的每筆現金流大，但要壓上更多自備款。",
         "payload": {
           "price": 12000,
-          "downPayment": 2400,
+          "downPayment": 1800,
           "mortgageRate": 0.022,
           "isFloating": true,
-          "monthlyRent": 68,
+          "monthlyRent": 74.8,
           "monthlyCost": 8,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1095,10 +1095,10 @@
         "eduNote": "利率每升一碼，你的月付息就漲一次——浮動利率是隱形風險。",
         "payload": {
           "price": 18000,
-          "downPayment": 3600,
+          "downPayment": 2700,
           "mortgageRate": 0.022,
           "isFloating": true,
-          "monthlyRent": 98,
+          "monthlyRent": 107.8,
           "monthlyCost": 10,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1122,10 +1122,10 @@
         "eduNote": "單一產業支撐的租金，會跟著那個產業一起循環。",
         "payload": {
           "price": 15000,
-          "downPayment": 3000,
+          "downPayment": 2250,
           "mortgageRate": 0.023,
           "isFloating": true,
-          "monthlyRent": 88,
+          "monthlyRent": 96.8,
           "monthlyCost": 9,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1149,10 +1149,10 @@
         "eduNote": "經營型房產報酬高，但你其實買了一份工作。",
         "payload": {
           "price": 9000,
-          "downPayment": 1800,
+          "downPayment": 1350,
           "mortgageRate": 0.025,
           "isFloating": true,
-          "monthlyRent": 64,
+          "monthlyRent": 70.4,
           "monthlyCost": 12,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1176,10 +1176,10 @@
         "eduNote": "商用不動產的租金隨景氣擺動比住宅劇烈。",
         "payload": {
           "price": 22000,
-          "downPayment": 4400,
+          "downPayment": 3300,
           "mortgageRate": 0.024,
           "isFloating": true,
-          "monthlyRent": 132,
+          "monthlyRent": 145.2,
           "monthlyCost": 14,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1203,10 +1203,10 @@
         "eduNote": "管理成本低的資產，現金流最乾淨。",
         "payload": {
           "price": 4800,
-          "downPayment": 960,
+          "downPayment": 720,
           "mortgageRate": 0.026,
           "isFloating": true,
-          "monthlyRent": 34,
+          "monthlyRent": 37.4,
           "monthlyCost": 2,
           "exitMultipliers": {
             "RECOVERY": 1.0,
@@ -1229,7 +1229,7 @@
         "eduNote": "買下有店長的生意，你買的是系統不是工作。",
         "payload": {
           "price": 3200,
-          "monthlyProfit": 88,
+          "monthlyProfit": 101.2,
           "volatileProfit": false
         },
         "tags": [
@@ -1246,7 +1246,7 @@
         "eduNote": "客戶集中度是風險：三家跑掉一家，利潤少三分之一。",
         "payload": {
           "price": 5000,
-          "monthlyProfit": 128,
+          "monthlyProfit": 147.2,
           "volatileProfit": true
         },
         "tags": [
@@ -1305,7 +1305,7 @@
         "payload": {
           "price": 800,
           "downPayment": 800,
-          "monthlyProfit": 36,
+          "monthlyProfit": 41.4,
           "isScam": true,
           "scamDelayTurns": 4,
           "scamLegalFee": 20

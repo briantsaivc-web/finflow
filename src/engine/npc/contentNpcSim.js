@@ -166,7 +166,7 @@ M.registry.M1 = {
 M.registry.M2 = {
   decorateDecision:function(S,p,d){
     if(d.kind==="BUY"){ var c=ns.content.byId[d.cardId];
-      if(c && c.kind==="REALESTATE" && S.config.depthLevel>=2){ d.allowLoan=true; d.maxLTV=E.effMaxLTV(S); }
+      if(c && c.kind==="REALESTATE" && S.config.depthLevel>=2){ d.allowLoan=true; d.maxLTV=E.effMaxLTV(S,c); }
       if(c && c.kind==="BUSINESS" && S.config.depthLevel>=2){ d.allowCredit=true; d.creditCap=E.creditCapacity(S,p); } }
     return d; }
 };
