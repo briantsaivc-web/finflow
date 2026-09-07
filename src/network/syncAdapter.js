@@ -551,7 +551,15 @@ function mpApplyEntry(entry){
   if(!S || !entry) return;
   if(entry.seq < S.actionLog.length) return;                       // 已套用
   if(entry.seq > S.actionLog.length){ ui.mp._pending[entry.seq]=entry; return; }  // 之後補
-  var res=E.apply(S, {type:entry.type, playerId:entry.playerId, payload:entry.payload});
+  var res;
+  try{ res=E.apply(S, {type:entry.type, playerId:entry.playerId, payload:entry.payload}); }
+  catch(exc){
+    /* S43（QA-002）：引擎入口已做信封驗證，理論上不會再 throw；這裡是最後一道保險——
+       throw 視同被拒，走下面同一條破口診斷：第一次全量重放一次，同一 seq 第二次再失敗就攤開，不無限自救。
+       E.apply 預設不 mutate，throw 時 ui.S 原封不動。 */
+    console.error("MP apply threw on seq",entry.seq,entry.type,exc);
+    res={ rejected:true, state:S, events:[{type:"ACTION_REJECTED", reason:"ENGINE_THROW:"+String(exc&&exc.message||exc).slice(0,80)}] };
+  }
   if(res.rejected){
     // 決定論破口（理論上不會發生）：全量重放自救
     var rjE=(res.events||[]).filter(function(e){return e.type==="ACTION_REJECTED";}).slice(-1)[0];

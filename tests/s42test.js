@@ -92,7 +92,7 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step("② TAKE_LOAN：NaN／undefined／字串／負數／Infinity／null 全部 BAD_AMOUNT 且現金不變",()=>{
       const S=fresh(4207); const p0=S.players[0]; const c0=p0.cash; const bad=[NaN,undefined,"50","abc",-5,Infinity,null,0];
       bad.forEach(v=>{ const r=ap(S,{type:"TAKE_LOAN",playerId:0,payload:{amount:v}}); A(r.rejected && rej(r)==="BAD_AMOUNT","amount="+String(v)+" 應 BAD_AMOUNT，實得 "+rej(r)); });
-      const r2=ap(S,{type:"TAKE_LOAN",playerId:0,payload:null}); A(rej(r2)==="BAD_AMOUNT","payload null 應 BAD_AMOUNT");
+      const r2=ap(S,{type:"TAKE_LOAN",playerId:0,payload:null}); A(rej(r2)==="BAD_PAYLOAD","payload null 應 BAD_PAYLOAD（S43 信封驗證先擋；S42 時為 BAD_AMOUNT）");
       A(p0.cash===c0 && isFinite(p0.cash),"現金應不變且有限，實得 "+p0.cash);
       const ok=ap(S,{type:"TAKE_LOAN",playerId:0,payload:{amount:100}}); A(!ok.rejected,"正常借款應通過，實得 "+rej(ok));
       A(p0.cash===util.r2(c0+100),"借 100 後現金應 +100");

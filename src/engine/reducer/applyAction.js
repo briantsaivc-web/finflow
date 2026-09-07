@@ -151,21 +151,68 @@ E.applyAbandonSkill = function(S, p){
   p.learning = null;
 };
 
+/* S43（QA-001／QA-002）：動作信封驗證，一處維護。
+   舊碼：playerId 查不到座位就回退成「當前玩家」——999999、-1、undefined 全部被當成當前玩家執行；
+   缺 payload 的動作在守門通過後讀 action.payload.xxx 直接 TypeError（15 個 case 同一個 family）。
+   多人層 mpApplyEntry 對遠端紀錄沒有座位核對也沒有 try/catch，壞封包＝以當前玩家身分操作或整台卡死。
+   規則：
+     · action 必須是物件、type 必須是字串（未知 type 仍由 switch default 回 UNKNOWN_ACTION）
+     · playerId 必須是整數、0 ≤ id < players.length、座位存在、且 players[id].id === id → 否則 BAD_PLAYER
+     · payload：不在 PAYLOAD_OPTIONAL 名單內的動作必須是物件 → 否則 BAD_PAYLOAD；
+       PAYLOAD_SCHEMA 列出「守門後無條件讀取」的欄位與型別（id＝字串或數字且非空；num＝有限數；obj＝物件）
+   刻意不做 clamp、不做預設值補齊：兩端各補各的會算出不同結果，lockstep 只能拒絕。 */
+E.PAYLOAD_OPTIONAL = { ROLL_DICE:1, END_TURN:1, GRADUATE_NOW:1, RETURN_TO_WORK:1, BUY_DREAM_PROGRESS:1, CLEAR_TRADE:1,
+  TEND_DIGITAL:1, END_GAME:1, EXTEND_GAME:1, PLAYER_LEAVE:1, PLAYER_RETURN:1, DECLINE_SYNDICATE:1, ABANDON_SKILL:1,
+  MALL_CANCEL_INSURANCE:1, MALL_CANCEL_PROPERTY:1, PLACE_BID:1, START_SKILL:1, PROPOSE_P2P:1 };
+E.PAYLOAD_SCHEMA = {
+  CASHOUT_REFI:{assetId:"id"}, CHOOSE_DECK:{deckId:"id"}, CLASSIFY_ENTRY:{taskIdx:"num"}, CONFIG_PATCH:{key:"id"},
+  DECIDE:{decisionId:"id"}, FUT_CLOSE:{instanceId:"id"}, FUT_OPEN:{symbol:"id",lots:"num"}, FUT_TOPUP:{instanceId:"id",amount:"num"},
+  MALL_BUY:{itemId:"id"}, PROPOSE_JV:{cardId:"id",myShare:"num"}, PROPOSE_SYNDICATE:{cardId:"id",myShare:"num"},
+  PROPOSE_TRADE:{assetId:"id",price:"num"}, REFER_OPP:{cardId:"id"},   // partnerId／buyerId／targetId 為 null＝廣播（問所有人），不列必填
+  REFINANCE:{liabilityId:"id"}, REPAY_LOAN:{liabilityId:"id"}, SELL_ASSET:{assetId:"id"}, SET_DCA:{symbol:"id"},
+  SET_DIV_REINVEST:{symbol:"id"}, START_OPP_AUCTION:{cardId:"id"}, SUBMIT_MANUAL_BOOKS:{answers:"obj"},
+  TOP_UP_MARGIN:{liabilityId:"id"}, TRADE_STOCK:{symbol:"id",side:"id"} };
+// S43：registry 查詢（UI 開局時把 defaultParams 放在 ns.configRegistry.params；測試環境同）
+E.configParam = function(key){
+  var reg = ns.configRegistry; var list = reg ? (Array.isArray(reg) ? reg : reg.params) : null;
+  if(!list) return null;
+  for(var i=0;i<list.length;i++) if(list[i] && list[i].key===key) return list[i];
+  return null;
+};
+E.validateAction = function(S, action){
+  if(!action || typeof action!=="object") return "BAD_ACTION";
+  if(typeof action.type!=="string" || !action.type) return "BAD_ACTION";
+  var pid=action.playerId;
+  if(typeof pid!=="number" || !isFinite(pid) || Math.floor(pid)!==pid || pid<0 || pid>=S.players.length
+     || !S.players[pid] || S.players[pid].id!==pid) return "BAD_PLAYER";
+  var pl=action.payload;
+  if(!E.PAYLOAD_OPTIONAL[action.type]){
+    if(pl===null || pl===undefined || typeof pl!=="object" || Array.isArray(pl)) return "BAD_PAYLOAD";
+    var sch=E.PAYLOAD_SCHEMA[action.type];
+    if(sch){ for(var f in sch){ var v=pl[f], t=sch[f];
+      if(t==="id" && !((typeof v==="string" && v!=="") || (typeof v==="number" && isFinite(v)))) return "BAD_PAYLOAD";
+      if(t==="num" && !(typeof v==="number" && isFinite(v))) return "BAD_PAYLOAD";
+      if(t==="obj" && !(v && typeof v==="object")) return "BAD_PAYLOAD"; } }
+  } else if(pl!==null && pl!==undefined && (typeof pl!=="object" || Array.isArray(pl))) return "BAD_PAYLOAD";
+  return null;
+};
 E.apply = function(state, action, opts){
   opts = opts||{};
   var S = opts.mutate ? state : util.clone(state);
   E._events = [];
   var ev = E.ev;
   var p = E.activePlayer(S);
-  // S14a-2：p 一直都是「當前輪到的玩家」。開放非回合動作之後，
-  // 還款／定期定額／商城這類動作必須明確指向「送出動作的那個人」，
-  // 否則會變成幫當前玩家還款、幫他買東西（原本靠 UI 擋住，是一顆沒爆的地雷）。
-  var actor = S.players[action.playerId] !== undefined ? S.players[action.playerId] : p;
-  var isMyTurnAction = (actor === p);
-
   function reject(why){ ev("ACTION_REJECTED",{reason:why}); return { state:S, events:E._events, rejected:true }; }
   function accept(){ S.actionLog.push({ seq:S.actionLog.length, playerId:action.playerId,
       type:action.type, payload:action.payload||null }); }
+  var badWhy = E.validateAction(S, action);            // S43：信封驗證在任何守門之前
+  if(badWhy) return reject(badWhy);
+  // S14a-2：p 一直都是「當前輪到的玩家」。開放非回合動作之後，
+  // 還款／定期定額／商城這類動作必須明確指向「送出動作的那個人」，
+  // 否則會變成幫當前玩家還款、幫他買東西（原本靠 UI 擋住，是一顆沒爆的地雷）。
+  // S43：playerId 已驗過座位存在，不再回退成當前玩家。
+  var actor = S.players[action.playerId];
+  var isMyTurnAction = (actor === p);
 
   // S14b：時間到才結束的局可以當場續攤，所以 EXTEND_GAME 要能穿過這道門；
   // 圓夢或全員破產結束的局不行——那是真的分出勝負了，由下面的 case 再擋一次。
@@ -191,6 +238,18 @@ E.apply = function(state, action, opts){
   case "CONFIG_PATCH": {
     var k=action.payload.key, v=action.payload.value;
     if(!(k in S.config)) return reject("NO_SUCH_PARAM");
+    /* S43（QA-003）：依 registry 驗 type／finite／min／max／options，超出直接拒絕。
+       不 clamp——兩端版本差一點就 clamp 出不同值，lockstep 會分岔；step 不驗（那是產品規則不是安全邊界）。 */
+    var prmC = E.configParam(k);
+    if(prmC){
+      if(prmC.options){ if(prmC.options.indexOf(v)<0) return reject("BAD_VALUE"); }
+      else if(typeof prmC.value==="number"){
+        if(typeof v!=="number" || !isFinite(v)) return reject("BAD_VALUE");
+        if(prmC.min!==undefined && v<prmC.min) return reject("BAD_VALUE");
+        if(prmC.max!==undefined && v>prmC.max) return reject("BAD_VALUE");
+      } else if(typeof prmC.value==="boolean"){ if(typeof v!=="boolean") return reject("BAD_VALUE"); }
+      else if(typeof prmC.value==="string"){ if(typeof v!=="string") return reject("BAD_VALUE"); }
+    }
     accept(); S.config[k]=v;
     if(k==="mortgageSpread") E.repriceFloating(S);
     ev("CONFIG_PATCHED",{key:k,value:v});

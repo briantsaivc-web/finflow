@@ -1191,6 +1191,18 @@ npc.deleverage = function(S,p){
   return { type:"REPAY_LOAN", playerId:p.id, payload:{ liabilityId:cand.instanceId, amount:amt } };
 };
 
+/* S43（QA-004）：電腦回答 LIFESTYLE／CULTIVATE 時原本用 util.randAux(S) 擲「要不要買」。
+   這一擲發生在 E.apply 之外、不進 actionLog——單機「繼續上一局」（ns.replay）、mpFullResync、
+   房主接棒都是從 log 重放，重放出來的 auxRngState 是「沒擲過」的，之後電腦決策就分岔
+   （實測三個種子重放 30 輪，主狀態逐位元一致、只有 auxRngState 不同，續玩 7～63 步分岔）。
+   改成純雜湊：同一個 decision 永遠同一個答案，npc.nextAction 變成 idempotent，不碰任何 RNG 狀態。 */
+npc.stableRoll = function(S,p,d){
+  var str=[S.turnNumber, d.decisionId, p.id, d.kind, d.cardId||""].join("|");
+  var h=((S.seed>>>0) ^ 0x9E3779B9)>>>0;
+  for(var i=0;i<str.length;i++){ h=Math.imul(h ^ str.charCodeAt(i), 16777619)>>>0; }
+  h ^= h>>>13; h=Math.imul(h, 0x5bd1e995)>>>0; h ^= h>>>15;
+  return (h>>>0)/4294967296;
+};
 npc.decide = function(S,p,d){
   var w=ns.content.personalityById[p.npcPersonality].weights;
   var A=function(opt,params){ return { type:"DECIDE", playerId:p.id,
@@ -1230,11 +1242,11 @@ npc.decide = function(S,p,d){
       var lc=ns.content.byId[d.cardId], lcost=(lc&&lc.payload&&lc.payload.cost)||0;
       // v0.2：買不起不硬買（現金付完至少留半個月支出）；誘惑失足由人格機率決定
       var canPay = p.cash-lcost >= 0.5*p.derived.totalExpenses;
-      return A((canPay && util.randAux(S)<w.optionalLifestyleBuyProb) ? "buy" : "skip"); }
+      return A((canPay && npc.stableRoll(S,p,d)<w.optionalLifestyleBuyProb) ? "buy" : "skip"); }
     case "CULTIVATE": {
       var c=ns.content.byId[d.cardId], cost=(c.payload&&c.payload.cost)||0;
       var afford = p.cash-cost > w.cashReserveFloor*p.derived.totalExpenses*0.5;
-      return A((afford && util.randAux(S)<w.cultivateVirtueProb) ? "invest" : "skip"); }
+      return A((afford && npc.stableRoll(S,p,d)<w.cultivateVirtueProb) ? "invest" : "skip"); }
     case "PROFESSION_EVENT": {
       var pc=ns.content.byId[d.cardId];
       var wantExam = pc.id==="PE_CPA_EXAM" && p.cash>200;
