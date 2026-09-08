@@ -84,6 +84,34 @@ for (const { c, deck, f } of all) {
     if (!need) E(`${where} 機會牌堆不支援 kind=${c.kind}`);
     else for (const k of need) if (typeof pl[k] !== 'number') E(`${where} ${c.kind} 缺數值欄位 ${k}`);
     if (pl.isScam && !(pl.scamDelayTurns > 0)) E(`${where} isScam 要配 scamDelayTurns`);
+    /* 5b. S44 平衡帶：每個機會牌堆有自己的定價邏輯（大額報酬率本來就低於小額、特殊本來就高），
+       所以帶寬逐牌堆訂，數字由該牌堆既有卡實測範圍外加一點餘裕。
+       這條擋的是「補卡時順手把數字調甜一點」——S44 補的 52 張沒有撐寬任何一條帶。 */
+    const BAND = {
+      OPPORTUNITY_SMALL:   { biz:[3.30,4.40], scam:[3.90,4.60], re:[0.70,0.95], cost:[8,22],   su:[0.05,0.09] },
+      OPPORTUNITY_LARGE:   { biz:[2.40,3.80], scam:[4.80,5.50], re:[0.55,0.90], cost:[5,23],   su:[0.06,0.12] },
+      OPPORTUNITY_SPECIAL: { biz:[4.00,4.80], scam:[4.00,5.50], re:[0.75,0.90], cost:[6,10],   su:[0.10,0.15] }
+    }[deck];
+    const band = (v, r, name, shown) => { if (!r) return;
+      if (v < r[0] || v > r[1]) E(`${where} ${name} ${shown} 不在 ${r[0]}–${r[1]} 帶內（S44 平衡帶）`); };
+    if (BAND) {
+      if (c.kind === 'BUSINESS' && pl.price > 0 && typeof pl.monthlyProfit === 'number') {
+        const r = pl.monthlyProfit / pl.price * 100;
+        band(r, pl.isScam ? BAND.scam : BAND.biz, pl.isScam ? '吸金盤誘餌月利率' : '事業月利率', r.toFixed(2) + '%');
+      }
+      if (c.kind === 'REALESTATE' && pl.price > 0 && pl.monthlyRent > 0) {
+        const y = pl.monthlyRent / pl.price * 100, cr = pl.monthlyCost / pl.monthlyRent * 100;
+        band(y, BAND.re, '租金報酬', y.toFixed(3) + '%');
+        band(cr, BAND.cost, '成本佔租金', cr.toFixed(1) + '%');
+      }
+      if (c.kind === 'REALESTATE' && pl.price > 0 && typeof pl.downPayment === 'number')
+        band(pl.downPayment / pl.price, [0.05, 1.0], '頭期比例', (pl.downPayment / pl.price).toFixed(2));
+      if (c.kind === 'STARTUP' && pl.postMoney > 0 && pl.investAmount > 0) {
+        const q = pl.investAmount / pl.postMoney;
+        band(q, BAND.su, '新創稀釋比例', q.toFixed(3));
+        if (Math.abs(q - pl.equityPct) > 0.006) E(`${where} equityPct ${pl.equityPct} 與 investAmount/postMoney ${q.toFixed(3)} 對不起來`);
+      }
+    }
   }
   // 6. 金額量級
   for (const k of ['price', 'cost', 'downPayment', 'investAmount', 'annualPremium', 'monthlyProfit', 'monthlyRent', 'fineAmount'])

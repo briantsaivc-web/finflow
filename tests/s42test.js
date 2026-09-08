@@ -42,8 +42,11 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
     step("①-1 期貨強平打到非回合真人：不推決策、記 pendingBankruptcy、當前玩家照常擲骰",()=>{
       const S=fresh(4201,{futAutoTopUp:0}); A(S.activePlayerIdx===0,"應輪到 P0");
       const p1=S.players[1]; A(!p1.isNPC,"P1 應為真人");
-      const {fd,margin}=futFor(S,p1,2); p1.cash=util.r2(margin*0.3);
-      const u0=E.stockPrice(S,fd.underlying); S.stockPrices[fd.underlying]=util.r2(u0*0.8);
+      /* S44：這個前提原本吃「開局價格剛好是這個數」——牌堆一變厚，洗牌消耗的亂數就變了，
+         同一個種子的期貨標的開局價跟著變，強平後現金差一點點沒破零，測試就紅。
+         前提改成不依賴價格：自有現金壓到保證金的 5%、標的再多跌一成，任何開局價都會被打穿。 */
+      const {fd,margin}=futFor(S,p1,2); p1.cash=util.r2(margin*0.05);
+      const u0=E.stockPrice(S,fd.underlying); S.stockPrices[fd.underlying]=util.r2(u0*0.7);
       E.tickFutures(S); E.syncPhase(S);
       A(p1.cash<0,"P1 現金應為負，實得 "+p1.cash);
       A(S.phase!=="BANKRUPTCY","階段不該是 BANKRUPTCY，實得 "+S.phase);

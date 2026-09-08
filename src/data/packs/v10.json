@@ -1,6 +1,6 @@
 {
   "packId": "v10-variety",
-  "packVersion": "1.1",
+  "packVersion": "1.2",
   "requiresEngine": "1.0",
   "cards": {
     "OPPORTUNITY_SMALL": [
@@ -259,6 +259,905 @@
           "business"
         ],
         "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ18",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "社區巷口茶飲店",
+        "flavor": "店員記得每個熟客的甜度冰塊。",
+        "eduNote": "熟客生意穩，但天花板也就在這條巷子裡——要長大得再花一筆錢。",
+        "payload": {
+          "price": 200,
+          "monthlyProfit": 7.0,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ19",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "校園旁手搖店",
+        "flavor": "寒暑假兩個月，門口只剩落葉。",
+        "eduNote": "一年只做十個月的生意，報酬要用十二個月去攤，別拿旺季推估全年。",
+        "payload": {
+          "price": 230,
+          "monthlyProfit": 8.3,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ20",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "夜市手搖攤位",
+        "flavor": "攤位租金按天算，收攤就沒有成本。",
+        "eduNote": "固定成本低＝虧損有限，但也代表你隨時可以被下一攤取代。",
+        "payload": {
+          "price": 180,
+          "monthlyProfit": 6.8,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ21",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "百貨櫃位茶飲吧",
+        "flavor": "人流是百貨給的，抽成也是百貨收的。",
+        "eduNote": "借別人的人流做生意，議價權就不在你手上。",
+        "payload": {
+          "price": 450,
+          "monthlyProfit": 15.3,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ22",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "美式早餐店（頂讓）",
+        "flavor": "四點半開工，十一點收攤，下午是自己的。",
+        "eduNote": "要自己顧的店，你買的是工作不是資產——請人之後才知道賺的是誰的錢。",
+        "payload": {
+          "price": 140,
+          "monthlyProfit": 5.0,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ23",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "中式豆漿店（接手）",
+        "flavor": "三十年的老鍋子，比店面還值錢。",
+        "eduNote": "剛性需求受景氣影響小，代價是成長也慢。",
+        "payload": {
+          "price": 170,
+          "monthlyProfit": 6.0,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ24",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "輕食沙拉吧",
+        "flavor": "開在健身房隔壁，客單價比對面便當店高一倍。",
+        "eduNote": "高單價靠特定客群撐著，客群搬走生意就跟著走。",
+        "payload": {
+          "price": 210,
+          "monthlyProfit": 7.8,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ25",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "老字號牛肉麵店（頂讓）",
+        "flavor": "湯頭配方寫在老闆的腦子裡。",
+        "eduNote": "頂讓金裡有一段是「老闆的手藝」，那一段不會跟著合約過戶。",
+        "payload": {
+          "price": 250,
+          "monthlyProfit": 8.8,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ26",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "商業區自助餐",
+        "flavor": "中午十二點到一點，隊伍排到門口。",
+        "eduNote": "中午兩小時決定一整天，翻桌率就是這門生意的產能。",
+        "payload": {
+          "price": 190,
+          "monthlyProfit": 6.8,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ27",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "團膳便當工廠",
+        "flavor": "接了三家公司和兩間學校的長約。",
+        "eduNote": "長約讓現金流很穩，但掉一張約就是掉一大塊。",
+        "payload": {
+          "price": 320,
+          "monthlyProfit": 11.0,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ28",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "手工水餃專賣",
+        "flavor": "店面不大，冷凍宅配的單比現場還多。",
+        "eduNote": "同一個廚房多開一條通路，等於用原本的成本多賺一份營收。",
+        "payload": {
+          "price": 160,
+          "monthlyProfit": 5.8,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ29",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "冬季薑母鴨店",
+        "flavor": "入秋才開門，清明就收攤。",
+        "eduNote": "半年生意要養一整年的房租，季節財必須自己做現金流的水庫。",
+        "payload": {
+          "price": 140,
+          "monthlyProfit": 5.4,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ30",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "傳統市場麵線攤",
+        "flavor": "沒有店面，只有一台推車和一鍋湯。",
+        "eduNote": "沒有店租的攤商成本結構最漂亮，但也最難轉手變現。",
+        "payload": {
+          "price": 110,
+          "monthlyProfit": 4.2,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ31",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "自助洗衣二號店",
+        "flavor": "同一套機器、同一套流程，換個社區再開一家。",
+        "eduNote": "第二家店的學習成本已經在第一家付過了——這就是複製的價值。",
+        "payload": {
+          "price": 360,
+          "monthlyProfit": 12.4,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ32",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "社區無人商店",
+        "flavor": "半夜兩點還有人來買泡麵。",
+        "eduNote": "省下的店員薪水，有一部分會用耗損與失竊還回去。",
+        "payload": {
+          "price": 280,
+          "monthlyProfit": 9.8,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ33",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "24 小時自助健身房",
+        "flavor": "月費自動扣款，尖峰時段擠不進去。",
+        "eduNote": "月費是預收現金流，先收錢是好處，退費潮來得又急又快是風險。",
+        "payload": {
+          "price": 400,
+          "monthlyProfit": 13.6,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ34",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "自助 KTV 包廂機三台",
+        "flavor": "擺在影城出口，散場那半小時最賺。",
+        "eduNote": "機台生意真正的關鍵是擺放位置，不是機台本身。",
+        "payload": {
+          "price": 220,
+          "monthlyProfit": 8.1,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ35",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "冰淇淋販賣機四台",
+        "flavor": "夏天補貨補到手軟，冬天一週去一次。",
+        "eduNote": "微型資產可以一台一台加——用零錢練習當老闆。",
+        "payload": {
+          "price": 100,
+          "monthlyProfit": 3.9,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ36",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "寵物旅館",
+        "flavor": "連假前一個月就訂滿，平常空一半。",
+        "eduNote": "連假爆滿、平日空著，這門生意的產能利用率天生不平均。",
+        "payload": {
+          "price": 280,
+          "monthlyProfit": 9.8,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ37",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "寵物鮮食廚房",
+        "flavor": "客人一訂就是三個月的份。",
+        "eduNote": "訂閱制把一次性客人變成月月付費，客戶終身價值完全不同。",
+        "payload": {
+          "price": 200,
+          "monthlyProfit": 7.2,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ38",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "社區寵物用品店",
+        "flavor": "飼料幾乎沒賺，玩具和零食才是利潤。",
+        "eduNote": "低毛利的是引流品，賺錢的常常擺在它旁邊。",
+        "payload": {
+          "price": 240,
+          "monthlyProfit": 8.4,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ39",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "美甲工作室",
+        "flavor": "客人指名的是設計師，不是店。",
+        "eduNote": "技術長在人身上的生意，人走了資產就跟著走。",
+        "payload": {
+          "price": 150,
+          "monthlyProfit": 5.6,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ40",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "快剪髮廊",
+        "flavor": "十分鐘一顆頭，不洗不吹不推銷。",
+        "eduNote": "能複製的不是手藝，是被拆解過的流程。",
+        "payload": {
+          "price": 190,
+          "monthlyProfit": 6.8,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ41",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "社區機車行",
+        "flavor": "老闆記得每一台車換過什麼零件。",
+        "eduNote": "維修生意的護城河是十年累積的信任，砸壞只要一次。",
+        "payload": {
+          "price": 260,
+          "monthlyProfit": 9.0,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ42",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "學區影印圖文店",
+        "flavor": "開學兩週的隊伍排到騎樓外。",
+        "eduNote": "極端的季節性要看整年，不能看單月。",
+        "payload": {
+          "price": 130,
+          "monthlyProfit": 4.7,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ43",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "手機維修攤",
+        "flavor": "一個人、一張桌子、一組拆機工具。",
+        "eduNote": "進入門檻低是好處，也代表這道門檻擋不住下一個人。",
+        "payload": {
+          "price": 90,
+          "monthlyProfit": 3.5,
+          "volatileProfit": true
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_BZ44",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "二手書店",
+        "flavor": "書架上有些書已經站了三年。",
+        "eduNote": "庫存既是資產也是負擔，賣不掉的書每天都在替你付房租。",
+        "payload": {
+          "price": 110,
+          "monthlyProfit": 4.1,
+          "volatileProfit": false
+        },
+        "tags": [
+          "business"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPP_OVERSEA_FARM",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "海外農場包租專案",
+        "flavor": "型錄上是馬來西亞果園的空拍圖，簽約當月就開始配息。",
+        "eduNote": "看不到的資產、查不到的產權、月月配息的承諾——三個湊齊就是吸金。",
+        "group": "高息投資",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 120,
+          "downPayment": 120,
+          "monthlyProfit": 5.4,
+          "isScam": true,
+          "scamDelayTurns": 3,
+          "scamLegalFee": 5
+        },
+        "moduleReq": null
+      },
+      {
+        "id": "OPP_CRYPTO_MINER",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "虛擬幣礦機代管",
+        "flavor": "機房在哪裡不能說，業務說怕同業來搶電。",
+        "eduNote": "「不能說」的東西通常不是商業機密，是根本不存在。",
+        "group": "高息投資",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 200,
+          "downPayment": 200,
+          "monthlyProfit": 8.6,
+          "isScam": true,
+          "scamDelayTurns": 4,
+          "scamLegalFee": 6
+        },
+        "moduleReq": null
+      },
+      {
+        "id": "OPP_MUTUAL_PENSION",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "BUSINESS",
+        "title": "老人年金互助會",
+        "flavor": "里長介紹的，繳三年之後月月領到老。",
+        "eduNote": "拿後面會員的錢付前面會員的利息，就是龐氏——名字叫互助會也一樣。",
+        "group": "高息投資",
+        "stage": "INNER",
+        "scamWarning": true,
+        "payload": {
+          "price": 80,
+          "downPayment": 80,
+          "monthlyProfit": 3.4,
+          "isScam": true,
+          "scamDelayTurns": 3,
+          "scamLegalFee": 4
+        },
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE9",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "機車停車格三席",
+        "flavor": "三格就在社區地下室的角落。",
+        "eduNote": "不會空租太久，也不會有人為它出高價——低風險與低成長是同一件事。",
+        "payload": {
+          "price": 300,
+          "monthlyRent": 2.6,
+          "downPayment": 60,
+          "monthlyCost": 0.3
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE10",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "迷你倉三間",
+        "flavor": "隔成三間，租給搬不動又丟不掉的人。",
+        "eduNote": "都市空間越貴，收納需求越大——這門生意賺的是別人的斷捨離。",
+        "payload": {
+          "price": 500,
+          "monthlyRent": 4.3,
+          "downPayment": 100,
+          "monthlyCost": 0.5
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE11",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "頂樓加蓋雅房",
+        "flavor": "租金報酬漂亮，就是不太敢跟人提。",
+        "eduNote": "高報酬的另一面是法規風險：被檢舉的那天，租金歸零。",
+        "payload": {
+          "price": 700,
+          "monthlyRent": 6.3,
+          "downPayment": 140,
+          "monthlyCost": 0.9
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE12",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "傳統市場攤位",
+        "flavor": "早上七點最熱鬧，十點以後像另一個地方。",
+        "eduNote": "攤位的價值來自人流；市場沒落了，它就只是一塊水泥地。",
+        "payload": {
+          "price": 600,
+          "monthlyRent": 5.2,
+          "downPayment": 120,
+          "monthlyCost": 0.7
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE13",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "中壢工業區套房",
+        "flavor": "房客大多在同一家廠上班。",
+        "eduNote": "租客來源集中，工廠一減班你會同時失去好幾個房客。",
+        "payload": {
+          "price": 1050,
+          "monthlyRent": 9.0,
+          "downPayment": 210,
+          "monthlyCost": 1.1
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE14",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "台中一中商圈套房",
+        "flavor": "畢業季一次退三間。",
+        "eduNote": "學生房客流動快，空窗期要算進報酬率裡，不能假裝沒有。",
+        "payload": {
+          "price": 1250,
+          "monthlyRent": 10.5,
+          "downPayment": 250,
+          "monthlyCost": 1.4
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE15",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "新竹園區旁套房",
+        "flavor": "房客薪水比房東高。",
+        "eduNote": "高薪租客付得起高租金，但他們也最快買房搬走。",
+        "payload": {
+          "price": 1400,
+          "monthlyRent": 11.5,
+          "downPayment": 280,
+          "monthlyCost": 1.5
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE16",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "高雄輕軌旁套房",
+        "flavor": "站牌就在樓下，通車那年房價先漲了一波。",
+        "eduNote": "建設帶動的先是「預期」，租金真的跟上要等好幾年。",
+        "payload": {
+          "price": 1100,
+          "monthlyRent": 9.5,
+          "downPayment": 220,
+          "monthlyCost": 1.2
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE17",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "彰化透天一樓",
+        "flavor": "一樓開店、樓上自住，屋主想換現金。",
+        "eduNote": "用途越多，越不怕單一租客退租。",
+        "payload": {
+          "price": 1500,
+          "monthlyRent": 12.0,
+          "downPayment": 300,
+          "monthlyCost": 1.8
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE18",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "嘉義市區公寓",
+        "flavor": "總價不高，租金卻不比北部差多少。",
+        "eduNote": "房價低的地方租金報酬率反而高，代價是資本利得慢。",
+        "payload": {
+          "price": 1450,
+          "monthlyRent": 11.8,
+          "downPayment": 290,
+          "monthlyCost": 1.6
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE19",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "台南安平三房",
+        "flavor": "整層租給一家人，房客住了六年。",
+        "eduNote": "整層出租穩定但單價低；要拉高就得先花裝潢錢隔套。",
+        "payload": {
+          "price": 1750,
+          "monthlyRent": 14.0,
+          "downPayment": 350,
+          "monthlyCost": 2.0
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE20",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "桃園藝文特區兩房",
+        "flavor": "對面還有三塊工地在蓋。",
+        "eduNote": "新興重劃區的供給也在增加，你的房子不是唯一選擇。",
+        "payload": {
+          "price": 1900,
+          "monthlyRent": 15.0,
+          "downPayment": 380,
+          "monthlyCost": 2.2
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE21",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "新莊小廠辦",
+        "flavor": "承租的是一家做模具的公司，簽五年。",
+        "eduNote": "商用租約長、換約成本高——好處與壞處都是「綁很久」。",
+        "payload": {
+          "price": 2300,
+          "monthlyRent": 18.0,
+          "downPayment": 460,
+          "monthlyCost": 3.4
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE22",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "台中逢甲店面",
+        "flavor": "十年前這裡一位難求。",
+        "eduNote": "商圈會移動；當年的黃金店面，現在可能在巷子裡。",
+        "payload": {
+          "price": 2100,
+          "monthlyRent": 16.5,
+          "downPayment": 420,
+          "monthlyCost": 2.9
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_RE23",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "屏東農地倉庫",
+        "flavor": "租給附近的農會放農機。",
+        "eduNote": "用途受限、變現又慢，租金報酬要能補償這份流動性風險。",
+        "payload": {
+          "price": 2000,
+          "monthlyRent": 15.5,
+          "downPayment": 400,
+          "monthlyCost": 3.0
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPP_FORECLOSURE",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "法拍屋標售",
+        "flavor": "價格比市價低兩成，但要在七天內付清全額。",
+        "eduNote": "全額現金、可能還有前屋主佔用不搬——便宜的價格從來都是有代價的。",
+        "group": "房地產",
+        "stage": "INNER",
+        "payload": {
+          "price": 900,
+          "monthlyRent": 7.5,
+          "downPayment": 900,
+          "monthlyCost": 1.2
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPP_REZONE_LAND",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "REALESTATE",
+        "title": "重劃區素地",
+        "flavor": "仲介指著空地說：三年後這裡是市中心。",
+        "eduNote": "沒有租金的土地每個月都在燒持有成本，你賭的只有未來的價差。",
+        "group": "房地產",
+        "stage": "INNER",
+        "payload": {
+          "price": 1200,
+          "monthlyRent": 0,
+          "downPayment": 360,
+          "monthlyCost": 1.0
+        },
+        "tags": [
+          "housing"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "OPS_SU4",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "STARTUP",
+        "moduleReq": "M3",
+        "title": "AI 客服 SaaS（種子輪）",
+        "flavor": "兩個工程師做的，已經有五家小電商在試用。",
+        "eduNote": "早期投資最貴的成本是時間——錢卡在裡面好幾年，你能等嗎？",
+        "payload": {
+          "investAmount": 320,
+          "equityPct": 0.065,
+          "postMoney": 4900
+        }
+      },
+      {
+        "id": "OPS_SU5",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "STARTUP",
+        "moduleReq": "M3",
+        "title": "無人機巡檢服務（天使輪）",
+        "flavor": "幫太陽能電廠拍熱像圖，一次省下三個工人。",
+        "eduNote": "有明確買單對象的技術，比技術本身厲害更重要。",
+        "payload": {
+          "investAmount": 420,
+          "equityPct": 0.075,
+          "postMoney": 5600
+        }
+      },
+      {
+        "id": "OPS_SU6",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "STARTUP",
+        "moduleReq": "M3",
+        "title": "精準農業感測（種子輪）",
+        "flavor": "感測器插在田裡，手機上看土壤濕度。",
+        "eduNote": "市場小但沒人做，跟市場大但人人做，是兩種完全不同的風險。",
+        "payload": {
+          "investAmount": 240,
+          "equityPct": 0.06,
+          "postMoney": 4000
+        }
+      },
+      {
+        "id": "OPS_SU7",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "STARTUP",
+        "moduleReq": "M3",
+        "title": "長照排班平台（Pre-A）",
+        "flavor": "已經接了十二家機構，但每家都要客製。",
+        "eduNote": "客製化接單接得越多，越像顧問公司，越不像可以複製的產品。",
+        "payload": {
+          "investAmount": 600,
+          "equityPct": 0.083,
+          "postMoney": 7200
+        }
+      },
+      {
+        "id": "OPS_SU8",
+        "deck": "OPPORTUNITY_SMALL",
+        "kind": "STARTUP",
+        "moduleReq": "M3",
+        "title": "循環包材新創（天使輪）",
+        "flavor": "電商用的可回收箱，租不是賣。",
+        "eduNote": "把商品變成服務可以收經常性收入，前提是回收率撐得住。",
+        "payload": {
+          "investAmount": 460,
+          "equityPct": 0.075,
+          "postMoney": 6100
+        }
       }
     ],
     "OPPORTUNITY_LARGE": [
@@ -631,6 +1530,403 @@
           "speculative"
         ],
         "moduleReq": null
+      }
+    ],
+    "MARKET": [
+      {
+        "id": "MK13",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "囤房稅上路",
+        "flavor": "持有第三戶以上的稅單先寄到了。",
+        "eduNote": "持有成本上升會直接吃掉租金淨收益——稅是最不該被忽略的成本。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 0.92,
+            "durationTurns": 6,
+            "label": "囤房稅 → 租金淨收益下降"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK14",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "社會住宅大量交屋",
+        "flavor": "隔壁街一次釋出六百戶。",
+        "eduNote": "供給增加會壓低租金，這跟你的房子好不好沒有關係。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 0.9,
+            "durationTurns": 5,
+            "label": "供給增加 → 租金下修"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK15",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "都更容積獎勵放寬",
+        "flavor": "建商開始一戶一戶按門鈴。",
+        "eduNote": "老屋的價值有時候不在房子，在它站的那塊地。",
+        "effects": [
+          {
+            "op": "ASSET_VALUE_MULT",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 1.15,
+            "durationTurns": null,
+            "label": "都更題材"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK16",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "房貸利率調升",
+        "flavor": "銀行寄來的通知只有薄薄一張。",
+        "eduNote": "浮動利率的房貸，升息那天你才會發現月付是會變的。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": -6,
+            "label": "房貸月付調升",
+            "filter": {
+              "kind": "REALESTATE"
+            }
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK17",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "強颱過境",
+        "flavor": "鐵皮掀了，地下室進水。",
+        "eduNote": "天災是持有不動產的固定成本，不是意外——所以才需要保險。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": -10,
+            "label": "風災修繕",
+            "filter": {
+              "kind": "REALESTATE"
+            }
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK18",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "租金補貼擴大辦理",
+        "flavor": "房客拿著申請書來問你願不願意配合。",
+        "eduNote": "政策補貼的是租客，最後受益的常常是房東。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "factor": 1.12,
+            "durationTurns": 6,
+            "label": "租金補貼"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK19",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "出售窗口：外資收購包租物件",
+        "flavor": "對方開的價格比你當初買進高兩成半。",
+        "eduNote": "有人願意用高價買走你的現金流，換不換要看你還有沒有更好的去處。",
+        "effects": [
+          {
+            "op": "OFFER_SELL_WINDOW",
+            "filter": {
+              "kind": "REALESTATE"
+            },
+            "priceMult": 1.25,
+            "label": "外資高價收購"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK20",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "觀光免簽上路",
+        "flavor": "團客又出現在巷子口。",
+        "eduNote": "外部紅利來得快去得也快，別把它當成常態產能。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 1.25,
+            "durationTurns": 5,
+            "label": "觀光紅利"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK21",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "小店數位轉型補助",
+        "flavor": "填三張表就能領。",
+        "eduNote": "補助是一次性的現金，別把一次性收入當成經常性收入。",
+        "effects": [
+          {
+            "op": "CASH_DELTA",
+            "target": "all",
+            "amount": 8,
+            "label": "數位轉型補助",
+            "filter": {
+              "kind": "BUSINESS"
+            }
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK22",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "食材與原物料大漲",
+        "flavor": "進貨單上每一項都紅字。",
+        "eduNote": "成本上漲時能不能跟著漲價，決定了這門生意有沒有定價權。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 0.88,
+            "durationTurns": 4,
+            "label": "原物料上漲 → 淨利下降"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK23",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "基層缺工",
+        "flavor": "徵人啟事貼了兩個月。",
+        "eduNote": "找不到人就得加薪或縮短營業時間，兩條路都吃利潤。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 0.9,
+            "durationTurns": 5,
+            "label": "缺工 → 淨利下降"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK24",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "電價調漲",
+        "flavor": "冰櫃和空調二十四小時都在跑。",
+        "eduNote": "設備型生意最怕電價——機器不會因為電貴就少吃電。",
+        "effects": [
+          {
+            "op": "ASSET_INCOME_MULT",
+            "filter": {
+              "kind": "BUSINESS"
+            },
+            "factor": 0.93,
+            "durationTurns": 6,
+            "label": "電價調漲 → 淨利下降"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": null
+      },
+      {
+        "id": "MK25",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "AI 供應鏈提前拉貨",
+        "flavor": "法人report 一份比一份樂觀。",
+        "eduNote": "循環的上半場漲的是預期，下半場才看得到真的獲利。",
+        "effects": [
+          {
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_TECH",
+            "mult": 1.28,
+            "label": "AI 拉貨行情"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
+      },
+      {
+        "id": "MK26",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "ETF 資金潮",
+        "flavor": "定期定額扣款人數創新高。",
+        "eduNote": "一籃子商品波動小，驚喜也小——這是它的優點不是缺點。",
+        "effects": [
+          {
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_ETF",
+            "mult": 1.15,
+            "label": "ETF 資金流入"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
+      },
+      {
+        "id": "MK27",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "除權息旺季",
+        "flavor": "看盤軟體上滿滿的除息公告。",
+        "eduNote": "領到的股息要看是不是「賺股息賠價差」——除息當天價格會扣掉。",
+        "effects": [
+          {
+            "op": "DIVIDEND_BONUS",
+            "symbol": "STK_DIV",
+            "mult": 1.5,
+            "label": "除權息旺季"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
+      },
+      {
+        "id": "MK28",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "法人連續調節",
+        "flavor": "賣超的量一天比一天大。",
+        "eduNote": "大戶調節時，散戶要問的不是要不要賣，而是當初為什麼買。",
+        "effects": [
+          {
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_TECH",
+            "mult": 0.8,
+            "label": "法人調節"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
+      },
+      {
+        "id": "MK29",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "投機股資金退潮",
+        "flavor": "題材沒了，成交量也沒了。",
+        "eduNote": "投機股跌起來沒有底，因為它本來就沒有估值的地板。",
+        "effects": [
+          {
+            "op": "STOCK_PRICE_SET",
+            "symbol": "STK_SPEC",
+            "mult": 0.7,
+            "label": "投機股退潮"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
+      },
+      {
+        "id": "MK30",
+        "deck": "MARKET",
+        "kind": "MARKET",
+        "title": "高股息成分股減資",
+        "flavor": "公告寫著「調整資本結構」。",
+        "eduNote": "配息不是保證，公司賺不到就發不出來。",
+        "effects": [
+          {
+            "op": "DIVIDEND_BONUS",
+            "symbol": "STK_DIV",
+            "mult": 0.5,
+            "label": "配息縮水"
+          }
+        ],
+        "tags": [
+          "market"
+        ],
+        "moduleReq": "M1"
       }
     ]
   }
