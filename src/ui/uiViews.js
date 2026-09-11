@@ -1615,10 +1615,29 @@ ns.selftest = {
       assert(S2.turnNumber===tn,"續攤應接回原本那一輪，實得 "+S2.turnNumber+" 期望 "+tn);
       assert(S2.config.maxTurns>tn,"續攤後上限必須大於當前輪次，否則會立刻再結算一次");
       assert(S2.phase!=="GAME_OVER","續攤後應回到可行動的階段，實得 "+S2.phase);
-      // 續攤不是重開：現金水位必須連續（發薪造成的變動只可能在自己那一輪）
+      // 續攤不是重開：現金水位必須連續。允許變動的只有：
+      // (1) 接回當事人（player 0，本情境固定，發薪）
+      // (2) ADR-001 D5-2／D5-3：若續攤這次 beginTurn 剛好觸發 IPO 保底補開，
+      //     E.openIpo 會同步呼叫 E.ipoPollNPC 讓符合條件的電腦玩家立即申購——
+      //     這是 T-001 既有設計行為，不是 bug，允許這些玩家的現金也變動，
+      //     但變動金額必須精確等於「申購款＋手續費＋通知費」，防止真的有
+      //     其他未預期的 bug 藏在這條路徑裡被誤判為「反正是 IPO 就放行」。
+      var ipoSubs=r2.events.filter(function(e){
+        return e.type==="IPO_SUBSCRIBED" && e.npc===true; });
+      var allowed={0:true};
+      ipoSubs.forEach(function(e){ allowed[e.playerId]=true; });
       var cashA=S2.players.map(function(z){return z.cash;});
-      assert(cashA.filter(function(c,i){ return c!==+cashB.split("|")[i]; }).length<=1,
-        "續攤不得重算超過一位玩家的現金（發薪只該發給接回的那一位）");
+      var badIdx=cashA.map(function(c,i){ return i; }).filter(function(i){
+        return cashA[i]!==+cashB.split("|")[i] && !allowed[i]; });
+      assert(badIdx.length===0,
+        "續攤不得重算「當事人＋保底IPO同步申購的電腦玩家」以外的現金，異常玩家 idx="+badIdx.join(","));
+      ipoSubs.forEach(function(e){
+        var before=+cashB.split("|")[e.playerId], after=cashA[e.playerId];
+        var expectDelta=-util.r2(e.price+E.cfg(S2,"ipoFee",0.02)+E.cfg(S2,"ipoNoticeFee",0.05));
+        assert(Math.abs((after-before)-expectDelta)<1e-6,
+          "電腦玩家因保底IPO被動申購的現金變動應等於「申購款＋手續費＋通知費」，playerId="+e.playerId+
+          " 實得差額 "+(after-before)+" 期望 "+expectDelta);
+      });
 
       // (c) 圓夢／全員破產結束的局不得續攤——那是真的分出勝負
       var S3=mkGame(8603); S3.over=true; S3.winner=0; S3.overReason="DREAM"; E.syncPhase(S3);

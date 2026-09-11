@@ -23,4 +23,6 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
   if(out.fails) out.fails.forEach(f=>console.log('  ❌ '+f));
   if(errs.length) console.log('--- page errors ---\n'+errs.slice(0,10).join('\n'));
   await b.close();
+  const fail = !!out.fatal || (out.pass!==out.total);
+  process.exit(fail?1:0);
 })();
