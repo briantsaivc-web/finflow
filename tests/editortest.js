@@ -130,6 +130,71 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'c
       $("searchInput").value=""; $("searchInput").dispatchEvent(new Event('input'));
       return "新增→複製→刪除 都正常";
     });
+    /* T-001（ADR-001 D7）：IPO_POOL 牌堆要可編輯。S4 已經把 35 張新股清單卡放進 v10.json 的
+       IPO_POOL 牌堆，這裡驗兩件事：①即使某個牌堆完全沒有卡片（例如「＋ 新牌堆」剛建立的），
+       工坊也要能開出來、新增的卡片要自動帶對的 kind／tier；②既有的 IPO_POOL（已經有卡）本身
+       也要能正常編輯、通過驗證——不是只有空牌堆那條路徑測得到。 */
+    step("工坊：IPO_POOL 可編輯——含「牌堆本身可能完全沒有卡片」的一般能力（＋新牌堆），以及 S4 已交付的既有 35 張新股清單卡，新增卡片自動帶 kind=IPO_NAME／tier=SMALL 且驗證通過",()=>{
+      pick("packSelector","v10");
+      // 先驗「牌堆完全沒有卡片也能開出來編輯」這個一般能力——不是每次都能假設牌堆已經有內容
+      // （例如 S1 完成當下、S4 還沒交付前，IPO_POOL 就是這個狀態；用一個獨立的暫用牌堆名稱測，
+      // 不去動真正的 IPO_POOL，測完立刻清乾淨）。
+      const tmpName="IPO_POOL_EMPTY_TEST";
+      A(!(PACKS.v10.cards && PACKS.v10.cards[tmpName]), "測試前提：這個暫用牌堆名稱不該已經存在");
+      const oldPrompt=window.prompt; window.prompt=()=>tmpName;
+      try{ addNewDeck(); } finally { window.prompt=oldPrompt; }
+      A(PACKS.v10.cards && Array.isArray(PACKS.v10.cards[tmpName]) && PACKS.v10.cards[tmpName].length===0,
+        "＋新牌堆應該建立一個空陣列");
+      pick("deckSelector",tmpName);
+      const decksEmpty=Array.from($("deckSelector").options).map(o=>o.value).filter(Boolean);
+      A(decksEmpty.indexOf(tmpName)>=0, "牌堆選單應該列得出剛建立、目前是空的牌堆，實得 "+decksEmpty.join("／"));
+      createNewCard();
+      A(PACKS.v10.cards[tmpName].length===1, "在空牌堆新增卡片應該生效");
+      delete PACKS.v10.cards[tmpName];   // 清乾淨，換去測真正的 IPO_POOL
+      onPackChanged(); pick("packSelector","v10"); pick("deckSelector","IPO_POOL");
+      const before=(PACKS.v10.cards.IPO_POOL||[]).length;
+      A(before>0, "測試前提：v10 的 IPO_POOL 應該已經有 S4 交付的卡片，實得 "+before+" 張");
+      A($("cardsListContainer").children.length===before, "選 IPO_POOL 應該列出全部新股清單卡，實得 "+$("cardsListContainer").children.length);
+      createNewCard();
+      A(PACKS.v10.cards.IPO_POOL.length===before+1, "在既有的 IPO_POOL 新增卡片應該生效");
+      A(currentCard.deck==="IPO_POOL", "新卡片應歸屬 IPO_POOL");
+      A(currentCard.kind==="IPO_NAME", "IPO_POOL 新卡片應自動帶 kind=IPO_NAME，實得 "+currentCard.kind);
+      A(currentCard.tier==="SMALL", "IPO_POOL 新卡片應自動帶 tier=SMALL，實得 "+currentCard.tier);
+      A($("grp_tier").style.display!=="none", "選到 IPO_POOL 卡片時，tier 欄位應該顯示出來");
+      A($("f_tier").value==="SMALL", "tier 下拉選單應該同步顯示 SMALL");
+      currentCard.title="測試新股：小資（自動化測試用，非正式文案）";
+      currentCard.flavor="測試用情境句"; currentCard.eduNote="測試用教育意義";
+      const res=validateCard(currentCard);
+      A(!res.some(r=>r.level==="err"), "補齊 title/flavor/eduNote 後不該再有結構錯誤，實得 "+JSON.stringify(res.filter(r=>r.level==="err")));
+      // 順便驗一下 S4 交付的既有 35 張卡本身也乾淨（不是只測我剛新增的這張）
+      const idx=buildIdIndex();
+      const badExisting=PACKS.v10.cards.IPO_POOL.filter(c=>c.id!==currentCard.id)
+        .flatMap(c=>validateCard(c,idx).filter(r=>r.level==="err").map(r=>c.id+"："+r.msg));
+      A(!badExisting.length, "S4 交付的既有 IPO_POOL 卡片不該有結構錯誤："+badExisting.slice(0,3).join("；"));
+      // 清乾淨：刪掉測試建立的這張卡，不留在 PACKS 裡影響後面的步驟
+      window.confirm=()=>true; deleteCurrentCard();
+      A(PACKS.v10.cards.IPO_POOL.length===before, "測試卡片應該已清乾淨");
+      return "IPO_POOL（"+before+" 張既有卡）可編輯、新卡片 kind/tier 自動帶對、驗證全數通過";
+    });
+    step("kind 下拉選單的每個選項都附一行說明文字（含 T-001 新增的 IPO_NAME）",()=>{
+      pick("packSelector","v10"); pick("deckSelector","");
+      const ipoOpt=Array.from($("kindSelector").options).filter(o=>o.value==="IPO_NAME")[0];
+      A(ipoOpt, "v10 的 kind 選單應該有 IPO_NAME 選項（來自 IPO_POOL 的既有卡）");
+      A(/·/.test(ipoOpt.textContent), "IPO_NAME 選項應該附一行說明文字，實得「"+ipoOpt.textContent+"」");
+      A(/IPO_POOL/.test(ipoOpt.title), "IPO_NAME 選項的說明（title 提示）應該提到 IPO_POOL，實得「"+ipoOpt.title+"」");
+      // 全部內容包、全部既有 kind 選項都要附說明——不是只有新加的 IPO_NAME 這一個
+      let checked=0, missing=[];
+      Object.keys(PACKS).forEach(k=>{
+        pick("packSelector",k); pick("deckSelector","");
+        Array.from($("kindSelector").options).filter(o=>o.value).forEach(o=>{
+          checked++;
+          if(!/·/.test(o.textContent)) missing.push(k+"："+o.value);
+        });
+      });
+      A(!missing.length, "這些 kind 選項沒有說明文字："+missing.join("、"));
+      pick("packSelector","v10"); pick("deckSelector","");
+      return checked+" 個 kind 選項（跨全部內容包）都附有說明文字";
+    });
     return L;
   });
   log.forEach(l=>console.log(l));

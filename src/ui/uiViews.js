@@ -283,7 +283,9 @@ ui.handleEvents = function(evs){
       case "DECISION_RESOLVED": {
         var dl=ui.decisionOptionLabel(e.cardId, e.optionId);
         if(e.kind==="ACK" || e.kind==="TRIAL_RESULT" || e.kind==="BLESSING" ||
-           e.kind==="SKILL_RESULT" || e.kind==="DIGITAL_RESULT") break;   // 純揭曉，沒有「決定」可言
+           e.kind==="SKILL_RESULT" || e.kind==="DIGITAL_RESULT" || e.kind==="IPO_ANNOUNCE") break;
+           // 純揭曉，沒有「決定」可言；IPO_ANNOUNCE 的申購／婉拒已經由 IPO_SUBSCRIBED／IPO_DECLINED
+           // 事件自己播報過一次，這裡再接一行「決定：sub_small」只會是重複又看不懂的代號（T-001）。
         if(!ui.appendToRoll(e.playerId, "　決定：" + dl))
           ui.announce(me(e.playerId)+"　決定："+dl+(e.title?("（"+e.title+"）"):""), e.playerId);
         break; }
@@ -378,6 +380,38 @@ ui.handleEvents = function(evs){
         var whyS = e.reason==="unfilled" ? ("一輪內只湊到 "+Math.round((1-e.remaining)*100)+"%，流標") : ("結算時有人出不起（"+e.reason+"），流標");
         ui.announce("📢 集資「"+e.title+"」"+whyS+(e.fromId===ui.myId()?"——機會回到你手上":""), e.fromId);
         if(e.fromId===ui.myId()) ui.toast("📢 集資流標："+whyS+"。這張機會回到你手上，可以自己買或放棄","warn",6500,"POP");
+        break; }
+      /* T-001（ADR-001）：新股抽籤——開放申購／申購／婉拒／結算 */
+      case "IPO_OPENED": {
+        var tS=e.tiers&&e.tiers.SMALL, tB=e.tiers&&e.tiers.BIG;
+        ui._ipoTierNames = ui._ipoTierNames || {};
+        ui._ipoTierNames[e.id] = { SMALL: tS&&tS.name, BIG: tB&&tB.name };
+        var lineIpoO="📢 新股申購開放："+(tS?("「"+tS.name+"」"+(ui.IPO_TIER_LABEL?ui.IPO_TIER_LABEL.SMALL:"小資檔")+" 申購價 "+M(tS.P)):"")+
+          (tB?("　／　「"+tB.name+"」"+(ui.IPO_TIER_LABEL?ui.IPO_TIER_LABEL.BIG:"股王檔")+" 申購價 "+M(tB.P)):"");
+        ui.announce(lineIpoO, e.fromId);
+        if(e.fromId===ui.myId()) ui.toast("📢 你踩到新股公告：兩檔開放申購，記得看決策卡","good",5000,"POP");
+        else ui.toastSys("📢 新股申購開放，交易所可以看","good",4000);
+        break; }
+      case "IPO_SUBSCRIBED": {
+        var nmIpoS=(ui._ipoTierNames && ui._ipoTierNames[e.ipoId] && ui._ipoTierNames[e.ipoId][e.tier])
+          || (ui.IPO_TIER_LABEL?ui.IPO_TIER_LABEL[e.tier]:e.tier) || e.tier;
+        ui.announce("🧾 "+me(e.playerId)+" 申購「"+nmIpoS+"」"+(e.npc?"（電腦）":"")+"　付 "+M(e.price), e.playerId);
+        if(e.playerId===ui.myId())
+          ui.toast("🧾 已申購「"+nmIpoS+"」，付 "+M(e.price)+"（結算前不能動用；中籤率抽中才算數）","good",4000);
+        break; }
+      case "IPO_DECLINED":
+        ui.announce(me(e.playerId)+" 婉拒了這次新股申購", e.playerId); break;
+      case "IPO_SETTLED": {
+        var resAllI=e.results||[], winNI=resAllI.filter(function(r){return r.won;}).length;
+        ui.announce("🎉 新股抽籤結算："+resAllI.length+" 筆申購，中籤 "+winNI+" 筆");
+        ui.toastSys("🎉 新股抽籤結算：中籤 "+winNI+"／"+resAllI.length+" 筆","good",4500);
+        resAllI.filter(function(r){ return r.playerId===ui.myId(); }).forEach(function(r){
+          var nmIpoR=(ui._ipoTierNames && ui._ipoTierNames[e.id] && ui._ipoTierNames[e.id][r.tier])
+            || (ui.IPO_TIER_LABEL?ui.IPO_TIER_LABEL[r.tier]:r.tier) || r.tier;
+          if(r.won) ui.toast("🎉 「"+nmIpoR+"」中籤！上市賣出 +"+M(r.amount),"good",5500,"POP");
+          else ui.toast("😞 「"+nmIpoR+"」沒中籤，退回申購款 "+M(r.amount),"warn",4500);
+        });
+        if(ui._ipoTierNames) delete ui._ipoTierNames[e.id];
         break; }
       case "JV_OFFERED":
         if(e.fromId===ui.myId()) ui.toast("🤝 合資邀約已送出，等待回應","good",3000);
@@ -6060,6 +6094,7 @@ ns.selftest = {
       var KID=["孩子","小孩","嬰兒","嬰幼兒","幼兒","安親","補習班","才藝","親子"];
       var leak=[];
       Object.keys(ns.content.cards).forEach(function(dk){
+        if(dk==="IPO_POOL") return; // S4：新股抽籤牌堆跟「有沒有小孩」這個機制無關，不受此掃描規範
         (ns.content.cards[dk]||[]).forEach(function(c){
           var t=(c.title||"");
           if(!KID.some(function(k){ return t.indexOf(k)>=0; })) return;

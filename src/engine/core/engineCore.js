@@ -88,16 +88,20 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.52.0-S44", date:"2026-09-08" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.53.0-S45", date:"2026-09-11" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
-/* --- CONFIG 讀取：base 值 + 進行中事件覆寫（高 priority 優先，同級取最後生效） --- */
-E.cfg = function(S, key){
+/* --- CONFIG 讀取：base 值 + 進行中事件覆寫（高 priority 優先，同級取最後生效） ---
+   T-001：第三參數 dflt 是可選 fallback——只有在 registry／S.config 都查不到這個 key（value===undefined）
+   時才用它。既有兩參數呼叫端行為完全不變（dflt===undefined 時不影響回傳值）。這是給
+   「defaultParams.json 還沒補上參數」的過渡期用，不是拿來取代資料驅動（鐵律四）。 */
+E.cfg = function(S, key, dflt){
   var best=null;
   for(var i=0;i<S.activeGlobalEvents.length;i++){ var ev=S.activeGlobalEvents[i];
     if(ev.param===key){ if(!best || ev.priority>best.priority || (ev.priority===best.priority && ev.seq>best.seq)) best=ev; } }
-  return best ? best.value : S.config[key];
+  var v = best ? best.value : S.config[key];
+  return (v===undefined && dflt!==undefined) ? dflt : v;
 };
 E.effMaxLTV = function(S, card){
   var liq = S.enabledModules.indexOf("M4")>=0 ? S.macro.liquidity : 1;
@@ -145,6 +149,18 @@ E.creditCapacity = function(S, p){
   return util.r2(Math.max(0, cap));
 };
 
+/* T-001（ADR-001 D1）：新股抽籤的亂數全部走雜湊，不碰 util.rand(S)/util.randAux(S)。
+   演算法照抄 npc.stableRoll（contentNpcSim.js）：同一個 tag 永遠同一個答案，不消耗、不依賴
+   任何 rngState，重放與 lockstep 都不受影響。輸入字串固定加上 "ipo|" 前綴，
+   與 npc.stableRoll 的雜湊空間（decisionId 等）分流，避免不同用途撞出同一個值。 */
+E.ipoRoll = function(S, tag){
+  var str = "ipo|"+tag;
+  var h = ((S.seed>>>0) ^ 0x9E3779B9) >>> 0;
+  for(var i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 16777619) >>> 0; }
+  h ^= h>>>13; h = Math.imul(h, 0x5bd1e995) >>> 0; h ^= h>>>15;
+  return (h>>>0) / 4294967296;
+};
+
 /* --- 建局 --- */
 E.newGame = function(opts){
   var C = ns.content, S = {
@@ -154,7 +170,8 @@ E.newGame = function(opts){
     turnNumber:1, phase:"ROLL", activePlayerIdx:0, players:[], macro:null,
     decks:{}, activeGlobalEvents:[], eventSeq:0, actionLog:[], decisionQueue:[],
     pendingDecision:null, winner:null, uidSeq:0, log:[], bookkeeping:null, pendingTrade:null, pendingP2P:null, pendingAuction:null, pendingReferral:null, pendingJV:null, pendingSyndicate:null, pendingShock:null,
-    stockPrices:{}, dividendBonus:{}, spaceMult:{}, tapestrySample:[], over:false
+    stockPrices:{}, dividendBonus:{}, spaceMult:{}, tapestrySample:[], over:false,
+    ipo:null   // T-001：只在 opts.config.ipoLottery===1 時於下方建立；舊存檔／關閉時整個機制不作用（鐵律五）
   };
   S.macro = { stage:"RECOVERY", baseRate:S.config.rate_RECOVERY, targetRate:S.config.rate_RECOVERY,
               inflation:S.config.infl_RECOVERY, sinceReview:0,
@@ -197,6 +214,21 @@ E.newGame = function(opts){
   E.buildDecks(S);
   // S24：抽出本局每個夢想的里程碑路線。池子剛好 dreamCost 條時不取用亂數（相容鐵律）。
   if(E.rollDreamRoutes) E.rollDreamRoutes(S);
+  /* T-001（ADR-001 D2／D5）：新股抽籤排程。只在 ipoLottery===1 時建立，否則 S.ipo 維持 null，
+     整個機制不作用（舊存檔沒有這個 key，opts.config.ipoLottery 是 undefined，一樣不觸發）。
+     全部走 E.ipoRoll（雜湊），不消耗 util.rand(S)/util.randAux(S)，主亂數流不位移。 */
+  if(opts.config.ipoLottery===1){
+    var w1From=E.cfg(S,"ipoWin1From",8), w1To=E.cfg(S,"ipoWin1To",20);
+    var w2From=E.cfg(S,"ipoWin2From",25), w2To=E.cfg(S,"ipoWin2To",45);
+    var w2Chance=E.cfg(S,"ipoWin2Chance",0.6);
+    var sch1=Math.round(w1From + E.ipoRoll(S,"sch1")*(w1To-w1From));
+    var schedule=[sch1], fired=[false];
+    if(E.ipoRoll(S,"sch2on") < w2Chance){
+      var sch2=Math.round(w2From + E.ipoRoll(S,"sch2")*(w2To-w2From));
+      schedule.push(sch2); fired.push(false);
+    }
+    S.ipo = { schedule:schedule, fired:fired, seq:0, pending:null, history:[] };
+  }
   ns.modules.onGameSetup(S);
   return S;
 };
@@ -223,6 +255,9 @@ E.makePlayer = function(S, idx, pd){
     bkStreak:{}, bkUnlocked:{}, bkAuto:{}, bkEntryBad:{},
     // S11：定期定額與股息再投入（只有真人會設定；carry 是「還沒湊滿一張的預算」，不是真的現金）
     dcaPlans:[], divReinvest:{},
+    // T-001（ADR-001 D2）：唯讀顯示快取——申購中的預扣款總額，只給 UI 顯示用，
+    // 不參與 ledger.recompute 的 totalAssets／netWorth（真實來源永遠是 ledger 裡的 ASSET 分錄）。
+    ipoEscrow:0,
     baseSalary:0, salaryVolatility:prof.salaryVolatility||0,
     playerStage:"INNER", dreamCardId:pd.dreamCardId||null, dreamProgress:0, outerPos:0,
     dreamLog:[],                 // S31：夢想相簿——每一點是第幾輪拿到的、那句話、那張圖

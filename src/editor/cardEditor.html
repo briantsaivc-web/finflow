@@ -125,7 +125,10 @@
     <div class="col-list">
       <div class="list-filter">
         <select id="packSelector" onchange="onPackChanged()"></select>
-        <select id="deckSelector" onchange="renderCardList()"></select>
+        <div class="row">
+          <select id="deckSelector" onchange="renderCardList()"></select>
+          <button type="button" style="flex:0 0 auto" onclick="addNewDeck()" title="新增一個目前這個包裡還沒有的牌堆（例如 T-001 的 IPO_POOL）">＋ 新牌堆</button>
+        </div>
         <select id="kindSelector" onchange="renderCardList()"></select>
         <input type="text" id="searchInput" placeholder="🔍 搜尋 id／標題／文案…" oninput="renderCardList()">
         <div class="muted" id="listCount"></div>
@@ -145,8 +148,18 @@
           </div>
           <div class="form-group">
             <label>kind</label>
-            <input type="text" id="f_kind" list="kindList" oninput="setField('kind',this.value)">
+            <input type="text" id="f_kind" list="kindList" oninput="setField('kind',this.value); updateKindHint(this.value)">
             <datalist id="kindList"></datalist>
+            <div class="hint" id="kindHint"></div>
+          </div>
+          <div class="form-group" id="grp_tier" style="display:none">
+            <label>tier（T-001：IPO_POOL 專用）</label>
+            <select id="f_tier" onchange="setField('tier',this.value||null)">
+              <option value="">（未設定）</option>
+              <option value="SMALL">SMALL（小資檔）</option>
+              <option value="BIG">BIG（股王檔）</option>
+            </select>
+            <div class="hint">發行時依這個欄位分池，用雜湊從對應池子挑一筆；其餘牌堆不需要這個欄位。</div>
           </div>
           <div class="form-group">
             <label>標題 title（卡面大字）</label>
@@ -272,6 +285,30 @@
     /* 引擎認得的效果 op：由 build/bundle.js 從 src/engine 原始碼掃出來注入，
        跟 contentcheck.js 用同一個來源——手抄清單一定會漏，漏了就會把好卡誤判成壞卡。 */
     const KNOWN_OPS = /* OPS_PLACEHOLDER */ ["CASH_DELTA","ADD_RECURRING_EXPENSE","SALARY_MULT","SET_FLAG"];
+    // 每個 kind 的一行說明——給「kind 下拉選單」與編輯表單用，不是玩家看得到的卡片文案。
+    const KIND_DESC = {
+      BADGE: "成就徽章卡：達成特定條件（rule）時解鎖，純榮譽展示，沒有數值效果",
+      BUSINESS: "機會卡：事業——price／monthlyProfit，買下後賺穩定月現金流",
+      CHOICE: "人生二選一事件：兩個選項各自有 cost 與 effects，沒有「都不選」",
+      DIGITAL: "一人公司／數位副業卡（M8）：payload 定義起飛門檻與月成本",
+      DREAM: "夢想卡：外圈圓夢的目標與進度單位（narrativeUnit／milestones）",
+      LIFESTYLE: "生活型態消費卡，可能帶 recurringMonthly 常態支出",
+      LIFE_EVENT: "隨機人生事件卡（可能再細分 CHOICE／SELF_INVEST／SKILL_GATE／PROFESSION_EVENT／SPECIAL 等子 kind）",
+      MACRO: "總體經濟基礎卡：多為 SET_PARAM 效果，依 stages 在特定景氣階段觸發",
+      MACRO_EVENT: "總經大事件（市場衝擊、假帳風暴等），常見 oncePerGame",
+      MALL: "人生商城品項（進修／健康／保險／人情消費），常見 cost／joy／recurringMonthly",
+      MARKET: "市場格抽到的卡，多為資產估值或利率類效果",
+      PROFESSION_EVENT: "依職業（forProfession）觸發的專屬人生事件",
+      REALESTATE: "機會卡：房地產——price／downPayment／monthlyRent／monthlyCost",
+      SELF_INVEST: "自我投資卡：花錢換取未來加薪等效果（decision.options）",
+      SKILL: "技能卡：cost 學費、turns 學習輪數",
+      SKILL_GATE: "技能檢定分支卡：依 skillBranch.requires 走 have／miss 兩種結局",
+      SPECIAL: "特殊機會卡（如獨立董事邀請），常搭配 payload.decisionKind 指向專屬決策流程",
+      STARTUP: "機會卡：新創——investAmount／equityPct／postMoney",
+      STOCK: "股票定義卡：symbol／offerPrice，供交易所開盤掛單使用",
+      TAPESTRY: "人生織錦卡（M6）：育樂／進修等品格成長卡，多用 GRANT_VIRTUE",
+      IPO_NAME: "新股清單卡（T-001，IPO_POOL 牌堆專用）：只用 title／flavor／eduNote／tier，發行時依 tier（SMALL／BIG）用雜湊從對應池子挑一筆，沒有 payload 數值"
+    };
     const PAYLOAD_FIELDS = {
       REALESTATE:[["price","總價"],["downPayment","自備款"],["mortgageRate","房貸利率"],
                   ["monthlyRent","月租金"],["monthlyCost","月營運成本"]],
@@ -321,12 +358,20 @@
     function onPackChanged(){
       currentPackKey = $("packSelector").value || currentPackKey;
       const cards = allCards(PACKS[currentPackKey]);
-      const decks = Array.from(new Set(cards.map(deckOf))).sort();
+      // 牌堆清單：既有卡片帶出的 deck，再加上 pack.cards 本身已宣告但還沒有卡片的空牌堆
+      // （例如剛用「＋ 新牌堆」建立、或 S4 尚未補卡的 IPO_POOL）——否則空牌堆永遠選不到。
+      const deckKeys = Object.keys((PACKS[currentPackKey]||{}).cards||{});
+      const decks = Array.from(new Set(deckKeys.concat(cards.map(deckOf)))).sort();
       const kinds = Array.from(new Set(cards.map(c=>c.kind).filter(Boolean))).sort();
       $("deckSelector").innerHTML = '<option value="">全部牌堆（'+decks.length+'）</option>'
         + decks.map(d=>`<option value="${esc(d)}">${esc(d)}（${cards.filter(c=>deckOf(c)===d).length}）</option>`).join("");
+      // kind 下拉選單：每個選項後面附一行說明（KIND_DESC 查不到的話留白，代表自訂／少見的 kind）
       $("kindSelector").innerHTML = '<option value="">全部 kind（'+kinds.length+'）</option>'
-        + kinds.map(k=>`<option value="${esc(k)}">${esc(k)}（${cards.filter(c=>c.kind===k).length}）</option>`).join("");
+        + kinds.map(k=>{
+            const desc = KIND_DESC[k] || "";
+            const short = desc.length>28 ? desc.slice(0,28)+"…" : desc;
+            return `<option value="${esc(k)}" title="${esc(desc)}">${esc(k)}（${cards.filter(c=>c.kind===k).length}）${short?(" · "+esc(short)):""}</option>`;
+          }).join("");
       $("kindList").innerHTML = Array.from(new Set(everyCard().map(x=>x.c.kind).filter(Boolean))).sort()
         .map(k=>`<option value="${esc(k)}">`).join("");
       currentCard = null;
@@ -378,8 +423,12 @@
       const c = currentCard || {};
       $("f_id").value    = c.id||"";
       $("f_kind").value  = c.kind||"";
+      updateKindHint(c.kind||"");
       $("f_title").value = c.title||c.name||"";
       $("f_group").value = c.group||"";
+      const isIpoPool = deckOf(c)==="IPO_POOL";
+      $("grp_tier").style.display = isIpoPool ? "" : "none";
+      $("f_tier").value = c.tier||"";
       $("f_flavor").value= c.flavor||"";
       $("f_edu").value   = c.eduNote||"";
       $("f_tags").value  = (c.tags||[]).join("、");
@@ -448,6 +497,22 @@
         else currentCard.requiresChildSinceS12=true;
       }
       markDirty(); refreshLight();
+    }
+    function updateKindHint(v){
+      $("kindHint").textContent = KIND_DESC[v] || (v ? "（未收錄說明——自訂或少見的 kind，正常）" : "");
+    }
+    // T-001：讓還沒有任何卡片的牌堆（例如剛建立、或 S4 尚未補卡的 IPO_POOL）也能在編輯器裡開出來用
+    function addNewDeck(){
+      if(!currentPackKey || !PACKS[currentPackKey]) return;
+      const name = (prompt("新牌堆名稱（例如 IPO_POOL）：")||"").trim();
+      if(!name) return;
+      PACKS[currentPackKey].cards = PACKS[currentPackKey].cards || {};
+      if(PACKS[currentPackKey].cards[name]){ alert("這個牌堆已經存在："+name); return; }
+      PACKS[currentPackKey].cards[name] = [];
+      markDirty();
+      onPackChanged();
+      $("deckSelector").value = name;
+      renderCardList();
     }
     function setPayload(key,val,isNum){
       if(!currentCard) return;
@@ -533,6 +598,11 @@
       const deck=deckOf(c);
       if(deck==="MALL" && (c.requiresChild||c.requiresChildSinceS12)) push("err","MALL 的小孩閘門要寫 payload.reqChild");
       if((deck==="LIFESTYLE"||deck==="LIFE_EVENT") && (c.payload||{}).reqChild) push("err","這個牌堆要寫 requiresChildSinceS12");
+      // T-001（ADR-001 D7）：IPO_POOL 牌堆的兩個必要欄位——kind 固定 IPO_NAME、tier 只能 SMALL／BIG
+      if(deck==="IPO_POOL"){
+        if(c.kind && c.kind!=="IPO_NAME") push("err","IPO_POOL 牌堆的 kind 應為 IPO_NAME，實得 "+c.kind);
+        if(c.tier!=="SMALL" && c.tier!=="BIG") push("err","IPO_POOL 卡片缺 tier（應為 SMALL 或 BIG）");
+      }
       // 效果 op
       const walk=(list,where)=>{ (list||[]).forEach(ef=>{
         if(!ef || !ef.op){ push("err",where+" 效果缺 op"); return; }
@@ -606,8 +676,11 @@
       const deck=targetDeck();
       if(!deck) return alert("這個內容包沒有牌堆可以放卡片");
       let n=1; while(PACKS[currentPackKey] && buildIdIndex()["NEW_"+n]) n++;
-      const c={ id:"NEW_"+n, deck:deck, kind:(allCards(PACKS[currentPackKey]).filter(x=>deckOf(x)===deck)[0]||{}).kind||deck,
-        title:"新卡片", flavor:"", eduNote:"" };
+      // T-001：IPO_POOL 是特殊牌堆，固定 kind=IPO_NAME（不像其他牌堆用第一張既有卡的 kind 當預設）
+      const defKind = deck==="IPO_POOL" ? "IPO_NAME"
+        : (allCards(PACKS[currentPackKey]).filter(x=>deckOf(x)===deck)[0]||{}).kind||deck;
+      const c={ id:"NEW_"+n, deck:deck, kind:defKind, title:"新卡片", flavor:"", eduNote:"" };
+      if(deck==="IPO_POOL") c.tier="SMALL";
       PACKS[currentPackKey].cards[deck].push(c);
       markDirty(); onPackChanged(); selectCard(c);
     }

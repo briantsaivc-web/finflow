@@ -1928,6 +1928,323 @@
         ],
         "moduleReq": "M1"
       }
+    ],
+    "IPO_POOL": [
+      {
+        "id": "IPO_S01",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "巷口洗衣工坊（虛構）",
+        "flavor": "24 小時無人自助洗衣，展店比人力訓練還快。",
+        "eduNote": "承銷價是公司與券商談好的『賣你的價格』，參考價則是估計『上市後可能值多少』。價差 g 越大代表市場覺得越搶手，但參考價只是估計，不是承諾——申購前先想清楚，你是想長抱這家公司，還是只想賺蜜月行情的價差？"
+      },
+      {
+        "id": "IPO_S02",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "好日子早餐連鎖（虛構）",
+        "flavor": "中西式都做，尖峰時間排到騎樓外。",
+        "eduNote": "新股不是穩賺。掛牌後的市場價可能高於承銷價（蜜月行情），也可能低於承銷價——這叫『破發』。破發代表抽中反而套牢，g（預期價差率）終究只是估計值，不是保證值。"
+      },
+      {
+        "id": "IPO_S03",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "山海觀光民宿集團（虛構）",
+        "flavor": "疫後報復性旅遊，訂房率一度衝上九成。",
+        "eduNote": "觀光類股很吃季節與天災，申購前想想淡旺季的落差撐不撐得住現在的估值。"
+      },
+      {
+        "id": "IPO_S04",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "貓咪經濟寵物用品（虛構）",
+        "flavor": "少子化，但貓狗越養越多。",
+        "eduNote": "『毛小孩經濟』是常聽到的題材詞，題材歸題材，還是要看公司有沒有實際獲利撐得住股價。"
+      },
+      {
+        "id": "IPO_S05",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "台灣手搖茶連鎖（虛構）",
+        "flavor": "一條街三家分店，展店速度比人力訓練還快。",
+        "eduNote": "展店快不等於賺得多，新店在損益兩平前通常要先吃一段時間的虧損。"
+      },
+      {
+        "id": "IPO_S06",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "小農直送電商（虛構）",
+        "flavor": "產地直送，物流成本吃掉一半毛利。",
+        "eduNote": "電商生意常見的陷阱：營收成長亮眼，但物流與退貨成本沒算進去，就不是真獲利。"
+      },
+      {
+        "id": "IPO_S07",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "巷弄咖啡烘焙（虛構）",
+        "flavor": "自家烘豆，老闆堅持不用機器沖。",
+        "eduNote": "小型連鎖的申購熱度常跟話題性有關，話題退燒後股價也會跟著降溫。"
+      },
+      {
+        "id": "IPO_S08",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "樂齡照護服務（虛構）",
+        "flavor": "少子化的另一面：高齡照護需求年年成長。",
+        "eduNote": "長照是結構性成長的題材，人口趨勢不會逆轉，但政府補助政策一變，商業模式也要跟著調整。"
+      },
+      {
+        "id": "IPO_S09",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "電競網咖連鎖（虛構）",
+        "flavor": "電競賽事一辦，包場包到凌晨。",
+        "eduNote": "娛樂消費類股對景氣循環敏感，口袋緊的時候，這是最先被砍的支出。"
+      },
+      {
+        "id": "IPO_S10",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "二手時尚交易平台（虛構）",
+        "flavor": "永續時尚成關鍵字，平台抽成才是真本業。",
+        "eduNote": "平台型生意看的是流動性——買家賣家夠不夠多，不是上架的商品本身值多少。"
+      },
+      {
+        "id": "IPO_S11",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "台灣淨水設備（虛構）",
+        "flavor": "淨水器裝到辦公室茶水間，B2B 訂單穩定。",
+        "eduNote": "B2B 設備生意毛利常常比消費品低，但訂單黏性高，客戶不會輕易換供應商。"
+      },
+      {
+        "id": "IPO_S12",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "自行車零件代工（虛構）",
+        "flavor": "外銷歐美，訂單跟著匯率一起震盪。",
+        "eduNote": "外銷型公司要多看一件事：新台幣升值會直接吃掉毛利，這是內銷公司不用煩惱的風險。"
+      },
+      {
+        "id": "IPO_S13",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "桌遊出版工作室（虛構）",
+        "flavor": "一款爆款桌遊，翻譯授權賣到海外。",
+        "eduNote": "單一爆款撐起的公司，下一款能不能複製成功，是申購前最該問的問題。"
+      },
+      {
+        "id": "IPO_S14",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "網紅經紀公司（虛構）",
+        "flavor": "簽了十組網紅，業績跟著網紅人氣起伏。",
+        "eduNote": "經紀類公司的『關鍵人風險』特別高——當紅網紅一約滿跳槽，營收可能瞬間掉一大塊。"
+      },
+      {
+        "id": "IPO_S15",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "露營用品專賣（虛構）",
+        "flavor": "露營風潮退燒了嗎？公司說還沒。",
+        "eduNote": "疫情期間爆紅的消費題材，申購前先想：這波熱潮退了之後，公司還剩什麼？"
+      },
+      {
+        "id": "IPO_S16",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "冷凍食品代工（虛構）",
+        "flavor": "超商鮮食背後的隱形代工廠。",
+        "eduNote": "代工廠賺的是效率財，訂單集中在少數幾個大客戶身上，議價力通常不在自己手上。"
+      },
+      {
+        "id": "IPO_S17",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "家事清潔媒合平台（虛構）",
+        "flavor": "抽媒合費，阿姨的評價比公司的財報還重要。",
+        "eduNote": "媒合平台的護城河是『信任』與『回頭率』，不是技術門檻——競爭者要複製並不難。"
+      },
+      {
+        "id": "IPO_S18",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "太陽能屋頂工程（虛構）",
+        "flavor": "政府綠電目標，屋頂變成新戰場。",
+        "eduNote": "政策補貼型生意，補助縮減或饋線容量吃緊都會直接影響接單量，別只看現在的訂單簿。"
+      },
+      {
+        "id": "IPO_S19",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "老屋改建設計（虛構）",
+        "flavor": "都更題材夯，設計師接案接到手軟。",
+        "eduNote": "接案型公司的營收不穩定，這一季滿手案子，不代表下一季也是。"
+      },
+      {
+        "id": "IPO_S20",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "SMALL",
+        "title": "補習班連鎖（虛構）",
+        "flavor": "少子化衝擊招生，單價反而年年調漲。",
+        "eduNote": "少子化是結構性逆風，補習班能靠『單價漲、學生少』撐多久，是這類股票的核心問題。"
+      },
+      {
+        "id": "IPO_B01",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "星嶺測試（虛構）",
+        "flavor": "半導體測試介面，護國神山供應鏈。",
+        "eduNote": "歷史原型：2026 漢測，承銷價 2,250 元、抽中一張價差約一倍。"
+      },
+      {
+        "id": "IPO_B02",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "昱鼎半導體（虛構）",
+        "flavor": "AI 晶片概念股，法人喊到破頭搶額度。",
+        "eduNote": "股王檔申購價高、張數少，中籤率通常比小資檔更低——不是你的手氣不好，是這一檔的『超額認購倍數』決定的：越多人搶同一批籌碼，你抽中的機會越薄。沒中籤不是壞事，只是這次沒你的份。"
+      },
+      {
+        "id": "IPO_B03",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "恆宇封測（虛構）",
+        "flavor": "先進封裝廠，是 CoWoS 概念供應鏈的一環。",
+        "eduNote": "承銷價怎麼訂？常見做法是參考同業的本益比（股價 ÷ 每股盈餘）反推一個『合理』價格。本益比越高，代表市場願意為『公司未來的獲利成長』付更多錢——成長沒兌現，本益比就會被打回原形，股價跟著修正。"
+      },
+      {
+        "id": "IPO_B04",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "台灣鋼砌重工（虛構）",
+        "flavor": "離岸風電水下基礎，一根樁打好幾個月。",
+        "eduNote": "重工類股資本支出龐大，回本週期以年計算，跟消費股的節奏完全不同。"
+      },
+      {
+        "id": "IPO_B05",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "翔越航太零組件（虛構）",
+        "flavor": "飛機引擎零件代工，訂單能見度看到五年後。",
+        "eduNote": "航太供應鏈的認證門檻極高，一旦打進供應鏈就很難被取代——但認證期也可能長達數年。"
+      },
+      {
+        "id": "IPO_B06",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "雲鎮資訊（虛構）",
+        "flavor": "國產雲端服務，主打資安與機密運算。",
+        "eduNote": "雲端服務是訂閱制生意，看的是續約率與客戶流失率，不是單次成交金額。"
+      },
+      {
+        "id": "IPO_B07",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "精曜光學（虛構）",
+        "flavor": "車用鏡頭，電動車一台裝八顆起跳。",
+        "eduNote": "零組件供應商跟著終端市場（這裡是電動車）的景氣循環一起震盪，不是獨立變數。"
+      },
+      {
+        "id": "IPO_B08",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "台灣電池材料（虛構）",
+        "flavor": "電動車電池正極材料，題材熱到法說會爆滿。",
+        "eduNote": "原物料型公司的毛利跟著上游價格（這裡是鋰、鎳）波動，題材熱不代表毛利穩。"
+      },
+      {
+        "id": "IPO_B09",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "晶采生醫（虛構）",
+        "flavor": "新藥還在三期臨床，燒錢燒得比營收快。",
+        "eduNote": "生技股常常還沒獲利就掛牌，股價靠的是『臨床進度』與『市場想像』，風險比一般股票高很多。"
+      },
+      {
+        "id": "IPO_B10",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "海翼物流（虛構）",
+        "flavor": "跨境電商倉儲，雙十一是年度旺季總驗收。",
+        "eduNote": "物流是重資產生意，土地與倉儲的固定成本，決定了公司撐不撐得過淡季。"
+      },
+      {
+        "id": "IPO_B11",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "恆基超商控股（虛構）",
+        "flavor": "全台上千家門市，穩定現金流的代名詞。",
+        "eduNote": "連鎖零售股波動通常較低，適合拿來跟高波動的題材股做對照組。"
+      },
+      {
+        "id": "IPO_B12",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "台灣半導體設備（虛構）",
+        "flavor": "設備國產化題材，訂單卡在出貨排程上。",
+        "eduNote": "設備廠的營收認列常常落後接單好幾季，看到訂單成長不代表這一季財報馬上反映。"
+      },
+      {
+        "id": "IPO_B13",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "鑫銳金融科技（虛構）",
+        "flavor": "純網銀概念，App 下載量比分行還多。",
+        "eduNote": "金融科技股要看的是『獲客成本』與『每戶貢獻度』，不是下載次數。"
+      },
+      {
+        "id": "IPO_B14",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "群峰重電（虛構）",
+        "flavor": "電網升級設備，缺電議題一燒就沾光。",
+        "eduNote": "政策題材股容易隨新聞起伏，申購前先分清楚：這是真訂單，還是只是話題帶動的想像。"
+      },
+      {
+        "id": "IPO_B15",
+        "deck": "IPO_POOL",
+        "kind": "IPO_NAME",
+        "tier": "BIG",
+        "title": "台灣量子運算（虛構）",
+        "flavor": "量子運算概念股，商業化時程還沒有人說得準。",
+        "eduNote": "純題材股沒有明確獲利模式時，股價完全靠信心撐著——信心一動搖，跌幅通常比想像中大。"
+      }
     ]
   }
 }

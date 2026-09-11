@@ -2835,6 +2835,237 @@
       "label": "幣圈漂移：寒冬",
       "desc": "寒冬期每輪疊加的漂移",
       "hot": true
+    },
+    {
+      "key": "ipoLottery",
+      "value": 1,
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "group": "市場",
+      "label": "新股抽籤開關",
+      "desc": "0＝關閉整套新股抽籤機制（新局才生效，舊存檔不受影響）",
+      "hot": false
+    },
+    {
+      "key": "ipoEvRate",
+      "value": 0.03,
+      "min": 0.005,
+      "max": 0.1,
+      "step": 0.005,
+      "group": "市場",
+      "label": "新股期望報酬率 r",
+      "desc": "每次申購的期望報酬率，用來推導中籤率 q 與參考價",
+      "hot": true
+    },
+    {
+      "key": "ipoSmallMin",
+      "value": 30,
+      "min": 5,
+      "max": 500,
+      "step": 5,
+      "group": "市場",
+      "label": "小資檔申購價下限",
+      "desc": "千元／張",
+      "hot": true
+    },
+    {
+      "key": "ipoSmallMax",
+      "value": 150,
+      "min": 5,
+      "max": 500,
+      "step": 5,
+      "group": "市場",
+      "label": "小資檔申購價上限",
+      "desc": "千元／張",
+      "hot": true
+    },
+    {
+      "key": "ipoBigMin",
+      "value": 800,
+      "min": 200,
+      "max": 5000,
+      "step": 50,
+      "group": "市場",
+      "label": "股王檔申購價下限",
+      "desc": "千元／張",
+      "hot": true
+    },
+    {
+      "key": "ipoBigMax",
+      "value": 2500,
+      "min": 200,
+      "max": 5000,
+      "step": 50,
+      "group": "市場",
+      "label": "股王檔申購價上限",
+      "desc": "千元／張",
+      "hot": true
+    },
+    {
+      "key": "ipoSpreadMin",
+      "value": 0.1,
+      "min": 0.01,
+      "max": 3,
+      "step": 0.01,
+      "group": "市場",
+      "label": "預期價差率下限 g",
+      "desc": "上市後預期漲跌幅的下界",
+      "hot": true
+    },
+    {
+      "key": "ipoSpreadMax",
+      "value": 1.2,
+      "min": 0.01,
+      "max": 3,
+      "step": 0.01,
+      "group": "市場",
+      "label": "預期價差率上限 g",
+      "desc": "上市後預期漲跌幅的上界",
+      "hot": true
+    },
+    {
+      "key": "ipoQMin",
+      "value": 0.005,
+      "min": 0.001,
+      "max": 0.9,
+      "step": 0.001,
+      "group": "市場",
+      "label": "中籤率夾限下限",
+      "desc": "依 r/g 推導出的中籤率 q 不得低於此值",
+      "hot": true
+    },
+    {
+      "key": "ipoQMax",
+      "value": 0.3,
+      "min": 0.001,
+      "max": 0.9,
+      "step": 0.001,
+      "group": "市場",
+      "label": "中籤率夾限上限",
+      "desc": "依 r/g 推導出的中籤率 q 不得高於此值",
+      "hot": true
+    },
+    {
+      "key": "ipoListLo",
+      "value": 0.8,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.05,
+      "group": "市場",
+      "label": "上市價相對參考價下限",
+      "desc": "破發時的下界（相對參考價的倍數）",
+      "hot": true
+    },
+    {
+      "key": "ipoListHi",
+      "value": 1.2,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.05,
+      "group": "市場",
+      "label": "上市價相對參考價上限",
+      "desc": "上市價相對參考價的上界（相對參考價的倍數）",
+      "hot": true
+    },
+    {
+      "key": "ipoFee",
+      "value": 0.02,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "group": "市場",
+      "label": "申購處理費",
+      "desc": "千元；比照證交所處理費，申購即扣、不論中籤與否皆不退",
+      "hot": true
+    },
+    {
+      "key": "ipoNoticeFee",
+      "value": 0.05,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "group": "市場",
+      "label": "中籤通知工本費",
+      "desc": "千元；申購時預扣，沒中籤全額退還",
+      "hot": true
+    },
+    {
+      "key": "ipoWin1From",
+      "value": 8,
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "group": "市場",
+      "label": "第 1 次排程區間起點",
+      "desc": "輪次；第一次新股公告的排程隨機區間下界",
+      "hot": false
+    },
+    {
+      "key": "ipoWin1To",
+      "value": 20,
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "group": "市場",
+      "label": "第 1 次排程區間終點",
+      "desc": "輪次；第一次新股公告的排程隨機區間上界",
+      "hot": false
+    },
+    {
+      "key": "ipoWin2From",
+      "value": 25,
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "group": "市場",
+      "label": "第 2 次排程區間起點",
+      "desc": "輪次；第二次新股公告的排程隨機區間下界",
+      "hot": false
+    },
+    {
+      "key": "ipoWin2To",
+      "value": 45,
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "group": "市場",
+      "label": "第 2 次排程區間終點",
+      "desc": "輪次；第二次新股公告的排程隨機區間上界",
+      "hot": false
+    },
+    {
+      "key": "ipoWin2Chance",
+      "value": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "group": "市場",
+      "label": "第 2 次出現機率",
+      "desc": "一局是否會有第二次新股公告的機率",
+      "hot": true
+    },
+    {
+      "key": "ipoGraceTurns",
+      "value": 3,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "group": "市場",
+      "label": "保底輪數",
+      "desc": "排定輪次過後仍未觸發時，再等這麼多輪就強制保底開啟公告",
+      "hot": false
+    },
+    {
+      "key": "ipoNpcReserveMonths",
+      "value": 3,
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "group": "市場",
+      "label": "電腦玩家申購保留水位（月支出）",
+      "desc": "電腦玩家申購後，現金至少要保留這麼多個月的支出才會下單",
+      "hot": false
     }
   ]
 }

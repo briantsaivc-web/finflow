@@ -96,7 +96,8 @@ E.OFF_TURN_RESPOND = { RESPOND_TRADE:1, RESPOND_REFERRAL:1, RESPOND_P2P:1, RESPO
                        JOIN_SYNDICATE:1, DECLINE_SYNDICATE:1,
                        PLACE_BID:1, PROPOSE_P2P:1, TOP_UP_MARGIN:1,
                        PLAYER_LEAVE:1, PLAYER_RETURN:1, END_GAME:1, EXTEND_GAME:1,
-                       CONFIG_PATCH:1, CLEAR_TRADE:1 };
+                       CONFIG_PATCH:1, CLEAR_TRADE:1,
+                       IPO_SUBSCRIBE:1, IPO_DECLINE:1 };   // T-001：比照 JOIN/DECLINE_SYNDICATE，全場都能回應
 E.OFF_TURN_RESPOND_KEYS = function(){ return Object.keys(E.OFF_TURN_RESPOND); };
 /* S15：有條件開放的非回合動作。
    實測回饋：收到合資／轉介邀約時現金不夠，但明明還有借款額度——沒有借款入口，
@@ -171,7 +172,8 @@ E.PAYLOAD_SCHEMA = {
   PROPOSE_TRADE:{assetId:"id",price:"num"}, REFER_OPP:{cardId:"id"},   // partnerId／buyerId／targetId 為 null＝廣播（問所有人），不列必填
   REFINANCE:{liabilityId:"id"}, REPAY_LOAN:{liabilityId:"id"}, SELL_ASSET:{assetId:"id"}, SET_DCA:{symbol:"id"},
   SET_DIV_REINVEST:{symbol:"id"}, START_OPP_AUCTION:{cardId:"id"}, SUBMIT_MANUAL_BOOKS:{answers:"obj"},
-  TOP_UP_MARGIN:{liabilityId:"id"}, TRADE_STOCK:{symbol:"id",side:"id"} };
+  TOP_UP_MARGIN:{liabilityId:"id"}, TRADE_STOCK:{symbol:"id",side:"id"},
+  IPO_SUBSCRIBE:{ipoId:"id",tier:"id"}, IPO_DECLINE:{ipoId:"id"} };   // T-001
 // S43：registry 查詢（UI 開局時把 defaultParams 放在 ns.configRegistry.params；測試環境同）
 E.configParam = function(key){
   var reg = ns.configRegistry; var list = reg ? (Array.isArray(reg) ? reg : reg.params) : null;
@@ -1236,6 +1238,43 @@ E.apply = function(state, action, opts){
     E.syncPhase(S);
     break; }
 
+  /* T-001（ADR-001 D3）：新股申購／婉拒——比照 JOIN/DECLINE_SYNDICATE，全場任何人都能回應
+     （已在 E.OFF_TURN_RESPOND），不受目前是誰的回合、decisionQueue 是否有其他決策懸置影響。
+     S.ipo.pending 是廣播狀態，不是某個玩家的私有決策，所以不走 decisionQueue／DECIDE。 */
+  case "IPO_SUBSCRIBE": {
+    var ipS=S.ipo && S.ipo.pending; if(!ipS) return reject("NO_IPO");
+    if(action.payload.ipoId!==ipS.id) return reject("IPO_MISMATCH");
+    if(actor.bankrupt) return reject("BANKRUPT");
+    var tierS=action.payload.tier, tierDefS=ipS.tiers[tierS];
+    if(!tierDefS) return reject("IPO_TIER");
+    var subsS=ipS.subs[actor.id]||[];
+    if(subsS.indexOf(tierS)>=0) return reject("IPO_DUP");
+    var feeS=E.cfg(S,"ipoFee",0.02), noticeS=E.cfg(S,"ipoNoticeFee",0.05);
+    var costS=util.r2(tierDefS.P+feeS+noticeS);
+    if(actor.cash<costS) return reject("IPO_CASH");
+    accept();
+    ipS.subs[actor.id]=subsS.concat([tierS]);
+    var refIdS=ipS.id+"|"+tierS+"|"+actor.id;
+    ledger.post(S,actor,"新股申購："+tierDefS.name,
+      [{account:"CASH",delta:-costS,label:"申購款＋手續費"},
+       {account:"ASSET",delta:tierDefS.P,refId:refIdS,label:"申購預扣款："+tierDefS.name}],
+      {eduTags:["ipo"]});
+    actor.ipoEscrow=util.r2((actor.ipoEscrow||0)+tierDefS.P);
+    if(!isMyTurnAction) E.markOffTurnLedger(actor);      // 非回合做的帳，輪到自己時仍要記（T-001 地雷提醒）
+    E.ev("IPO_SUBSCRIBED",{ipoId:ipS.id, tier:tierS, playerId:actor.id, price:tierDefS.P});
+    E.syncPhase(S);
+    break; }
+
+  case "IPO_DECLINE": {
+    var ipD=S.ipo && S.ipo.pending; if(!ipD) return reject("NO_IPO");
+    if(action.payload.ipoId!==ipD.id) return reject("IPO_MISMATCH");
+    if(ipD.subs[actor.id] && ipD.subs[actor.id].length) return reject("IPO_DUP");
+    accept();
+    ipD.declined[actor.id]=true;
+    E.ev("IPO_DECLINED",{ipoId:ipD.id, playerId:actor.id});
+    E.syncPhase(S);
+    break; }
+
   case "END_GAME": {
     // 七期：玩家可隨時結束遊戲；V3：多人局房主可能不是 0 號座——任何真人皆可（UI 只給房主）
     var pe=S.players[action.playerId];
@@ -1759,6 +1798,9 @@ E.landing = function(S,p,space){
       var c = E.drawCard(S,"LIFESTYLE",function(c){return E.cardUsable(S,p,c);});
       if(c) E.presentCard(S,p,c); break; }
     case "MARKET": {
+      /* T-001（ADR-001 D5-1）：新股公告優先於市場卡——踩到格子時如果有一檔排定
+         且還沒觸發，直接開公告，不抽市場卡。 */
+      if(S.ipo && !S.ipo.pending && E.ipoDue(S)>=0){ E.openIpo(S,p); break; }
       var m = E.drawCard(S,"MARKET",function(c){return E.cardUsable(S,p,c);});
       if(m){ E.ev("CARD_DRAWN",{card:m.id});
         var impM=E.captureImpact(S,p,function(){ E.applyEffects(S,p,m.effects,m.title); });
@@ -2132,6 +2174,8 @@ E.resolveDecision = function(S,p,d,optionId,params){
       break;   // hold：什麼都不做，賭下一輪
     }
     case "ACK": case "TRIAL_RESULT": case "BLESSING": case "SKILL_RESULT":
+    case "IPO_ANNOUNCE":           // T-001：純公告——申購／婉拒走獨立的 IPO_SUBSCRIBE／IPO_DECLINE，
+                                    // 這裡只負責把「踩到格子的人」的待決事項清掉，不做任何金額異動
     case "DIGITAL_RESULT": {       // 起飛結果已於 tickDigital 結算；S30 起順便問「要不要請人」
       if(optionId!=="staff") break;
       var drD=(p.digitalAssets||[]).filter(function(x){ return x.id===d.digitalId && !x.dead; })[0];
@@ -3630,6 +3674,7 @@ E.checkRescued = function(S,p){
   }
 };
 E.declareBankrupt = function(S,p){
+  E.ipoRefundPlayer(S,p);                               // T-001：申購中的預扣款要先解除，才輪到 P2P 清算
   E.p2pLiquidate(S,p);                                  // §4：P2P 受償／打銷（在出局前結清）
   p.bankrupt=true;
   if(p.creditFlags) p.creditFlags.everBankrupt=true;   // M7：破產永久記錄
@@ -4136,7 +4181,7 @@ E.markOffTurnLedger = function(p){
 };
 E.buildBookkeeping = function(S,p){
   if(p.isNPC || S.config.automationLevel!==2){ S.bookkeeping=null; return; }
-  var DENY = ["valuation","dividend","event-end","inflation","rate","cashflow","bookkeeping"];
+  var DENY = ["valuation","dividend","event-end","inflation","rate","cashflow","bookkeeping","ipo-settle"];
   var doneMap={};
   if(S.bookkeeping && S.bookkeeping.turn===S.turnNumber && S.bookkeeping.playerId===p.id){
     S.bookkeeping.tasks.forEach(function(t){ if(t.done && t.key) doneMap[t.key]=true; });
@@ -4204,6 +4249,24 @@ E.beginTurn = function(S){
     var due = (p.id===psT.fromId && S.turnNumber>psT.openedTurn)
            || (!fromT || fromT.bankrupt || fromT.playerStage!=="INNER") && S.turnNumber>psT.openedTurn+1;
     if(due) E.settleSyndicate(S,"due");
+  }
+  /* T-001（ADR-001 D5-4）：新股結算接在集資（S39）之後——交叉影響裁決要求不得調整集資既有順序，
+     所以這段一定要放在上面那個 if(S.pendingSyndicate) 區塊之後。判斷邏輯比照集資的 due 算法：
+     輪到發起人、或發起人已經不在內圈而且過了一整輪。 */
+  if(S.ipo && S.ipo.pending){
+    var ipT=S.ipo.pending, fromIpT=S.players[ipT.fromId];
+    var dueIp = (p.id===ipT.fromId && S.turnNumber>ipT.openedTurn)
+             || (!fromIpT || fromIpT.bankrupt || fromIpT.playerStage!=="INNER") && S.turnNumber>ipT.openedTurn+1;
+    if(dueIp) E.settleIpo(S);
+  }
+  /* T-001（ADR-001 D5-2）：保底——排定輪次過了 ipoGraceTurns 都没人踩到 MARKET 格觸發，
+     在輪首（當前玩家是這一輪第一個未破產玩家）由他開啟公告，不再乾等。 */
+  if(S.ipo && !S.ipo.pending){
+    var idxG=E.ipoDue(S);
+    if(idxG>=0){
+      var graceT=E.cfg(S,"ipoGraceTurns",3);
+      if(S.ipo.schedule[idxG]+graceT < S.turnNumber && p===E.alive(S)[0]) E.openIpo(S,p);
+    }
   }
   if(p.skippedTurns>0){
     p.skippedTurns--;
@@ -4530,6 +4593,144 @@ E.settleSyndicate = function(S, why){
   if(fromP && !fromP.bankrupt && fromP.playerStage==="INNER" && S.activePlayerIdx===fromP.id && !S.over){
     E.pushDecision(S,fromP,{ kind:"BUY", cardId:ps.cardId, fromSyndicate:true });
   }
+};
+
+/* ===================== T-001（ADR-001）：新股抽籤的引擎函式 ===================== */
+// 排定的兩個窗口裡，第一個「還沒觸發、輪次已到」的索引；沒有就回 -1。
+E.ipoDue = function(S){
+  if(!S.ipo) return -1;
+  for(var i=0;i<S.ipo.schedule.length;i++){
+    if(!S.ipo.fired[i] && S.turnNumber>=S.ipo.schedule[i]) return i;
+  }
+  return -1;
+};
+// 發一檔（小資／股王）：申購價、預期價差、參考價、中籤率（依 r/g 夾限）、上市價、挑一筆內容包名稱。
+// 全部走 E.ipoRoll，同一個 ipoId+tier 底下每個用途各自獨立的 tag，互不干擾、可重放。
+E.ipoIssueTier = function(S, ipoId, tier){
+  var isSmall = tier==="SMALL";
+  var pMin = E.cfg(S, isSmall?"ipoSmallMin":"ipoBigMin", isSmall?30:800);
+  var pMax = E.cfg(S, isSmall?"ipoSmallMax":"ipoBigMax", isSmall?150:2500);
+  var gMin = E.cfg(S,"ipoSpreadMin",0.10), gMax = E.cfg(S,"ipoSpreadMax",1.20);
+  var qMin = E.cfg(S,"ipoQMin",0.005), qMax = E.cfg(S,"ipoQMax",0.30);
+  var listLo = E.cfg(S,"ipoListLo",0.80), listHi = E.cfg(S,"ipoListHi",1.20);
+  var evRate = E.cfg(S,"ipoEvRate",0.03);
+
+  var P = util.r2(pMin + E.ipoRoll(S, ipoId+"|"+tier+"|P")*(pMax-pMin));
+  var g = util.r2(gMin + E.ipoRoll(S, ipoId+"|"+tier+"|g")*(gMax-gMin));
+  if(!(g>0)) g=0.01;                                   // 防呆：夾限參數配成 0 也不能除以 0
+  var ref = util.r2(P*(1+g));
+  var q = Math.max(qMin, Math.min(qMax, evRate/g));
+  q = Math.round(q*10000)/10000;
+  var listMult = listLo + E.ipoRoll(S, ipoId+"|"+tier+"|list")*(listHi-listLo);
+  var listPrice = util.r2(ref*listMult);
+
+  var pool = ((ns.content.cards||{}).IPO_POOL||[]).filter(function(c){ return c.tier===tier; });
+  var poolId=null, name;
+  if(pool.length){
+    var idx = Math.floor(E.ipoRoll(S, ipoId+"|"+tier+"|pick")*pool.length);
+    if(idx>=pool.length) idx=pool.length-1;
+    poolId=pool[idx].id; name=pool[idx].title;
+  } else {
+    name = isSmall ? "新股 A" : "新股 B";                // D7：內容包池子是空的時候的兜底
+  }
+  return { poolId:poolId, name:name, P:P, g:g, ref:ref, q:q, listPrice:listPrice };
+};
+// 開公告：生成兩檔、讓電腦立刻決定、真人（踩到格子那位）才推 IPO_ANNOUNCE 決策。
+E.openIpo = function(S, p){
+  var idx = E.ipoDue(S); if(idx<0) return;
+  S.ipo.fired[idx]=true;
+  S.ipo.seq=(S.ipo.seq||0)+1;
+  var id = "IPO"+S.ipo.seq;
+  var tiers={};
+  ["SMALL","BIG"].forEach(function(tier){ tiers[tier]=E.ipoIssueTier(S,id,tier); });
+  S.ipo.pending = { id:id, fromId:p.id, openedTurn:S.turnNumber, tiers:tiers, subs:{}, declined:{} };
+  E.ev("IPO_OPENED",{id:id, fromId:p.id, tiers:tiers});
+  E.ipoPollNPC(S);
+  if(!p.isNPC) E.pushDecision(S,p,{ kind:"IPO_ANNOUNCE", ipoId:id });
+};
+// 電腦玩家：申購後現金至少要保留 ipoNpcReserveMonths 個月的支出，能負擔就申購（SMALL 再 BIG，固定順序、無隨機）。
+E.ipoPollNPC = function(S){
+  var ip = S.ipo && S.ipo.pending; if(!ip) return;
+  var reserveMo = E.cfg(S,"ipoNpcReserveMonths",3);
+  var fee = E.cfg(S,"ipoFee",0.02), notice = E.cfg(S,"ipoNoticeFee",0.05);
+  var npcs = S.players.filter(function(x){ return x.isNPC && !x.bankrupt && x.playerStage==="INNER"; });
+  npcs.forEach(function(q){
+    if(ip.declined[q.id]) return;
+    var reserve = reserveMo * q.derived.totalExpenses;
+    var already = ip.subs[q.id] || [];
+    ["SMALL","BIG"].forEach(function(tier){
+      if(already.indexOf(tier)>=0) return;
+      var tierDef = ip.tiers[tier]; if(!tierDef) return;
+      var cost = util.r2(tierDef.P+fee+notice);
+      if(q.cash-cost >= reserve){
+        already = already.concat([tier]);
+        ip.subs[q.id] = already;
+        var refId = ip.id+"|"+tier+"|"+q.id;
+        ledger.post(S,q,"新股申購："+tierDef.name,
+          [{account:"CASH",delta:-cost,label:"申購款＋手續費"},
+           {account:"ASSET",delta:tierDef.P,refId:refId,label:"申購預扣款："+tierDef.name}],
+          {eduTags:["ipo"]});
+        q.ipoEscrow = util.r2((q.ipoEscrow||0)+tierDef.P);
+        E.ev("IPO_SUBSCRIBED",{ipoId:ip.id, tier:tier, playerId:q.id, price:tierDef.P, npc:true});
+      }
+    });
+  });
+};
+// 結算：依 subs 的 key 做數字排序（不依賴物件插入順序），逐人、逐檔（固定 SMALL→BIG 順序）抽籤過帳。
+E.settleIpo = function(S){
+  var ip = S.ipo && S.ipo.pending; if(!ip) return;
+  var notice = E.cfg(S,"ipoNoticeFee",0.05);
+  var ids = Object.keys(ip.subs).map(Number).sort(function(a,b){ return a-b; });
+  var results=[];
+  ids.forEach(function(pid){
+    var who = S.players[pid]; if(!who || who.bankrupt) return;
+    var tiersSub = ip.subs[pid]||[];
+    ["SMALL","BIG"].forEach(function(tier){
+      if(tiersSub.indexOf(tier)<0) return;
+      var tierDef = ip.tiers[tier]; if(!tierDef) return;
+      var refId = ip.id+"|"+tier+"|"+pid;
+      var roll = E.ipoRoll(S, ip.id+"|"+tier+"|draw|"+pid);
+      var won = roll < tierDef.q;
+      var amount;
+      if(won){
+        amount = tierDef.listPrice;
+        ledger.post(S,who,"新股中籤："+tierDef.name,
+          [{account:"ASSET",delta:-tierDef.P,refId:refId,label:"申購預扣款結清："+tierDef.name},
+           {account:"CASH",delta:amount,label:"新股上市賣出："+tierDef.name}],
+          {eduTags:["ipo","ipo-settle"]});
+      } else {
+        amount = util.r2(tierDef.P+notice);
+        ledger.post(S,who,"新股未中籤："+tierDef.name,
+          [{account:"CASH",delta:amount,label:"退回申購款與通知費"},
+           {account:"ASSET",delta:-tierDef.P,refId:refId,label:"申購預扣款結清："+tierDef.name}],
+          {eduTags:["ipo","ipo-settle"]});
+      }
+      who.ipoEscrow = util.r2(Math.max(0,(who.ipoEscrow||0)-tierDef.P));
+      results.push({ playerId:pid, tier:tier, won:won, amount:amount });
+    });
+  });
+  S.ipo.history.push({ id:ip.id, fromId:ip.fromId, openedTurn:ip.openedTurn, settledTurn:S.turnNumber, results:results });
+  S.ipo.pending=null;
+  E.ev("IPO_SETTLED",{ id:ip.id, results:results });
+};
+// 破產：正式出局前把還在申購中的預扣款解除（退款＋沖銷 ASSET），並把這個人從 subs 移掉，
+// 之後正式結算不會再碰到他。掛勾點：E.declareBankrupt，在 p2pLiquidate 之前呼叫（ADR D5-5）。
+E.ipoRefundPlayer = function(S, p){
+  if(!S.ipo || !S.ipo.pending) return;
+  var ip = S.ipo.pending;
+  var subsP = ip.subs[p.id]; if(!subsP || !subsP.length) return;
+  var notice = E.cfg(S,"ipoNoticeFee",0.05);
+  ["SMALL","BIG"].forEach(function(tier){
+    if(subsP.indexOf(tier)<0) return;
+    var tierDef = ip.tiers[tier]; if(!tierDef) return;
+    var refId = ip.id+"|"+tier+"|"+p.id;
+    ledger.post(S,p,"破產前解除新股申購："+tierDef.name,
+      [{account:"CASH",delta:util.r2(tierDef.P+notice),label:"退回申購款與通知費"},
+       {account:"ASSET",delta:-tierDef.P,refId:refId,label:"申購預扣款結清："+tierDef.name}],
+      {eduTags:["ipo","ipo-settle"]});
+    p.ipoEscrow = util.r2(Math.max(0,(p.ipoEscrow||0)-tierDef.P));
+  });
+  delete ip.subs[p.id];
 };
 
 // V3：廣播借款輪詢電腦放款人——水位夠且利率達其動態下限的第一位 NPC 放款；全滅＝沒人肯借

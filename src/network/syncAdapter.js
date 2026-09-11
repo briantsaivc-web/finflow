@@ -882,6 +882,21 @@ function mpPendingBar(){
     else if(meS && !meS.isNPC && !meS.bankrupt && psN.shares[me]===undefined && !(psN.declined&&psN.declined[me]) && remN>1e-9)
       mk("📢 "+S.players[psN.fromId].name+" 發起集資「"+psN.title+"」","剩 "+Math.round(remN*100)+"%，點這裡認購",function(){ ui.showSyndicateOffer(psN); });
   }
+  // T-001：新股申購（比照 S39 集資的寫法；S.ipo.pending 是廣播狀態，任何真人都能申購／婉拒，
+  // 不受回合限制——只有「踩到格子的公告者」才會另外看到 IPO_ANNOUNCE 決策卡，這裡不重複顯示給他）
+  var ipN=S.ipo && S.ipo.pending;
+  if(ipN){
+    if(ipN.fromId===me)
+      mk("⏳ 新股申購公告中","上方決策卡選好小資／股王／都不要",null);
+    else {
+      var meIp=S.players[me];
+      var subsIp=(ipN.subs&&ipN.subs[me])||[];
+      var tierKeysIp=Object.keys(ipN.tiers||{}).sort();   // 只影響畫面顯示順序，不進 state／不影響 lockstep
+      var doneIp = ipN.declined&&ipN.declined[me] || (tierKeysIp.length>0 && tierKeysIp.every(function(k){ return subsIp.indexOf(k)>=0; }));
+      if(meIp && !meIp.isNPC && !meIp.bankrupt && !doneIp)
+        mk("📢 新股申購：點這裡申購","截止前可選小資／股王／都不要",function(){ ui.showIpoOffer(ipN); });
+    }
+  }
   var pj=S.pendingJV;
   if(pj){
     var meP2=S.players[me];

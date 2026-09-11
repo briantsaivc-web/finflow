@@ -928,6 +928,25 @@ ui.renderFinBoard = function(){
     }
     pw.appendChild(sl);
   }
+  // T-001（ADR-001）：進行中的新股申購——全場都看得到，還沒表態（或只表態了一檔）的真人可以點進去
+  var ipoRowX = S.ipo && S.ipo.pending;
+  if(ipoRowX){
+    any=true;
+    var tSx=ipoRowX.tiers.SMALL, tBx=ipoRowX.tiers.BIG;
+    var totalDoneX = Object.keys(ipoRowX.subs).length + Object.keys(ipoRowX.declined).length;
+    var aliveCountX = S.players.filter(function(x){ return !x.bankrupt; }).length;
+    var ipoRow=el("div","gold");
+    ipoRow.textContent="📢 新股申購中："+(tSx?("「"+tSx.name+"」"):"")+(tBx?("／「"+tBx.name+"」"):"")+
+      "　已表態 "+totalDoneX+"／"+aliveCountX;
+    var meIpoX=S.players[ui.myId()];
+    var mySubsX = meIpoX ? (ipoRowX.subs[meIpoX.id]||[]) : [];
+    var bothDoneX = mySubsX.length>=2;   // 小資／股王都申購過了，沒有再進去的必要
+    if(meIpoX && !meIpoX.isNPC && !meIpoX.bankrupt && !bothDoneX){
+      ipoRow.style.cursor="pointer"; ipoRow.title="點這裡申購／婉拒";
+      ipoRow.onclick=function(){ ui.showIpoOffer(ipoRowX); };
+    }
+    pw.appendChild(ipoRow);
+  }
   if(!any) pw.appendChild(el("div",null,"（沒有進行中的 P2P／合資）"));
   s4.appendChild(pw);
 };
@@ -1300,7 +1319,16 @@ ui.renderSheet = function(){
     {l:"負債", v:-d.totalLiabilities, cls:"neg"},
     {l:"淨值", v:d.netWorth, cls:d.netWorth>=0?"":"neg", total:true}
   ]));
-  fin.appendChild(g); box.appendChild(fin);
+  fin.appendChild(g);
+  /* T-001（ADR-001 D2）：申購預扣款純顯示用——金額已經含在上面「資產」裡（ledger 的 ASSET 分錄），
+     p.ipoEscrow 只是唯讀快取，這裡不拿它做任何加總，只補充說明「資產」裡有多少是還沒開獎的申購款。 */
+  if(p.ipoEscrow>0){
+    var ipoEscrowNote=el("div","flavor");
+    ipoEscrowNote.style.cssText="margin-top:4px;font-size:11.5px";
+    ipoEscrowNote.textContent="📢 其中新股申購預扣款 "+M(p.ipoEscrow)+"（已算在上方「資產」內，開獎前不能動用）";
+    fin.appendChild(ipoEscrowNote);
+  }
+  box.appendChild(fin);
 
   /* 自由／圓夢進度條 */
   var fr=el("div","freedom"); fr.setAttribute("data-tut","freedom");  // S20：互動教學錨點
@@ -2157,6 +2185,9 @@ ui.decisionOptBtn = function(p, op, i, decide){
   return b;
 };
 
+/* T-001（ADR-001）：新股抽籤——檔別標籤共用給決策卡與交易所「新股申購中」列 */
+ui.IPO_TIER_LABEL = { SMALL:"小資檔", BIG:"股王檔" };
+
 ui.decisionCard = function(S,p,d){
   var c=$("center"), card=el("div","card"), decId=d.decisionId;
   function decide(optionId, params){ ui.dispatch({type:"DECIDE",playerId:ui.myId(),payload:{decisionId:decId,optionId:optionId,params:params||{}}}); }
@@ -2619,6 +2650,70 @@ ui.decisionCard = function(S,p,d){
               : "可能全部歸零，也可能等到景氣翻身",
       function(){ decide("hold"); }));
     card.appendChild(oW); c.appendChild(card); return;
+  }
+
+  /* T-001（ADR-001 D5）：新股申購公告——兩檔（小資／股王）並排，申購／申購／都不要。
+     申購與婉拒走獨立的 IPO_SUBSCRIBE／IPO_DECLINE（不是 DECIDE 的 optionId 效果），
+     所以這裡的按鈕要先送出那個動作、再送 DECIDE 把這張公告卡收掉（resolveDecision 對
+     IPO_ANNOUNCE 只負責清待決事項，不做金額異動——見 applyAction.js 的 resolveDecision）。 */
+  if(d.kind==="IPO_ANNOUNCE"){
+    var ipA = S.ipo && S.ipo.pending;
+    if(!ipA || ipA.id!==d.ipoId){
+      // 理論上不該發生（只有踩到格子的真人會拿到這張卡，此時 pending 一定還在）；防禦性收尾。
+      card.appendChild(el("h3",null,"📢 新股申購"));
+      card.appendChild(el("div","flavor","這次公告已經結束了。"));
+      var oGone=el("div","opts");
+      oGone.appendChild(optBtn(T("act.continue"),null,function(){ decide("ok"); }));
+      card.appendChild(oGone); c.appendChild(card); return;
+    }
+    card.appendChild(el("h3",null,"📢 新股申購公告"));
+    card.appendChild(el("div","flavor",
+      "每局約 1–2 次。申購要先預扣款；「中籤率」是抽中的機率，抽中才會照「上市價」結算——不保證賺，"+
+      "上市價可能低於申購價（破發）。沒抽中的話，申購款會全額退回。"));
+    var feeA=E.cfg(S,"ipoFee",0.02), noticeA=E.cfg(S,"ipoNoticeFee",0.05);
+    var gridA=el("div","twoCol"); gridA.style.marginTop="8px";
+    ["SMALL","BIG"].forEach(function(tier){
+      var t=ipA.tiers[tier]; if(!t) return;
+      var boxA=el("div"); boxA.style.cssText="background:rgba(255,255,255,.03);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px";
+      boxA.appendChild(el("b","gold",(ui.IPO_TIER_LABEL[tier]||tier)+"　"+t.name));
+      var kvA=el("div","kv");
+      kvA.appendChild(el("div","k","申購價")); kvA.appendChild(el("div","v num",M(t.P)));
+      kvA.appendChild(el("div","k","參考價")); kvA.appendChild(el("div","v num",M(t.ref)));
+      kvA.appendChild(el("div","k","價差 g")); kvA.appendChild(el("div","v num",util.pct(t.g,0)));
+      kvA.appendChild(el("div","k","中籤率")); kvA.appendChild(el("div","v num",util.pct(t.q,2)));
+      boxA.appendChild(kvA);
+      if(t.g<0.25) boxA.appendChild(el("div","flavor","⚠ 價差偏低，可能破發。"));
+      var costLine=el("div"); costLine.style.cssText="font-size:12px;color:var(--tx2);margin-top:4px";
+      costLine.textContent="申購要先付 "+M(util.r2(t.P+feeA+noticeA))+"（含處理費 "+M(feeA)+"、通知費 "+M(noticeA)+"；沒中籤通知費也退）";
+      boxA.appendChild(costLine);
+      gridA.appendChild(boxA);
+    });
+    card.appendChild(gridA);
+    var smallDef=ipA.tiers.SMALL, bigDef=ipA.tiers.BIG;
+    var costSmall=smallDef?util.r2(smallDef.P+feeA+noticeA):0, costBig=bigDef?util.r2(bigDef.P+feeA+noticeA):0;
+    var affordSmall=!!smallDef && p.cash>=costSmall, affordBig=!!bigDef && p.cash>=costBig;
+    function subscribeTier(tier, def, afford){
+      if(!def) return;
+      if(!afford){ ui.hint("現金不夠付這一檔","warn"); return; }
+      ui.dispatch({type:"IPO_SUBSCRIBE",playerId:p.id,payload:{ipoId:ipA.id,tier:tier}});
+      decide("sub_"+tier.toLowerCase());
+    }
+    var oIpo=el("div","opts");
+    var bSmall=optBtn("申購"+(ui.IPO_TIER_LABEL.SMALL||"小資檔"),
+      smallDef ? (affordSmall?("付 "+M(costSmall)+"　中籤率 "+util.pct(smallDef.q,2)):"現金不夠付這一檔") : "這次沒有這一檔",
+      function(){ subscribeTier("SMALL", smallDef, affordSmall); }, affordSmall);
+    if(!smallDef || !affordSmall){ bSmall.disabled=true; bSmall.style.opacity=".5"; }
+    oIpo.appendChild(bSmall);
+    var bBig=optBtn("申購"+(ui.IPO_TIER_LABEL.BIG||"股王檔"),
+      bigDef ? (affordBig?("付 "+M(costBig)+"　中籤率 "+util.pct(bigDef.q,2)):"現金不夠付這一檔") : "這次沒有這一檔",
+      function(){ subscribeTier("BIG", bigDef, affordBig); }, affordBig);
+    if(!bigDef || !affordBig){ bBig.disabled=true; bBig.style.opacity=".5"; }
+    oIpo.appendChild(bBig);
+    oIpo.appendChild(optBtn("都不要","不參與這次申購——結算前都還能從交易所的「新股申購中」再進來改主意",function(){
+      ui.dispatch({type:"IPO_DECLINE",playerId:p.id,payload:{ipoId:ipA.id}});
+      decide("decline");
+    }));
+    card.appendChild(oIpo); c.appendChild(card); return;
   }
 
   if(d.kind==="RENEW_MALL"){
@@ -4486,6 +4581,56 @@ ui.showSyndicateOffer = function(ps){
     ui.dispatch({type:"DECLINE_SYNDICATE",playerId:ui.myId(),payload:null}); }));
   o.appendChild(optBtn("先看看","關掉，之後從交易所再進來",function(){ ov.remove(); }));
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
+};
+
+/* ===================== T-001（ADR-001）：新股抽籤 =====================
+   從交易所「📢 新股申購中」列點進來的面板——初次公告的決策卡（ui.decisionCard 的
+   IPO_ANNOUNCE 段落）只給三個按鈕（申購小資／申購股王／都不要，一次只能選一檔），
+   這裡則是給「決策卡已經關掉、但還沒申購到兩檔、也還能改主意」的人繼續操作用，
+   例如申購了小資檔之後想追加股王檔，或婉拒了之後改變心意。 */
+ui.showIpoOffer = function(ip){
+  var S=ui.S; if(!ip || !S) return;
+  var me=S.players[ui.myId()];
+  if(!me || me.isNPC || me.bankrupt) return;
+  var mySubs = ip.subs[me.id]||[];
+  if(mySubs.length>=2) return;   // 兩檔都申購過了，沒有東西可以再做
+  var fee=E.cfg(S,"ipoFee",0.02), notice=E.cfg(S,"ipoNoticeFee",0.05);
+  var ov=el("div","overlay"), box=el("div","sheetbox"); box.style.maxWidth="560px";
+  box.appendChild(el("h2",null,"📢 新股申購"));
+  box.appendChild(el("div","sub","你的現金 "+M(me.cash)+"。中籤率是抽中的機率，抽中才照上市價結算，可能賺也可能賠（破發）。"));
+  var gridI=el("div","twoCol"); gridI.style.marginTop="6px";
+  ["SMALL","BIG"].forEach(function(tier){
+    var t=ip.tiers[tier]; if(!t) return;
+    var done = mySubs.indexOf(tier)>=0;
+    var cost = util.r2(t.P+fee+notice);
+    var afford = me.cash>=cost;
+    var secI=el("div"); secI.style.cssText="background:rgba(255,255,255,.03);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px";
+    secI.appendChild(el("b","gold",(ui.IPO_TIER_LABEL[tier]||tier)+"　"+t.name+(done?"　✅ 已申購":"")));
+    var kvI=el("div","kv");
+    kvI.appendChild(el("div","k","申購價")); kvI.appendChild(el("div","v num",M(t.P)));
+    kvI.appendChild(el("div","k","參考價")); kvI.appendChild(el("div","v num",M(t.ref)));
+    kvI.appendChild(el("div","k","價差 g")); kvI.appendChild(el("div","v num",util.pct(t.g,0)));
+    kvI.appendChild(el("div","k","中籤率")); kvI.appendChild(el("div","v num",util.pct(t.q,2)));
+    secI.appendChild(kvI);
+    if(t.g<0.25) secI.appendChild(el("div","flavor","⚠ 價差偏低，可能破發。"));
+    if(!done){
+      var bI=optBtn("申購（付 "+M(cost)+"）", afford?("中籤率 "+util.pct(t.q,2)):"現金不夠付這一檔", function(){
+        if(!afford){ ui.hint("現金不夠付這一檔","warn"); return; }
+        ov.remove(); ui.dispatch({type:"IPO_SUBSCRIBE",playerId:me.id,payload:{ipoId:ip.id,tier:tier}});
+      }, afford);
+      if(!afford){ bI.disabled=true; bI.style.opacity=".5"; }
+      secI.appendChild(bI);
+    }
+    gridI.appendChild(secI);
+  });
+  box.appendChild(gridI);
+  var oI=el("div","opts");
+  if(!mySubs.length && !ip.declined[me.id]){
+    oI.appendChild(optBtn("都不要","不參與這次申購（之後結算前都還能再進來改主意）",function(){
+      ov.remove(); ui.dispatch({type:"IPO_DECLINE",playerId:me.id,payload:{ipoId:ip.id}}); }));
+  }
+  oI.appendChild(optBtn("先看看","關掉，之後從交易所再進來",function(){ ov.remove(); }));
+  box.appendChild(oI); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
 // 拍賣結果 modal：逐家亮出出價 → 宣布得標者與價金
