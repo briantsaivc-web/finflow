@@ -4646,7 +4646,14 @@ E.openIpo = function(S, p){
   S.ipo.pending = { id:id, fromId:p.id, openedTurn:S.turnNumber, tiers:tiers, subs:{}, declined:{} };
   E.ev("IPO_OPENED",{id:id, fromId:p.id, tiers:tiers});
   E.ipoPollNPC(S);
-  if(!p.isNPC) E.pushDecision(S,p,{ kind:"IPO_ANNOUNCE", ipoId:id });
+  // T-004：不只是觸發者——全場還在場、沒破產的真人都直接跳卡，不再只靠交易所被動列＋toast。
+  // 比照既有 STOCK_GAIN（contentNpcSim.js:103-116，onRoundEnd 對所有真人跳卡）的既定作法：
+  // 決策卡各自獨立掛在 decisionQueue 上，擁有者各自是 S.pendingDecision.playerId，
+  // 不受「現在輪到誰」限制（uiCore.js:1880-1886 既有規則），FIFO 逐一跳出、互不干擾。
+  S.players.forEach(function(q){
+    if(q.isNPC || q.bankrupt) return;
+    E.pushDecision(S, q, { kind:"IPO_ANNOUNCE", ipoId:id });
+  });
 };
 // 電腦玩家：申購後現金至少要保留 ipoNpcReserveMonths 個月的支出，能負擔就申購（SMALL 再 BIG，固定順序、無隨機）。
 E.ipoPollNPC = function(S){

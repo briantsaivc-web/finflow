@@ -47,6 +47,23 @@ function play(MAXT){
   let guard=0;
   while(!ui.S.over && ui.S.turnNumber<=MAXT && guard++<20000){
     const act=E.activePlayer(ui.S);
+    // T-004 修復後：pendingDecision 的擁有者可能不是 act（例如電腦回合中，
+    // IPO_ANNOUNCE／STOCK_GAIN 這類事件把決策推給了另一位真人）。真人可以在
+    // 非自己回合解掉自己的決策（引擎既有規則 E.OFF_TURN_CONDITIONAL.DECIDE，
+    // applyAction.js:119-122），這條路徑要排在「把當前玩家臨時當電腦算下一步」之前處理，
+    // 不能只靠「輪到誰」來決定要不要理決策卡（比照 uiViews.js T-59 (b) 段修法 C 的同一套手法）。
+    const dOwner = ui.S.pendingDecision && ui.S.pendingDecision.playerId!==undefined
+                   && ui.S.pendingDecision.playerId!==null ? ui.S.players[ui.S.pendingDecision.playerId] : null;
+    if(dOwner && !dOwner.isNPC && dOwner.id!==act.id){
+      const rD=E.apply(ui.S,{type:"DECIDE",playerId:dOwner.id,
+        payload:{decisionId:ui.S.pendingDecision.decisionId,optionId:"skip",params:{}}});
+      if(!rD.rejected){
+        ui.S=rD.state; ui.handleEvents(rD.events);
+        try{ ui.render(); }catch(e){}
+        document.querySelectorAll('#overlays .overlay').forEach(o=>o.remove());
+        continue;
+      }
+    }
     const wasNPC=act.isNPC;
     if(!wasNPC){ act.isNPC=true; act.npcPersonality=act.npcPersonality||"NPC_SAFE"; }
     let a=ns.npc.nextAction(ui.S);

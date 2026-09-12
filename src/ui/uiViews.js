@@ -741,6 +741,16 @@ ui.tick = function(){
     // 正在等真人出價／回應：這是規則要求的等待，不是卡住。安靜停下，由等待畫面接手。
     var wOn = E.waitingOnHumans(ui.S);
     if(wOn && wOn.waiting && wOn.waiting.length){ ui._stall=0; ui.render(); return; }
+    // T-004 修復：待決策若不屬於現在正在跑的這個電腦（多半是屬於某位真人，例如
+    // IPO_ANNOUNCE／STOCK_GAIN 這類「開盤／達門檻當下 forEach 推給所有真人」的機制），
+    // 不要硬闖去幫電腦想動作——那一定會被引擎拒絕，白白空轉到 showStuck 誤報。
+    // 決策卡本身已經由 renderCenter（見 uiCore.js 修法 A）正確渲染給真正的擁有者了，
+    // 這裡只要安靜等它被解掉即可。
+    var curId = E.activePlayer(ui.S).id;
+    var pd = ui.S.pendingDecision;
+    if(pd && pd.playerId!==undefined && pd.playerId!==null && pd.playerId!==curId){
+      ui._stall=0; ui.render(); return;
+    }
     var sigBefore = ui.tickSig();
     var threw = null;
     try{
@@ -5509,6 +5519,24 @@ ns.selftest = {
         var g2=0, idle=0;
         while(!S2.over && g2++<4000){
           var cur=E.activePlayer(S2);
+          // T-004 修復後：pendingDecision 的擁有者可能不是 cur（例如電腦回合中，
+          // IPO_ANNOUNCE／STOCK_GAIN 這類事件把決策推給了另一位真人）。真人可以在
+          // 非自己回合解掉自己的決策（引擎既有規則 E.OFF_TURN_CONDITIONAL.DECIDE，
+          // applyAction.js:119-122），這條路徑要排在「當前玩家是不是電腦」之前處理，
+          // 不能只靠「輪到誰」來決定要不要理決策卡（真實 UI 的對應修法見 uiCore.js
+          // renderCenter／ui.tick，這個測試是模擬那兩處修好之後的行為）。
+          var dOwner = S2.pendingDecision && S2.pendingDecision.playerId!==undefined
+                       && S2.pendingDecision.playerId!==null ? S2.players[S2.pendingDecision.playerId] : null;
+          if(dOwner && !dOwner.isNPC && dOwner.id!==cur.id){
+            var rD=E.apply(S2,{type:"DECIDE",playerId:dOwner.id,
+              payload:{decisionId:S2.pendingDecision.decisionId,optionId:"skip",params:{}}},{mutate:true});
+            if(rD.rejected){
+              stuck="真人在非自己回合解不掉自己的懸置決策（phase="+S2.phase+"，待決策 "+
+                S2.pendingDecision.kind+" 屬於 P"+dOwner.id+"，目前輪到 P"+cur.id+"）";
+              break;
+            }
+            S2=rD.state; continue;
+          }
           if(!cur.isNPC){
             var act=null;
             if(S2.phase==="BOOKKEEPING" && S2.bookkeeping && S2.bookkeeping.playerId===cur.id){

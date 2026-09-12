@@ -1866,16 +1866,8 @@ ui.renderCenter = function(){
     bc.appendChild(wbox); return;
   }
 
-  // NPC 思考中：留在盤面中央，不擋畫面
-  if(p.isNPC){
-    var think=el("div","npcThink");
-    think.appendChild(el("b",null,p.name+" 思考中…"));
-    var per=ns.content.personalityById[p.npcPersonality];
-    think.appendChild(el("div",null,per.name+"　現金 "+M(p.cash)+"　被動 "+M(p.derived.passiveIncome)));
-    bc.appendChild(think); return;
-  }
-
-  // 決策卡／記帳：置中 modal
+  // 決策卡／破產：跟「現在輪到誰」無關，卡片歸屬者才是誰要看——必須排在「NPC 思考中」之前，
+  // 否則當前回合玩家剛好是電腦時，真人會被下面那段擋住，永遠看不到自己的決策卡（T-004 查證）。
   if(S.phase==="DECISION" || S.phase==="BANKRUPTCY"){
     // S15d：決策卡的主體必須是決策的擁有者，不是當前回合玩家。
     // 多人局裡決策可能屬於別人（例如 STOCK_GAIN 停利提示在 onRoundEnd 對所有真人發），
@@ -1886,6 +1878,14 @@ ui.renderCenter = function(){
     ui.modalOn(true); ui.decisionCard(S,dp,dOwn); return;
   }
   if(S.phase==="BOOKKEEPING"){ ui.modalOn(true); ui.renderBookkeeping(S,p); return; }
+  // NPC 思考中：留在盤面中央，不擋畫面（走到這裡代表沒有任何人的決策或記帳懸置中）
+  if(p.isNPC){
+    var think=el("div","npcThink");
+    think.appendChild(el("b",null,p.name+" 思考中…"));
+    var per=ns.content.personalityById[p.npcPersonality];
+    think.appendChild(el("div",null,per.name+"　現金 "+M(p.cash)+"　被動 "+M(p.derived.passiveIncome)));
+    bc.appendChild(think); return;
+  }
 
   // 擲骰／結束回合：盤面中央
   if(S.phase==="ROLL"){

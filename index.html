@@ -725,7 +725,7 @@ var ledger = ns.ledger = {
 /* ----------------------------- ns.engine --------------------------------- */
 var E = ns.engine = {};
 E.VERSION = 1;
-ns.BUILD = { ver:"v2.53.0-S45", date:"2026-09-11" };   // 顯示於系統訊息與開局畫面
+ns.BUILD = { ver:"v2.53.1-S46", date:"2026-09-12" };   // 顯示於系統訊息與開局畫面
 E._events = [];
 E.ev = function(t,d){ d=d||{}; d.type=t; E._events.push(d); return d; };
 
@@ -6678,7 +6678,14 @@ E.openIpo = function(S, p){
   S.ipo.pending = { id:id, fromId:p.id, openedTurn:S.turnNumber, tiers:tiers, subs:{}, declined:{} };
   E.ev("IPO_OPENED",{id:id, fromId:p.id, tiers:tiers});
   E.ipoPollNPC(S);
-  if(!p.isNPC) E.pushDecision(S,p,{ kind:"IPO_ANNOUNCE", ipoId:id });
+  // T-004：不只是觸發者——全場還在場、沒破產的真人都直接跳卡，不再只靠交易所被動列＋toast。
+  // 比照既有 STOCK_GAIN（contentNpcSim.js:103-116，onRoundEnd 對所有真人跳卡）的既定作法：
+  // 決策卡各自獨立掛在 decisionQueue 上，擁有者各自是 S.pendingDecision.playerId，
+  // 不受「現在輪到誰」限制（uiCore.js:1880-1886 既有規則），FIFO 逐一跳出、互不干擾。
+  S.players.forEach(function(q){
+    if(q.isNPC || q.bankrupt) return;
+    E.pushDecision(S, q, { kind:"IPO_ANNOUNCE", ipoId:id });
+  });
 };
 // 電腦玩家：申購後現金至少要保留 ipoNpcReserveMonths 個月的支出，能負擔就申購（SMALL 再 BIG，固定順序、無隨機）。
 E.ipoPollNPC = function(S){
@@ -10491,16 +10498,8 @@ ui.renderCenter = function(){
     bc.appendChild(wbox); return;
   }
 
-  // NPC 思考中：留在盤面中央，不擋畫面
-  if(p.isNPC){
-    var think=el("div","npcThink");
-    think.appendChild(el("b",null,p.name+" 思考中…"));
-    var per=ns.content.personalityById[p.npcPersonality];
-    think.appendChild(el("div",null,per.name+"　現金 "+M(p.cash)+"　被動 "+M(p.derived.passiveIncome)));
-    bc.appendChild(think); return;
-  }
-
-  // 決策卡／記帳：置中 modal
+  // 決策卡／破產：跟「現在輪到誰」無關，卡片歸屬者才是誰要看——必須排在「NPC 思考中」之前，
+  // 否則當前回合玩家剛好是電腦時，真人會被下面那段擋住，永遠看不到自己的決策卡（T-004 查證）。
   if(S.phase==="DECISION" || S.phase==="BANKRUPTCY"){
     // S15d：決策卡的主體必須是決策的擁有者，不是當前回合玩家。
     // 多人局裡決策可能屬於別人（例如 STOCK_GAIN 停利提示在 onRoundEnd 對所有真人發），
@@ -10511,6 +10510,14 @@ ui.renderCenter = function(){
     ui.modalOn(true); ui.decisionCard(S,dp,dOwn); return;
   }
   if(S.phase==="BOOKKEEPING"){ ui.modalOn(true); ui.renderBookkeeping(S,p); return; }
+  // NPC 思考中：留在盤面中央，不擋畫面（走到這裡代表沒有任何人的決策或記帳懸置中）
+  if(p.isNPC){
+    var think=el("div","npcThink");
+    think.appendChild(el("b",null,p.name+" 思考中…"));
+    var per=ns.content.personalityById[p.npcPersonality];
+    think.appendChild(el("div",null,per.name+"　現金 "+M(p.cash)+"　被動 "+M(p.derived.passiveIncome)));
+    bc.appendChild(think); return;
+  }
 
   // 擲骰／結束回合：盤面中央
   if(S.phase==="ROLL"){
@@ -14859,6 +14866,16 @@ ui.tick = function(){
     // 正在等真人出價／回應：這是規則要求的等待，不是卡住。安靜停下，由等待畫面接手。
     var wOn = E.waitingOnHumans(ui.S);
     if(wOn && wOn.waiting && wOn.waiting.length){ ui._stall=0; ui.render(); return; }
+    // T-004 修復：待決策若不屬於現在正在跑的這個電腦（多半是屬於某位真人，例如
+    // IPO_ANNOUNCE／STOCK_GAIN 這類「開盤／達門檻當下 forEach 推給所有真人」的機制），
+    // 不要硬闖去幫電腦想動作——那一定會被引擎拒絕，白白空轉到 showStuck 誤報。
+    // 決策卡本身已經由 renderCenter（見 uiCore.js 修法 A）正確渲染給真正的擁有者了，
+    // 這裡只要安靜等它被解掉即可。
+    var curId = E.activePlayer(ui.S).id;
+    var pd = ui.S.pendingDecision;
+    if(pd && pd.playerId!==undefined && pd.playerId!==null && pd.playerId!==curId){
+      ui._stall=0; ui.render(); return;
+    }
     var sigBefore = ui.tickSig();
     var threw = null;
     try{
@@ -15733,10 +15750,29 @@ ns.selftest = {
       assert(S2.turnNumber===tn,"續攤應接回原本那一輪，實得 "+S2.turnNumber+" 期望 "+tn);
       assert(S2.config.maxTurns>tn,"續攤後上限必須大於當前輪次，否則會立刻再結算一次");
       assert(S2.phase!=="GAME_OVER","續攤後應回到可行動的階段，實得 "+S2.phase);
-      // 續攤不是重開：現金水位必須連續（發薪造成的變動只可能在自己那一輪）
+      // 續攤不是重開：現金水位必須連續。允許變動的只有：
+      // (1) 接回當事人（player 0，本情境固定，發薪）
+      // (2) ADR-001 D5-2／D5-3：若續攤這次 beginTurn 剛好觸發 IPO 保底補開，
+      //     E.openIpo 會同步呼叫 E.ipoPollNPC 讓符合條件的電腦玩家立即申購——
+      //     這是 T-001 既有設計行為，不是 bug，允許這些玩家的現金也變動，
+      //     但變動金額必須精確等於「申購款＋手續費＋通知費」，防止真的有
+      //     其他未預期的 bug 藏在這條路徑裡被誤判為「反正是 IPO 就放行」。
+      var ipoSubs=r2.events.filter(function(e){
+        return e.type==="IPO_SUBSCRIBED" && e.npc===true; });
+      var allowed={0:true};
+      ipoSubs.forEach(function(e){ allowed[e.playerId]=true; });
       var cashA=S2.players.map(function(z){return z.cash;});
-      assert(cashA.filter(function(c,i){ return c!==+cashB.split("|")[i]; }).length<=1,
-        "續攤不得重算超過一位玩家的現金（發薪只該發給接回的那一位）");
+      var badIdx=cashA.map(function(c,i){ return i; }).filter(function(i){
+        return cashA[i]!==+cashB.split("|")[i] && !allowed[i]; });
+      assert(badIdx.length===0,
+        "續攤不得重算「當事人＋保底IPO同步申購的電腦玩家」以外的現金，異常玩家 idx="+badIdx.join(","));
+      ipoSubs.forEach(function(e){
+        var before=+cashB.split("|")[e.playerId], after=cashA[e.playerId];
+        var expectDelta=-util.r2(e.price+E.cfg(S2,"ipoFee",0.02)+E.cfg(S2,"ipoNoticeFee",0.05));
+        assert(Math.abs((after-before)-expectDelta)<1e-6,
+          "電腦玩家因保底IPO被動申購的現金變動應等於「申購款＋手續費＋通知費」，playerId="+e.playerId+
+          " 實得差額 "+(after-before)+" 期望 "+expectDelta);
+      });
 
       // (c) 圓夢／全員破產結束的局不得續攤——那是真的分出勝負
       var S3=mkGame(8603); S3.over=true; S3.winner=0; S3.overReason="DREAM"; E.syncPhase(S3);
@@ -19608,6 +19644,24 @@ ns.selftest = {
         var g2=0, idle=0;
         while(!S2.over && g2++<4000){
           var cur=E.activePlayer(S2);
+          // T-004 修復後：pendingDecision 的擁有者可能不是 cur（例如電腦回合中，
+          // IPO_ANNOUNCE／STOCK_GAIN 這類事件把決策推給了另一位真人）。真人可以在
+          // 非自己回合解掉自己的決策（引擎既有規則 E.OFF_TURN_CONDITIONAL.DECIDE，
+          // applyAction.js:119-122），這條路徑要排在「當前玩家是不是電腦」之前處理，
+          // 不能只靠「輪到誰」來決定要不要理決策卡（真實 UI 的對應修法見 uiCore.js
+          // renderCenter／ui.tick，這個測試是模擬那兩處修好之後的行為）。
+          var dOwner = S2.pendingDecision && S2.pendingDecision.playerId!==undefined
+                       && S2.pendingDecision.playerId!==null ? S2.players[S2.pendingDecision.playerId] : null;
+          if(dOwner && !dOwner.isNPC && dOwner.id!==cur.id){
+            var rD=E.apply(S2,{type:"DECIDE",playerId:dOwner.id,
+              payload:{decisionId:S2.pendingDecision.decisionId,optionId:"skip",params:{}}},{mutate:true});
+            if(rD.rejected){
+              stuck="真人在非自己回合解不掉自己的懸置決策（phase="+S2.phase+"，待決策 "+
+                S2.pendingDecision.kind+" 屬於 P"+dOwner.id+"，目前輪到 P"+cur.id+"）";
+              break;
+            }
+            S2=rD.state; continue;
+          }
           if(!cur.isNPC){
             var act=null;
             if(S2.phase==="BOOKKEEPING" && S2.bookkeeping && S2.bookkeeping.playerId===cur.id){

@@ -365,6 +365,48 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
       return "電腦踩格：直接處理、不卡決策佇列";
     });
 
+    /* T-004：E.openIpo 從「只推給觸發者（且限真人）」改成「開盤當下同步推給全場還在場、沒破產的真人」。
+       mk() 目前只支援「player0 真人＋其餘電腦」或「全電腦」，這裡依補充裁決文件指示，
+       在 mk() 建局後手動把 S.players[1].isNPC 也改成 false，湊出「≥2 真人＋≥1 電腦」的混合局。 */
+    step("D5-1c（T-004）：電腦觸發開盤 → 場上所有真人（不只觸發者）都收到 IPO_ANNOUNCE，且互不干擾",()=>{
+      const S=mk(20,false); S.players[1].isNPC=false;   // player0、player1 真人；player2、player3 電腦
+      forceDue(S);
+      const npcTrigger=S.players[2];
+      A(npcTrigger.isNPC, "player2 應該仍是電腦，作為本測試的觸發者");
+      E.openIpo(S, npcTrigger);
+      E.syncPhase(S);
+      [0,1].forEach(id=>{
+        const cards=S.decisionQueue.filter(d=>d.kind==="IPO_ANNOUNCE" && d.playerId===id);
+        A(cards.length===1, "真人 player"+id+" 應該剛好收到一筆 IPO_ANNOUNCE，實得 "+cards.length);
+      });
+      [2,3].forEach(id=>{
+        const cards=S.decisionQueue.filter(d=>d.kind==="IPO_ANNOUNCE" && d.playerId===id);
+        A(cards.length===0, "電腦 player"+id+" 不該收到 IPO_ANNOUNCE，實得 "+cards.length);
+      });
+      A(S.pendingDecision && S.pendingDecision.kind==="IPO_ANNOUNCE" && S.pendingDecision.playerId===0,
+        "FIFO：第一筆待決應是 player0 的卡，實得 "+JSON.stringify(S.pendingDecision));
+      const p1CardBefore=S.decisionQueue.filter(d=>d.playerId===1)[0];
+      const p1DecisionId=p1CardBefore.decisionId;
+      // 既有守衛（applyAction.js:234-236 的 OFF_TURN_CONDITIONAL.DECIDE，與 324-325 的 NOT_YOUR_DECISION）
+      // 不該被本次改動破壞：player1 不能代答 player0 的卡。此處 player1 不是當前回合玩家，
+      // 實際命中的是 234-236 的 NOT_YOUR_TURN（DECIDE 的 off-turn 條件要求 d.playerId===actor.id 才放行）；
+      // 若換成當前回合玩家代答別人的卡，命中的會是 switch 內的 NOT_YOUR_DECISION——兩層守衛共同確保
+      // 代答別人的卡一定被拒，這裡只驗證「一定被拒」，不鎖死是哪一種 reject 碼。
+      const wrong=ap(S,{type:"DECIDE",playerId:1,payload:{decisionId:S.pendingDecision.decisionId,optionId:"ok"}});
+      A(wrong.rejected, "player1 不該能代答 player0 的卡，實得 "+JSON.stringify(wrong.rejected));
+      const r0=ap(S,{type:"DECIDE",playerId:0,payload:{decisionId:S.pendingDecision.decisionId,optionId:"ok"}});
+      A(!r0.rejected, "player0 解自己的卡應該成功，實得 "+rejOf(r0));
+      // player1 的卡不受 player0 解卡影響：decisionId 不變、仍在佇列裡。
+      const p1CardAfter=S.decisionQueue.filter(d=>d.playerId===1)[0];
+      A(p1CardAfter && p1CardAfter.decisionId===p1DecisionId, "player1 的卡應該完全不受 player0 解卡影響");
+      A(S.pendingDecision && S.pendingDecision.kind==="IPO_ANNOUNCE" && S.pendingDecision.playerId===1,
+        "player0 解完後，pendingDecision 應該換到 player1，實得 "+JSON.stringify(S.pendingDecision));
+      const r1=ap(S,{type:"DECIDE",playerId:1,payload:{decisionId:S.pendingDecision.decisionId,optionId:"ok"}});
+      A(!r1.rejected, "player1 解自己的卡也應該成功，實得 "+rejOf(r1));
+      A(S.decisionQueue.filter(d=>d.kind==="IPO_ANNOUNCE").length===0, "兩張都解完後，佇列裡不該再有 IPO_ANNOUNCE");
+      return "電腦觸發後，2 位真人各自收到卡、互不干擾、依序解卡成功";
+    });
+
     /* 全局整合：AI 對手路徑跑一整局（含破產／畢業等各種收尾）不噴錯、不產生 NaN、ASSET 分錄與 p.assets 不衝突。 */
     step("整合：8 個種子全電腦局，ipoLottery=1 全程跑完，無 NaN、無帳本殘留、gate 同款不變式成立",()=>{
       const seeds=[1,2,3,4,5,42,777,31337];
@@ -432,8 +474,8 @@ async function runS2Page(r1){
     const cfg=ns.buildConfig(ns.configRegistry);
     const MODS=["M1","M2","M3","M4","M6","M8"];
     // 四人局：0 號真人（ui.myId() 預設 0，單機不開 ui.mp），其餘電腦——跟 s39test 同款佈置
-    const four=["我","小美","槓桿哥","風投弟"].map((n,i)=>({name:n,isNPC:i>=2,
-      personality:["","","NPC_LEVER","NPC_VC"][i],
+    const four=["我","小美","槓桿哥","風投弟"].map((n,i)=>({name:n,isNPC:i>=1,
+      personality:["","NPC_SAFE","NPC_LEVER","NPC_VC"][i],
       professionId:ns.content.professions[i*4].id, dreamCardId:ns.content.dreams[i].id}));
     const fresh=(seed,ov)=>{ const c=util.clone(cfg); c.ipoLottery=1; if(ov) Object.keys(ov).forEach(k=>c[k]=ov[k]);
       ui.startCore(seed||4500, c, MODS, four, {noRules:true}); close(); ui.notifyMode="S35"; return ui.S; };
