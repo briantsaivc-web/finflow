@@ -160,6 +160,8 @@ tut.open = function(){
   /* 載入自己＋#tut：子層會自己起示範局並畫熱點。
      file:// 下父層讀不進子層（opaque origin），所以互動全部在子層完成。 */
   fr.src = location.pathname + (location.search||"") + "#tut";
+  // 讓鍵盤 →／← 一開教學就有作用（不必先點一下示範畫面）
+  fr.addEventListener("load", function(){ try{ fr.contentWindow.focus(); }catch(e){} });
   ov.appendChild(fr);
   $("overlays").appendChild(ov);
 };
@@ -393,7 +395,7 @@ tut.bar = function(f, vh){
   next.onclick=function(){ if(free){ tut.goto(0); } else tut.go(1); };
   var lbl = ui.mkEl("span","lbl", free
       ? (tut.state.sel==null ? "自由模式——點編號看說明" : "點同一個編號可收起")
-      : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步"));
+      : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步　左鍵下一步・右鍵上一步"));
   var mode = ui.mkEl("button","act", free ? "🎯 一步一步帶" : "🖐 自由點");
   mode.onclick=function(){ tut.setMode(free?"guided":"free"); };
   var pit = ui.mkEl("button","act","⚠ 會害你輸的七件事");
@@ -474,6 +476,32 @@ tut.boot = function(){
     if(raf) return;
     raf = requestAnimationFrame(function(){ raf=null; tut.render(); });
   }
+  /* 一步一步帶：點畫面任何地方＝下一步、右鍵＝上一步（鍵盤 →／← 也行）。
+     不必再追著導覽列的按鈕點——那條列為了不蓋住解說區會上下換位置。
+     按鈕、編號圓點、「會害你輸的七件事」視窗照舊各做各的。 */
+  function navOk(ev){
+    if(tut.state.mode!=="guided") return false;
+    var t=ev.target;
+    return !(t && t.closest && t.closest("button,a,input,select,textarea,#tutLayer .overlay"));
+  }
+  document.addEventListener("click", function(ev){
+    if(ev.button!==0 || !navOk(ev)) return;
+    if(tut.state.i < tut.STEPS.length-1) tut.go(1);
+  }, true);
+  document.addEventListener("contextmenu", function(ev){
+    if(!navOk(ev)) return;
+    ev.preventDefault();
+    if(tut.state.i > 0) tut.go(-1);
+  }, true);
+  document.addEventListener("keydown", function(ev){
+    // 按鈕的 Space／方向鍵與輸入控制項保留原生操作，只在非互動區翻頁。
+    if(!navOk(ev) || document.querySelector("#tutLayer .overlay")) return;
+    var k=ev.key, d = (k==="ArrowRight"||k==="ArrowDown"||k==="PageDown"||k===" ") ? 1
+                    : (k==="ArrowLeft"||k==="ArrowUp"||k==="PageUp") ? -1 : 0;
+    if(!d) return;
+    ev.preventDefault();
+    var j=tut.state.i+d; if(j>=0 && j<tut.STEPS.length) tut.goto(j);
+  }, true);
   try{
     window.addEventListener("resize", relayout);
     // 版面本身不捲（html,body 是 overflow:hidden），但三欄各有自己的內捲軸；

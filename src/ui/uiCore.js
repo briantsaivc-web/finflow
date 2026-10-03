@@ -1085,6 +1085,7 @@ ui.showMall = function(){
     box.appendChild(grid);
   });
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -1115,6 +1116,7 @@ ui.showReferPanel = function(cd){
     }));
   });
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -1199,6 +1201,7 @@ ui.showFullLog = function(){
   });
   box.appendChild(wrap);
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -1386,6 +1389,7 @@ ui.renderSheet = function(){
         var oo=el("div","opts");
         oo.appendChild(ui.optBtn("確定重返","先退一步，把引擎修好再來",function(){ ov.remove(); ui.dispatch({type:"RETURN_TO_WORK",playerId:ui.myId(),payload:null}); }));
         oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+        ui.cornerClose(bx,function(){ ov.remove(); });
         bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
       };
       gz.appendChild(rb2);
@@ -1573,6 +1577,7 @@ ui.renderSheet = function(){
         oo.appendChild(ui.optBtn("確定賣出",null,function(){ ov.remove();
           ui.dispatch({type:"SELL_ASSET",playerId:ui.myId(),payload:{assetId:a.instanceId}}); },true));
         oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+        ui.cornerClose(bx,function(){ ov.remove(); });
         bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
       };
       td4.appendChild(sb);
@@ -1747,6 +1752,7 @@ ui.renderSheet = function(){
               oo.appendChild(ui.optBtn("確定平倉",null,function(){ ov.remove();
                 ui.dispatch({type:"TRADE_STOCK",playerId:ui.myId(),payload:{symbol:def.symbol,side:"sell",assetId:mp.instanceId}}); },true));
               oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+              ui.cornerClose(bx,function(){ ov.remove(); });
               bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
             };
             mOp.appendChild(cb);
@@ -1817,6 +1823,7 @@ ui.renderSheet = function(){
           oo2.appendChild(ui.optBtn("確定平倉",null,function(){ ov2.remove();
             ui.dispatch({type:"FUT_CLOSE",playerId:ui.myId(),payload:{instanceId:a.instanceId}}); },true));
           oo2.appendChild(ui.optBtn(T("act.close"),null,function(){ ov2.remove(); }));
+          ui.cornerClose(bx2,function(){ ov2.remove(); });
           bx2.appendChild(oo2); ov2.appendChild(bx2); $("overlays").appendChild(ov2);
         };
         rowH.appendChild(bH);
@@ -1832,11 +1839,49 @@ ui.renderSheet = function(){
 /* ============================ 中央互動區 ================================ */
 // 決策 modal 開關（#center 已是 fixed 全螢幕；空的時候不可蓋住畫面）
 ui.modalOn = function(on){ var c=$("center"); c.classList.toggle("on", !!on); };
+/* 看盤面：決策卡蓋住整個畫面時，利率、景氣、股價都被遮罩糊掉，偏偏有些決定只能當下做。
+   按「👁 看盤面」把決策卡與遮罩暫時收起，背景只能看（可捲動）、不能點；
+   按「↩ 回到決定」或決策被解掉就恢復。純介面狀態：不送任何動作、不進 actionLog。 */
+ui.addPeekBtn = function(d){
+  var card=$("center").firstElementChild; if(!card || !d) return;
+  var row=el("div","peekRow"), b=el("button","mini","👁 看盤面");
+  b.title="暫時收起這張卡，看清楚背景的利率、景氣與股價（只能看，不能操作）";
+  b.onclick=function(){ ui.peekBoard(true, d.decisionId); };
+  row.appendChild(b); card.insertBefore(row, card.firstChild);
+};
+ui.peekBoard = function(on, decisionId){
+  document.body.classList.toggle("peek", !!on);
+  var bar=$("peekBar");
+  if(on){
+    ui._peekDec=decisionId;
+    if(!bar){
+      bar=el("div"); bar.id="peekBar";
+      bar.appendChild(el("span",null,"👁 看盤面中——只能看，不能操作"));
+      var back=el("button","act","↩ 回到決定"); back.onclick=function(){ ui.peekBoard(false); };
+      bar.appendChild(back); document.body.appendChild(bar);
+    }
+  } else {
+    ui._peekDec=undefined;
+    if(bar) bar.remove();
+  }
+};
+// 看盤面期間攔下背景的點擊與輸入框聚焦（捲動不受影響）；全場公告與提示照常可點
+document.addEventListener("click", function(e){
+  if(!document.body.classList.contains("peek")) return;
+  if(e.target.closest && e.target.closest("#peekBar,#bcast,#toast")) return;
+  e.stopPropagation(); e.preventDefault();
+  var bar=$("peekBar"); if(bar){ bar.classList.remove("nudge"); void bar.offsetWidth; bar.classList.add("nudge"); }
+}, true);
+document.addEventListener("focusin", function(e){
+  if(document.body.classList.contains("peek") && !(e.target.closest && e.target.closest("#peekBar"))) e.target.blur();
+}, true);
 ui.renderCenter = function(){
   var S=ui.S, c=$("center"), bc=$("boardCenter"), tray=$("bkTray");
   if(ui._autoRollT){ clearInterval(ui._autoRollT); ui._autoRollT=null; }   // 重繪即重置自動骰計時
   c.innerHTML=""; bc.innerHTML=""; ui.modalOn(false);
   tray.classList.add("hide"); tray.innerHTML="";
+  // 看盤面只屬於「那一張」決策卡：決策解掉或換了一張，就自動回到正常畫面
+  if(ui._peekDec!==undefined && !(S.pendingDecision && S.pendingDecision.decisionId===ui._peekDec)) ui.peekBoard(false);
   if(S.over){ ui.showReport(); return; }
   var p=E.activePlayer(S);
 
@@ -1875,7 +1920,7 @@ ui.renderCenter = function(){
     var dOwn = S.pendingDecision;
     var dp = (dOwn && dOwn.playerId!==undefined && dOwn.playerId!==null && S.players[dOwn.playerId])
              ? S.players[dOwn.playerId] : p;
-    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); return;
+    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); ui.addPeekBtn(dOwn); return;
   }
   if(S.phase==="BOOKKEEPING"){ ui.modalOn(true); ui.renderBookkeeping(S,p); return; }
   // NPC 思考中：留在盤面中央，不擋畫面（走到這裡代表沒有任何人的決策或記帳懸置中）
@@ -1998,6 +2043,17 @@ function optBtn(label, sub, fn, rec){
   if(sub){ var s=el("small",null,sub); b.appendChild(s); } b.onclick=fn; return b;
 }
 ui.optBtn = optBtn;
+// 右上角 ✕：長面板（商城、進修、股市⋯⋯）不必捲到最底才關得掉。
+// 只掛在「底部關閉鈕＝單純收掉視窗」的面板上，onClose 跟底部那顆傳同一個動作，不碰遊戲狀態。
+ui.cornerClose = function(box, onClose){
+  var old=box.querySelector(":scope > .cornerX"); if(old) old.remove();
+  var w=el("div","cornerX"), b=el("button",null,"✕");
+  b.title=T("act.close"); b.setAttribute("aria-label",T("act.close")); b.onclick=onClose;
+  w.appendChild(b); box.insertBefore(w, box.firstChild);
+  // 標題別被 ✕ 蓋住；標題若包在一列裡（例如商城「標題＋現金／本輪可買」），整列一起讓位
+  var h=box.querySelector("h2");
+  if(h) (h.parentNode!==box ? h.parentNode : h).style.paddingRight="40px";
+};
 // 低現金破產風險警告：若此花費後現金低於一個月開銷，先跳警告再讓玩家決定
 ui.spendGuard = function(cashAfter, onProceed){
   var S=ui.S, p=S.players[ui.myId()], buffer=p.derived.totalExpenses||0;
@@ -3187,6 +3243,7 @@ ui.showPassiveBreakdown = function(p){
     : "被動收入已經蓋過每月總支出 "+M(exp)+"——你已經達成財務自由。"));
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -3301,6 +3358,7 @@ ui.showSkillMenu = function(p){
   }
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -3454,6 +3512,7 @@ ui.showDreamAlbum = function(pid){
   box.appendChild(grid);
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -3469,6 +3528,7 @@ ui.showDreamPhoto = function(p, n, got){
   box.appendChild(el("h2",null,got.ms||""));
   box.appendChild(el("div","sub","第 "+got.turn+" 輪"+(got.source==="blessing"?"　幸福感的回報：圓夢靈感 +1":(got.paid?"　投入資金推進":"　踩到自己夢想類別的聖地，免費 +1"))));
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -3520,6 +3580,7 @@ ui.showSkillWall = function(pid){
   }
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -3940,6 +4001,7 @@ ui.showWellbeingDetail = function(p){
   if(st.length){ var sr=el("div","flavor"); sr.style.color="var(--pos)"; sr.textContent="目前生效中："+st.join("　"); box.appendChild(sr); }
 
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4323,6 +4385,7 @@ ui.showAsset = function(a){
         ov.remove(); ui.dispatch({type:"CASHOUT_REFI",playerId:ui.myId(),payload:{assetId:a.instanceId}}); }));
   }
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4371,6 +4434,7 @@ ui.showLiability = function(l){
     }
   }
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4420,6 +4484,7 @@ ui.showDetails = function(p){
   }, function(l){ ui.showLiability(l); }));
   box.appendChild(wrap);
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4502,6 +4567,7 @@ ui.showJvPanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4541,6 +4607,7 @@ ui.showSyndicatePanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 ui.showSyndicateOffer = function(ps){
@@ -4760,6 +4827,7 @@ ui.showP2PPanel = function(rescueMode){
   refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -4781,6 +4849,7 @@ ui.showTradePanel = function(){
   box.appendChild(el("div","sub","把手上會生錢的資產開價賣給對手；對方（含電腦）會出價、還價或拒絕。有貸款的資產須先還清才能轉讓。"));
   if(!sellable.length){ box.appendChild(el("div","flavor","你目前沒有可轉讓的資產（有貸款的不能轉讓）。"));
     var b0=el("button","opt",T("act.close")); b0.onclick=function(){ ov.remove(); }; box.appendChild(b0);
+    ui.cornerClose(box,function(){ ov.remove(); });
     ov.appendChild(box); $("overlays").appendChild(ov); return; }
   var ALL={ id:null, name:"所有人", isNPC:false };   // V1：廣播報價（先搶先贏）
   var st={ asset:sellable[0], target:others[0], price:sellable[0]?sellable[0].marketValue:0 };
@@ -4826,6 +4895,7 @@ ui.showTradePanel = function(){
     ui.dispatch({type:"PROPOSE_TRADE",playerId:ui.myId(),payload:{sellerId:me.id,buyerId:st.target.id,assetId:st.asset.instanceId,price:st.price}});
   },true));
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -5478,6 +5548,7 @@ ui.showStockPanel = function(focusSymbol){
     "但風險也越押越重在同一個標的上。融資是借錢買股：賺賠都放大，跌破維持率會被強制平倉。"));
 
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
   // 從某一檔點進來時，捲到那一檔（其餘照樣在同一頁，往下捲就看得到）
   if(focusSymbol){ var f=box.querySelector("#stkFocus");

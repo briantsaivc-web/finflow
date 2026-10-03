@@ -931,6 +931,8 @@ var origCenter=ui.renderCenter;
 ui.renderCenter=function(){
   if(!ui.mp.mode || !ui.S) return origCenter();
   var S=ui.S;
+  // 等待他人時不會呼叫 origCenter；遠端更新換卡也必須清掉本機看盤面狀態。
+  if(ui._peekDec!==undefined && !(S.pendingDecision && S.pendingDecision.decisionId===ui._peekDec)) ui.peekBoard(false);
   if(S.over) return origCenter();
   var active=E.activePlayer(S);
   var mineTurn;

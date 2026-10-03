@@ -370,6 +370,23 @@ ol.tutPit li:first-child{color:var(--gold);font-weight:700}
   gap:10px;background:var(--panel);padding:2px 0 8px;margin:-2px 0 0;border-bottom:1px solid var(--line)}
 .panelTop h2{margin:0}
 .panelTop .act{flex:0 0 auto;padding:5px 12px;font-size:12.5px}
+/* 右上角 ✕（ui.cornerClose）：高度 0 的黏頂列，按鈕浮在面板右上角，捲動時一直看得到 */
+.cornerX{position:sticky;top:8px;z-index:5;height:0;overflow:visible}
+.cornerX button{position:absolute;top:-6px;right:-14px;width:34px;height:34px;border-radius:50%;
+  background:var(--panel2);border:1px solid var(--line2);color:var(--tx2);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.cornerX button:hover{color:var(--tx);border-color:var(--gold-d)}
+.cornerX button:active{background:var(--line2)}
+/* 看盤面（ui.peekBoard）：決策卡與遮罩暫時收起，底部浮一條「回到決定」 */
+.peekRow{display:flex;justify-content:flex-end;margin:-4px 0 6px}
+.peekRow .mini{color:var(--tx2)}
+body.peek #center{display:none!important}
+#peekBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:650;display:flex;align-items:center;gap:12px;
+  padding:8px 10px 8px 16px;border-radius:14px;background:rgba(22,32,46,.96);border:1px solid var(--gold-d);
+  color:var(--gold);font-size:var(--fs-sm);box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap}
+#peekBar .act{padding:7px 14px;color:var(--ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+#peekBar.nudge{animation:peekNudge .35s}
+@keyframes peekNudge{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 6px))}75%{transform:translateX(calc(-50% + 6px))}}
 /* S11：代打中的視覺提示——要讓人一眼看出現在不是自己在下決定 */
 #autopilotBar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;
   background:rgba(242,193,78,.14);border:1px solid var(--gold-d);color:var(--gold);
@@ -9717,6 +9734,7 @@ ui.showMall = function(){
     box.appendChild(grid);
   });
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -9747,6 +9765,7 @@ ui.showReferPanel = function(cd){
     }));
   });
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -9831,6 +9850,7 @@ ui.showFullLog = function(){
   });
   box.appendChild(wrap);
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -10018,6 +10038,7 @@ ui.renderSheet = function(){
         var oo=el("div","opts");
         oo.appendChild(ui.optBtn("確定重返","先退一步，把引擎修好再來",function(){ ov.remove(); ui.dispatch({type:"RETURN_TO_WORK",playerId:ui.myId(),payload:null}); }));
         oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+        ui.cornerClose(bx,function(){ ov.remove(); });
         bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
       };
       gz.appendChild(rb2);
@@ -10205,6 +10226,7 @@ ui.renderSheet = function(){
         oo.appendChild(ui.optBtn("確定賣出",null,function(){ ov.remove();
           ui.dispatch({type:"SELL_ASSET",playerId:ui.myId(),payload:{assetId:a.instanceId}}); },true));
         oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+        ui.cornerClose(bx,function(){ ov.remove(); });
         bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
       };
       td4.appendChild(sb);
@@ -10379,6 +10401,7 @@ ui.renderSheet = function(){
               oo.appendChild(ui.optBtn("確定平倉",null,function(){ ov.remove();
                 ui.dispatch({type:"TRADE_STOCK",playerId:ui.myId(),payload:{symbol:def.symbol,side:"sell",assetId:mp.instanceId}}); },true));
               oo.appendChild(ui.optBtn(T("act.close"),null,function(){ ov.remove(); }));
+              ui.cornerClose(bx,function(){ ov.remove(); });
               bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
             };
             mOp.appendChild(cb);
@@ -10449,6 +10472,7 @@ ui.renderSheet = function(){
           oo2.appendChild(ui.optBtn("確定平倉",null,function(){ ov2.remove();
             ui.dispatch({type:"FUT_CLOSE",playerId:ui.myId(),payload:{instanceId:a.instanceId}}); },true));
           oo2.appendChild(ui.optBtn(T("act.close"),null,function(){ ov2.remove(); }));
+          ui.cornerClose(bx2,function(){ ov2.remove(); });
           bx2.appendChild(oo2); ov2.appendChild(bx2); $("overlays").appendChild(ov2);
         };
         rowH.appendChild(bH);
@@ -10464,11 +10488,49 @@ ui.renderSheet = function(){
 /* ============================ 中央互動區 ================================ */
 // 決策 modal 開關（#center 已是 fixed 全螢幕；空的時候不可蓋住畫面）
 ui.modalOn = function(on){ var c=$("center"); c.classList.toggle("on", !!on); };
+/* 看盤面：決策卡蓋住整個畫面時，利率、景氣、股價都被遮罩糊掉，偏偏有些決定只能當下做。
+   按「👁 看盤面」把決策卡與遮罩暫時收起，背景只能看（可捲動）、不能點；
+   按「↩ 回到決定」或決策被解掉就恢復。純介面狀態：不送任何動作、不進 actionLog。 */
+ui.addPeekBtn = function(d){
+  var card=$("center").firstElementChild; if(!card || !d) return;
+  var row=el("div","peekRow"), b=el("button","mini","👁 看盤面");
+  b.title="暫時收起這張卡，看清楚背景的利率、景氣與股價（只能看，不能操作）";
+  b.onclick=function(){ ui.peekBoard(true, d.decisionId); };
+  row.appendChild(b); card.insertBefore(row, card.firstChild);
+};
+ui.peekBoard = function(on, decisionId){
+  document.body.classList.toggle("peek", !!on);
+  var bar=$("peekBar");
+  if(on){
+    ui._peekDec=decisionId;
+    if(!bar){
+      bar=el("div"); bar.id="peekBar";
+      bar.appendChild(el("span",null,"👁 看盤面中——只能看，不能操作"));
+      var back=el("button","act","↩ 回到決定"); back.onclick=function(){ ui.peekBoard(false); };
+      bar.appendChild(back); document.body.appendChild(bar);
+    }
+  } else {
+    ui._peekDec=undefined;
+    if(bar) bar.remove();
+  }
+};
+// 看盤面期間攔下背景的點擊與輸入框聚焦（捲動不受影響）；全場公告與提示照常可點
+document.addEventListener("click", function(e){
+  if(!document.body.classList.contains("peek")) return;
+  if(e.target.closest && e.target.closest("#peekBar,#bcast,#toast")) return;
+  e.stopPropagation(); e.preventDefault();
+  var bar=$("peekBar"); if(bar){ bar.classList.remove("nudge"); void bar.offsetWidth; bar.classList.add("nudge"); }
+}, true);
+document.addEventListener("focusin", function(e){
+  if(document.body.classList.contains("peek") && !(e.target.closest && e.target.closest("#peekBar"))) e.target.blur();
+}, true);
 ui.renderCenter = function(){
   var S=ui.S, c=$("center"), bc=$("boardCenter"), tray=$("bkTray");
   if(ui._autoRollT){ clearInterval(ui._autoRollT); ui._autoRollT=null; }   // 重繪即重置自動骰計時
   c.innerHTML=""; bc.innerHTML=""; ui.modalOn(false);
   tray.classList.add("hide"); tray.innerHTML="";
+  // 看盤面只屬於「那一張」決策卡：決策解掉或換了一張，就自動回到正常畫面
+  if(ui._peekDec!==undefined && !(S.pendingDecision && S.pendingDecision.decisionId===ui._peekDec)) ui.peekBoard(false);
   if(S.over){ ui.showReport(); return; }
   var p=E.activePlayer(S);
 
@@ -10507,7 +10569,7 @@ ui.renderCenter = function(){
     var dOwn = S.pendingDecision;
     var dp = (dOwn && dOwn.playerId!==undefined && dOwn.playerId!==null && S.players[dOwn.playerId])
              ? S.players[dOwn.playerId] : p;
-    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); return;
+    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); ui.addPeekBtn(dOwn); return;
   }
   if(S.phase==="BOOKKEEPING"){ ui.modalOn(true); ui.renderBookkeeping(S,p); return; }
   // NPC 思考中：留在盤面中央，不擋畫面（走到這裡代表沒有任何人的決策或記帳懸置中）
@@ -10630,6 +10692,17 @@ function optBtn(label, sub, fn, rec){
   if(sub){ var s=el("small",null,sub); b.appendChild(s); } b.onclick=fn; return b;
 }
 ui.optBtn = optBtn;
+// 右上角 ✕：長面板（商城、進修、股市⋯⋯）不必捲到最底才關得掉。
+// 只掛在「底部關閉鈕＝單純收掉視窗」的面板上，onClose 跟底部那顆傳同一個動作，不碰遊戲狀態。
+ui.cornerClose = function(box, onClose){
+  var old=box.querySelector(":scope > .cornerX"); if(old) old.remove();
+  var w=el("div","cornerX"), b=el("button",null,"✕");
+  b.title=T("act.close"); b.setAttribute("aria-label",T("act.close")); b.onclick=onClose;
+  w.appendChild(b); box.insertBefore(w, box.firstChild);
+  // 標題別被 ✕ 蓋住；標題若包在一列裡（例如商城「標題＋現金／本輪可買」），整列一起讓位
+  var h=box.querySelector("h2");
+  if(h) (h.parentNode!==box ? h.parentNode : h).style.paddingRight="40px";
+};
 // 低現金破產風險警告：若此花費後現金低於一個月開銷，先跳警告再讓玩家決定
 ui.spendGuard = function(cashAfter, onProceed){
   var S=ui.S, p=S.players[ui.myId()], buffer=p.derived.totalExpenses||0;
@@ -11819,6 +11892,7 @@ ui.showPassiveBreakdown = function(p){
     : "被動收入已經蓋過每月總支出 "+M(exp)+"——你已經達成財務自由。"));
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -11933,6 +12007,7 @@ ui.showSkillMenu = function(p){
   }
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -12086,6 +12161,7 @@ ui.showDreamAlbum = function(pid){
   box.appendChild(grid);
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -12101,6 +12177,7 @@ ui.showDreamPhoto = function(p, n, got){
   box.appendChild(el("h2",null,got.ms||""));
   box.appendChild(el("div","sub","第 "+got.turn+" 輪"+(got.source==="blessing"?"　幸福感的回報：圓夢靈感 +1":(got.paid?"　投入資金推進":"　踩到自己夢想類別的聖地，免費 +1"))));
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -12152,6 +12229,7 @@ ui.showSkillWall = function(pid){
   }
   var o=el("div","opts"); o.style.marginTop="10px";
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -12572,6 +12650,7 @@ ui.showWellbeingDetail = function(p){
   if(st.length){ var sr=el("div","flavor"); sr.style.color="var(--pos)"; sr.textContent="目前生效中："+st.join("　"); box.appendChild(sr); }
 
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -12955,6 +13034,7 @@ ui.showAsset = function(a){
         ov.remove(); ui.dispatch({type:"CASHOUT_REFI",playerId:ui.myId(),payload:{assetId:a.instanceId}}); }));
   }
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13003,6 +13083,7 @@ ui.showLiability = function(l){
     }
   }
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13052,6 +13133,7 @@ ui.showDetails = function(p){
   }, function(l){ ui.showLiability(l); }));
   box.appendChild(wrap);
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13134,6 +13216,7 @@ ui.showJvPanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13173,6 +13256,7 @@ ui.showSyndicatePanel = function(cd){
   rng.oninput=function(){ myShare=(+rng.value)/100; refresh(); }; refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),"回到原本的買/跳過",function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 ui.showSyndicateOffer = function(ps){
@@ -13392,6 +13476,7 @@ ui.showP2PPanel = function(rescueMode){
   refresh();
   o.appendChild(goBtn);
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -13413,6 +13498,7 @@ ui.showTradePanel = function(){
   box.appendChild(el("div","sub","把手上會生錢的資產開價賣給對手；對方（含電腦）會出價、還價或拒絕。有貸款的資產須先還清才能轉讓。"));
   if(!sellable.length){ box.appendChild(el("div","flavor","你目前沒有可轉讓的資產（有貸款的不能轉讓）。"));
     var b0=el("button","opt",T("act.close")); b0.onclick=function(){ ov.remove(); }; box.appendChild(b0);
+    ui.cornerClose(box,function(){ ov.remove(); });
     ov.appendChild(box); $("overlays").appendChild(ov); return; }
   var ALL={ id:null, name:"所有人", isNPC:false };   // V1：廣播報價（先搶先贏）
   var st={ asset:sellable[0], target:others[0], price:sellable[0]?sellable[0].marketValue:0 };
@@ -13458,6 +13544,7 @@ ui.showTradePanel = function(){
     ui.dispatch({type:"PROPOSE_TRADE",playerId:ui.myId(),payload:{sellerId:me.id,buyerId:st.target.id,assetId:st.asset.instanceId,price:st.price}});
   },true));
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -14110,6 +14197,7 @@ ui.showStockPanel = function(focusSymbol){
     "但風險也越押越重在同一個標的上。融資是借錢買股：賺賠都放大，跌破維持率會被強制平倉。"));
 
   var o=el("div","opts"); o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
   // 從某一檔點進來時，捲到那一檔（其餘照樣在同一頁，往下捲就看得到）
   if(focusSymbol){ var f=box.querySelector("#stkFocus");
@@ -14845,6 +14933,7 @@ ui.toggleAutopilot = function(){
     setTimeout(function(){ ui.tick(); }, 60);
   },true));
   oo.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(bx,function(){ ov.remove(); });
   bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
 };
 
@@ -15405,6 +15494,7 @@ ui.showText = function(s){
   ta.value=s; ta.style.cssText="width:100%;height:50vh;background:var(--ink);color:var(--tx);border:1px solid var(--line2);border-radius:10px;padding:10px;font-family:var(--mono);font-size:11px";
   box.appendChild(el("h2",null,"複製下面的內容")); box.appendChild(ta);
   var b=el("button","opt",T("act.close")); b.onclick=function(){ ov.remove(); };
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(b); ov.appendChild(box); $("overlays").appendChild(ov);
   ta.select();
 };
@@ -15522,6 +15612,7 @@ ns.devpanel = {
         ns.devpanel.build(); ov.remove(); ui.hint("已匯入","good");
       }catch(e){ ui.hint("JSON 格式有誤","warn"); } };
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(ok); box.appendChild(no); ov.appendChild(box); $("overlays").appendChild(ov);
   },
   slots: function(){
@@ -15543,6 +15634,7 @@ ns.devpanel = {
       row.appendChild(s); row.appendChild(l); box.appendChild(row);
     })(i); }
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(no); ov.appendChild(box); $("overlays").appendChild(ov);
   }
 };
@@ -15617,6 +15709,7 @@ ns.simui = {
       setTimeout(batch,0);
     };
     var no=el("button","opt",T("act.close")); no.style.marginTop="14px";
+    ui.cornerClose(box,function(){ ov.remove(); });
     no.onclick=function(){ ov.remove(); }; box.appendChild(no);
     ov.appendChild(box); $("overlays").appendChild(ov);
   }
@@ -21351,6 +21444,7 @@ ns.selftest = {
       tb.appendChild(tr); });
     box.appendChild(tb);
     var b=el("button","opt",T("act.close")); b.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(b); ov.appendChild(box); $("overlays").appendChild(ov);
   }
 };
@@ -21425,6 +21519,7 @@ ui.showRepayPicker = function(p){
       function(){ ov.remove(); ui.showLiability(l); }));
   });
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -21442,6 +21537,7 @@ ui.showLoanDialog = function(){
   if(cap<1){ box.appendChild(el("div","flavor","目前的信用額度不足以再借款。額度依你的月收入與信用評級計算（你目前為 "+cd.rating+" 級："+
       "無擔保負債不得超過月收入的 "+cd.dbr+" 倍），已借滿或收入偏低時就借不到。"));
     var b0=el("button","opt",T("act.close")); b0.onclick=function(){ ov.remove(); }; box.appendChild(b0);
+    ui.cornerClose(box,function(){ ov.remove(); });
     ov.appendChild(box); $("overlays").appendChild(ov); return; }
   var rate=E.rRate(S.macro.baseRate+E.cfg(S,"creditSpread")+cd.spread);
   var unsecured=0, totalDebt=0;
@@ -21474,6 +21570,7 @@ ui.showLoanDialog = function(){
   o.appendChild(function(){ var b=el("button","opt"); b.textContent="借款"; b.onclick=function(){
     ov.remove(); ui.dispatch({type:"TAKE_LOAN",playerId:ui.myId(),payload:{amount:amt}}); }; return b; }());
   o.appendChild(function(){ var b=el("button","opt"); b.textContent=T("act.close"); b.onclick=function(){ ov.remove(); }; return b; }());
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -21513,6 +21610,7 @@ ns.boot = function(){
     var oo=el("div","opts");
     oo.appendChild(optBtn("確定結束遊戲",null,function(){ ov.remove(); ui.dispatch({type:"END_GAME",playerId:ui.myId(),payload:null}); },true));
     oo.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+    ui.cornerClose(bx,function(){ ov.remove(); });
     bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
   };
   $("btnReport").onclick=function(){ if(ui.S){ ui._reported=false; ui.showReport(); } };
@@ -21752,6 +21850,8 @@ tut.open = function(){
   /* 載入自己＋#tut：子層會自己起示範局並畫熱點。
      file:// 下父層讀不進子層（opaque origin），所以互動全部在子層完成。 */
   fr.src = location.pathname + (location.search||"") + "#tut";
+  // 讓鍵盤 →／← 一開教學就有作用（不必先點一下示範畫面）
+  fr.addEventListener("load", function(){ try{ fr.contentWindow.focus(); }catch(e){} });
   ov.appendChild(fr);
   $("overlays").appendChild(ov);
 };
@@ -21985,7 +22085,7 @@ tut.bar = function(f, vh){
   next.onclick=function(){ if(free){ tut.goto(0); } else tut.go(1); };
   var lbl = ui.mkEl("span","lbl", free
       ? (tut.state.sel==null ? "自由模式——點編號看說明" : "點同一個編號可收起")
-      : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步"));
+      : ("第 "+(tut.state.i+1)+" / "+tut.STEPS.length+" 步　左鍵下一步・右鍵上一步"));
   var mode = ui.mkEl("button","act", free ? "🎯 一步一步帶" : "🖐 自由點");
   mode.onclick=function(){ tut.setMode(free?"guided":"free"); };
   var pit = ui.mkEl("button","act","⚠ 會害你輸的七件事");
@@ -22066,6 +22166,32 @@ tut.boot = function(){
     if(raf) return;
     raf = requestAnimationFrame(function(){ raf=null; tut.render(); });
   }
+  /* 一步一步帶：點畫面任何地方＝下一步、右鍵＝上一步（鍵盤 →／← 也行）。
+     不必再追著導覽列的按鈕點——那條列為了不蓋住解說區會上下換位置。
+     按鈕、編號圓點、「會害你輸的七件事」視窗照舊各做各的。 */
+  function navOk(ev){
+    if(tut.state.mode!=="guided") return false;
+    var t=ev.target;
+    return !(t && t.closest && t.closest("button,a,input,select,textarea,#tutLayer .overlay"));
+  }
+  document.addEventListener("click", function(ev){
+    if(ev.button!==0 || !navOk(ev)) return;
+    if(tut.state.i < tut.STEPS.length-1) tut.go(1);
+  }, true);
+  document.addEventListener("contextmenu", function(ev){
+    if(!navOk(ev)) return;
+    ev.preventDefault();
+    if(tut.state.i > 0) tut.go(-1);
+  }, true);
+  document.addEventListener("keydown", function(ev){
+    // 按鈕的 Space／方向鍵與輸入控制項保留原生操作，只在非互動區翻頁。
+    if(!navOk(ev) || document.querySelector("#tutLayer .overlay")) return;
+    var k=ev.key, d = (k==="ArrowRight"||k==="ArrowDown"||k==="PageDown"||k===" ") ? 1
+                    : (k==="ArrowLeft"||k==="ArrowUp"||k==="PageUp") ? -1 : 0;
+    if(!d) return;
+    ev.preventDefault();
+    var j=tut.state.i+d; if(j>=0 && j<tut.STEPS.length) tut.goto(j);
+  }, true);
   try{
     window.addEventListener("resize", relayout);
     // 版面本身不捲（html,body 是 overflow:hidden），但三欄各有自己的內捲軸；
@@ -22075,6 +22201,7 @@ tut.boot = function(){
 };
 
 })(ns);
+
 </script>
 <script>
 /* ============================================================================
@@ -23010,6 +23137,8 @@ var origCenter=ui.renderCenter;
 ui.renderCenter=function(){
   if(!ui.mp.mode || !ui.S) return origCenter();
   var S=ui.S;
+  // 等待他人時不會呼叫 origCenter；遠端更新換卡也必須清掉本機看盤面狀態。
+  if(ui._peekDec!==undefined && !(S.pendingDecision && S.pendingDecision.decisionId===ui._peekDec)) ui.peekBoard(false);
   if(S.over) return origCenter();
   var active=E.activePlayer(S);
   var mineTurn;
@@ -23087,6 +23216,7 @@ ui.renderPlayerCards=function(){
 
 
 })(ns);
+
 </script>
 
 

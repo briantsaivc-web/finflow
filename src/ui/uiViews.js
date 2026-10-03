@@ -720,6 +720,7 @@ ui.toggleAutopilot = function(){
     setTimeout(function(){ ui.tick(); }, 60);
   },true));
   oo.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(bx,function(){ ov.remove(); });
   bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
 };
 
@@ -1280,6 +1281,7 @@ ui.showText = function(s){
   ta.value=s; ta.style.cssText="width:100%;height:50vh;background:var(--ink);color:var(--tx);border:1px solid var(--line2);border-radius:10px;padding:10px;font-family:var(--mono);font-size:11px";
   box.appendChild(el("h2",null,"複製下面的內容")); box.appendChild(ta);
   var b=el("button","opt",T("act.close")); b.onclick=function(){ ov.remove(); };
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(b); ov.appendChild(box); $("overlays").appendChild(ov);
   ta.select();
 };
@@ -1397,6 +1399,7 @@ ns.devpanel = {
         ns.devpanel.build(); ov.remove(); ui.hint("已匯入","good");
       }catch(e){ ui.hint("JSON 格式有誤","warn"); } };
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(ok); box.appendChild(no); ov.appendChild(box); $("overlays").appendChild(ov);
   },
   slots: function(){
@@ -1418,6 +1421,7 @@ ns.devpanel = {
       row.appendChild(s); row.appendChild(l); box.appendChild(row);
     })(i); }
     var no=el("button","opt",T("act.close")); no.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(no); ov.appendChild(box); $("overlays").appendChild(ov);
   }
 };
@@ -1492,6 +1496,7 @@ ns.simui = {
       setTimeout(batch,0);
     };
     var no=el("button","opt",T("act.close")); no.style.marginTop="14px";
+    ui.cornerClose(box,function(){ ov.remove(); });
     no.onclick=function(){ ov.remove(); }; box.appendChild(no);
     ov.appendChild(box); $("overlays").appendChild(ov);
   }
@@ -7226,6 +7231,7 @@ ns.selftest = {
       tb.appendChild(tr); });
     box.appendChild(tb);
     var b=el("button","opt",T("act.close")); b.onclick=function(){ ov.remove(); };
+    ui.cornerClose(box,function(){ ov.remove(); });
     box.appendChild(b); ov.appendChild(box); $("overlays").appendChild(ov);
   }
 };
@@ -7300,6 +7306,7 @@ ui.showRepayPicker = function(p){
       function(){ ov.remove(); ui.showLiability(l); }));
   });
   o.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -7317,6 +7324,7 @@ ui.showLoanDialog = function(){
   if(cap<1){ box.appendChild(el("div","flavor","目前的信用額度不足以再借款。額度依你的月收入與信用評級計算（你目前為 "+cd.rating+" 級："+
       "無擔保負債不得超過月收入的 "+cd.dbr+" 倍），已借滿或收入偏低時就借不到。"));
     var b0=el("button","opt",T("act.close")); b0.onclick=function(){ ov.remove(); }; box.appendChild(b0);
+    ui.cornerClose(box,function(){ ov.remove(); });
     ov.appendChild(box); $("overlays").appendChild(ov); return; }
   var rate=E.rRate(S.macro.baseRate+E.cfg(S,"creditSpread")+cd.spread);
   var unsecured=0, totalDebt=0;
@@ -7349,6 +7357,7 @@ ui.showLoanDialog = function(){
   o.appendChild(function(){ var b=el("button","opt"); b.textContent="借款"; b.onclick=function(){
     ov.remove(); ui.dispatch({type:"TAKE_LOAN",playerId:ui.myId(),payload:{amount:amt}}); }; return b; }());
   o.appendChild(function(){ var b=el("button","opt"); b.textContent=T("act.close"); b.onclick=function(){ ov.remove(); }; return b; }());
+  ui.cornerClose(box,function(){ ov.remove(); });
   box.appendChild(o); ov.appendChild(box); $("overlays").appendChild(ov);
 };
 
@@ -7388,6 +7397,7 @@ ns.boot = function(){
     var oo=el("div","opts");
     oo.appendChild(optBtn("確定結束遊戲",null,function(){ ov.remove(); ui.dispatch({type:"END_GAME",playerId:ui.myId(),payload:null}); },true));
     oo.appendChild(optBtn(T("act.close"),null,function(){ ov.remove(); }));
+    ui.cornerClose(bx,function(){ ov.remove(); });
     bx.appendChild(oo); ov.appendChild(bx); $("overlays").appendChild(ov);
   };
   $("btnReport").onclick=function(){ if(ui.S){ ui._reported=false; ui.showReport(); } };
