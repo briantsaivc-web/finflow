@@ -1839,11 +1839,49 @@ ui.renderSheet = function(){
 /* ============================ 中央互動區 ================================ */
 // 決策 modal 開關（#center 已是 fixed 全螢幕；空的時候不可蓋住畫面）
 ui.modalOn = function(on){ var c=$("center"); c.classList.toggle("on", !!on); };
+/* 看盤面：決策卡蓋住整個畫面時，利率、景氣、股價都被遮罩糊掉，偏偏有些決定只能當下做。
+   按「👁 看盤面」把決策卡與遮罩暫時收起，背景只能看（可捲動）、不能點；
+   按「↩ 回到決定」或決策被解掉就恢復。純介面狀態：不送任何動作、不進 actionLog。 */
+ui.addPeekBtn = function(d){
+  var card=$("center").firstElementChild; if(!card || !d) return;
+  var row=el("div","peekRow"), b=el("button","mini","👁 看盤面");
+  b.title="暫時收起這張卡，看清楚背景的利率、景氣與股價（只能看，不能操作）";
+  b.onclick=function(){ ui.peekBoard(true, d.decisionId); };
+  row.appendChild(b); card.insertBefore(row, card.firstChild);
+};
+ui.peekBoard = function(on, decisionId){
+  document.body.classList.toggle("peek", !!on);
+  var bar=$("peekBar");
+  if(on){
+    ui._peekDec=decisionId;
+    if(!bar){
+      bar=el("div"); bar.id="peekBar";
+      bar.appendChild(el("span",null,"👁 看盤面中——只能看，不能操作"));
+      var back=el("button","act","↩ 回到決定"); back.onclick=function(){ ui.peekBoard(false); };
+      bar.appendChild(back); document.body.appendChild(bar);
+    }
+  } else {
+    ui._peekDec=undefined;
+    if(bar) bar.remove();
+  }
+};
+// 看盤面期間攔下背景的點擊與輸入框聚焦（捲動不受影響）；全場公告與提示照常可點
+document.addEventListener("click", function(e){
+  if(!document.body.classList.contains("peek")) return;
+  if(e.target.closest && e.target.closest("#peekBar,#bcast,#toast")) return;
+  e.stopPropagation(); e.preventDefault();
+  var bar=$("peekBar"); if(bar){ bar.classList.remove("nudge"); void bar.offsetWidth; bar.classList.add("nudge"); }
+}, true);
+document.addEventListener("focusin", function(e){
+  if(document.body.classList.contains("peek") && !(e.target.closest && e.target.closest("#peekBar"))) e.target.blur();
+}, true);
 ui.renderCenter = function(){
   var S=ui.S, c=$("center"), bc=$("boardCenter"), tray=$("bkTray");
   if(ui._autoRollT){ clearInterval(ui._autoRollT); ui._autoRollT=null; }   // 重繪即重置自動骰計時
   c.innerHTML=""; bc.innerHTML=""; ui.modalOn(false);
   tray.classList.add("hide"); tray.innerHTML="";
+  // 看盤面只屬於「那一張」決策卡：決策解掉或換了一張，就自動回到正常畫面
+  if(ui._peekDec!==undefined && !(S.pendingDecision && S.pendingDecision.decisionId===ui._peekDec)) ui.peekBoard(false);
   if(S.over){ ui.showReport(); return; }
   var p=E.activePlayer(S);
 
@@ -1882,7 +1920,7 @@ ui.renderCenter = function(){
     var dOwn = S.pendingDecision;
     var dp = (dOwn && dOwn.playerId!==undefined && dOwn.playerId!==null && S.players[dOwn.playerId])
              ? S.players[dOwn.playerId] : p;
-    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); return;
+    ui.modalOn(true); ui.decisionCard(S,dp,dOwn); ui.addPeekBtn(dOwn); return;
   }
   if(S.phase==="BOOKKEEPING"){ ui.modalOn(true); ui.renderBookkeeping(S,p); return; }
   // NPC 思考中：留在盤面中央，不擋畫面（走到這裡代表沒有任何人的決策或記帳懸置中）

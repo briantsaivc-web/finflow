@@ -368,6 +368,16 @@ ol.tutPit li:first-child{color:var(--gold);font-weight:700}
   display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .cornerX button:hover{color:var(--tx);border-color:var(--gold-d)}
 .cornerX button:active{background:var(--line2)}
+/* 看盤面（ui.peekBoard）：決策卡與遮罩暫時收起，底部浮一條「回到決定」 */
+.peekRow{display:flex;justify-content:flex-end;margin:-4px 0 6px}
+.peekRow .mini{color:var(--tx2)}
+body.peek #center{display:none!important}
+#peekBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:650;display:flex;align-items:center;gap:12px;
+  padding:8px 10px 8px 16px;border-radius:14px;background:rgba(22,32,46,.96);border:1px solid var(--gold-d);
+  color:var(--gold);font-size:var(--fs-sm);box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap}
+#peekBar .act{padding:7px 14px;color:var(--ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+#peekBar.nudge{animation:peekNudge .35s}
+@keyframes peekNudge{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 6px))}75%{transform:translateX(calc(-50% + 6px))}}
 /* S11：代打中的視覺提示——要讓人一眼看出現在不是自己在下決定 */
 #autopilotBar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;
   background:rgba(242,193,78,.14);border:1px solid var(--gold-d);color:var(--gold);
