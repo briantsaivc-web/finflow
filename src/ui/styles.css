@@ -361,6 +361,13 @@ ol.tutPit li:first-child{color:var(--gold);font-weight:700}
   gap:10px;background:var(--panel);padding:2px 0 8px;margin:-2px 0 0;border-bottom:1px solid var(--line)}
 .panelTop h2{margin:0}
 .panelTop .act{flex:0 0 auto;padding:5px 12px;font-size:12.5px}
+/* 右上角 ✕（ui.cornerClose）：高度 0 的黏頂列，按鈕浮在面板右上角，捲動時一直看得到 */
+.cornerX{position:sticky;top:8px;z-index:5;height:0;overflow:visible}
+.cornerX button{position:absolute;top:-6px;right:-14px;width:34px;height:34px;border-radius:50%;
+  background:var(--panel2);border:1px solid var(--line2);color:var(--tx2);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.cornerX button:hover{color:var(--tx);border-color:var(--gold-d)}
+.cornerX button:active{background:var(--line2)}
 /* S11：代打中的視覺提示——要讓人一眼看出現在不是自己在下決定 */
 #autopilotBar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;
   background:rgba(242,193,78,.14);border:1px solid var(--gold-d);color:var(--gold);
