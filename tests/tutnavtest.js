@@ -82,6 +82,20 @@ const TARGET = __path.resolve(process.argv[2] || __path.join(__dirname, '..', 'i
   await pg.click('#tutLayer .overlay button'); await settle();
   A(await step()===1 && !(await pg.$('#tutLayer .overlay')), '按「知道了」只關視窗、不翻頁');
 
+  // 鍵盤焦點在按鈕上時，空白鍵應啟動按鈕，不能被全域翻頁捷徑攔截。
+  await pg.locator('#tutLayer .tutBar button').filter({hasText:'自由點'}).focus();
+  await pg.keyboard.press('Space'); await settle();
+  A(await pg.evaluate(()=>ns.tutorial.state.mode)==='free', '聚焦自由點後按空白鍵應切換模式');
+  await pg.evaluate(()=>ns.tutorial.goto(1)); await settle();
+  await pg.locator('#tutLayer .tutBar button').filter({hasText:'會害你輸'}).focus();
+  await pg.keyboard.press('Space'); await settle();
+  A(await step()===1 && !!(await pg.$('#tutLayer .overlay')), '聚焦七件事後按空白鍵應開說明而不翻頁');
+  if(await pg.$('#tutLayer .overlay')) await pg.click('#tutLayer .overlay button');
+  await settle();
+  await pg.locator('#tutLayer .tutBar button:first-child').focus();
+  await pg.keyboard.press('Space'); await settle();
+  A(await step()===0, '聚焦上一步後按空白鍵應只退一步');
+
   // 7. 最後一步再點不出錯
   await pg.evaluate(()=>ns.tutorial.goto(ns.tutorial.STEPS.length-1)); await settle();
   const last=await step();

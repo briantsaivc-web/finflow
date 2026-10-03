@@ -494,7 +494,8 @@ tut.boot = function(){
     if(tut.state.i > 0) tut.go(-1);
   }, true);
   document.addEventListener("keydown", function(ev){
-    if(tut.state.mode!=="guided" || document.querySelector("#tutLayer .overlay")) return;
+    // 按鈕的 Space／方向鍵與輸入控制項保留原生操作，只在非互動區翻頁。
+    if(!navOk(ev) || document.querySelector("#tutLayer .overlay")) return;
     var k=ev.key, d = (k==="ArrowRight"||k==="ArrowDown"||k==="PageDown"||k===" ") ? 1
                     : (k==="ArrowLeft"||k==="ArrowUp"||k==="PageUp") ? -1 : 0;
     if(!d) return;

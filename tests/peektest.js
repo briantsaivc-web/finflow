@@ -95,6 +95,7 @@ const SHOTS = process.argv[3] ? __path.resolve(process.argv[3]) : null;
     A(s3.dec===dec0, vp.tag+' 回來的應是同一張決策');
     A(await pg.evaluate(()=>ns.ui.S.actionLog.length)===log0, vp.tag+' 看盤面來回不應產生任何動作');
 
+    const decisionState=await pg.evaluate(()=>ns.util.clone(ns.ui.S));
     // 5. 看盤面中決策被解掉 → 自動離開
     await pg.click('#center .peekRow button');
     await pg.evaluate(()=>{ const d=ns.ui.S.pendingDecision;
@@ -102,6 +103,29 @@ const SHOTS = process.argv[3] ? __path.resolve(process.argv[3]) : null;
     await pg.waitForTimeout(200);
     const s4=await pg.evaluate(()=>({ peek: document.body.classList.contains('peek'), bar: !!document.getElementById('peekBar') }));
     A(!s4.peek && !s4.bar, vp.tag+' 決策解掉後應自動離開看盤面');
+    // 多人遠端更新把決策切到另一位真人：等待分支也必須清掉看盤面。
+    await pg.evaluate(saved=>{
+      const ui=ns.ui;
+      ui.S=saved; ui.mp.mode=true; ui.mp.seat=0; ui._sumOff=true;
+      ui.render();
+      document.querySelectorAll('#overlays .overlay,#bcast > *,#toast > *').forEach(o=>o.remove());
+    }, decisionState);
+    await pg.click('#center .peekRow button');
+    const switched=await pg.evaluate(()=>{
+      const ui=ns.ui, d=ui.S.pendingDecision;
+      // 同回合可能排給多位真人（例如 STOCK_GAIN）；使用真實 reducer 推進隊列。
+      ui.S.decisionQueue.push(Object.assign({},d,{decisionId:d.decisionId+'-peer',playerId:1}));
+      const res=ns.engine.apply(ui.S,{type:'DECIDE',playerId:d.playerId,
+        payload:{decisionId:d.decisionId,optionId:'skip',params:{}}});
+      if(res.rejected) throw new Error('多人決策切換 fixture 被拒絕');
+      ui.S=res.state; ui.render();
+      return {owner:ui.S.pendingDecision&&ui.S.pendingDecision.playerId,
+        peek:document.body.classList.contains('peek'),bar:!!document.getElementById('peekBar')};
+    });
+    A(switched.owner===1, vp.tag+' 多人 fixture 應切到另一位真人的決策');
+    A(!switched.peek && !switched.bar, vp.tag+' 多人等待別人時應自動離開看盤面');
+    await pg.click('#btnMall',{force:true});
+    A(await pg.evaluate(()=>!!document.querySelector('#overlays .sheetbox')), vp.tag+' 決策切換後背景操作應恢復');
     await pg.close();
   }
 
